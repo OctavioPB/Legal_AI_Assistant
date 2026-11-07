@@ -67,6 +67,31 @@ below are the original one-liners and are Accepted.
   Evidence (Library-RAG ADR-038, 052): equal weight cost 6 pts recall@8 on the original set and
   synthesis recall 0.54 → 0.43–0.48. Pending: measure on the bilingual golden category (WS3.T06).
 
+- ADR-010 (Proposed, 2026-11-06): Deviations from the blueprint's DDL made while building WS1.
+  Context: the blueprint's `chunks.cite_id UNIQUE` is a cross-tenant existence oracle (tenant A
+  inserting a cite_id learns from the conflict that B holds it), its policies let a session
+  anchored on PUBLIC_CORPUS write it, and `current_setting('app.tenant_id')` raises (or, once
+  set, falls back to public rows) instead of failing closed. Decision: (a) `UNIQUE (tenant_id,
+  cite_id)` plus disjoint namespaces — client-file ids start `CF-`, public ids never do (CHECK);
+  (b) policies are fail-closed: no `app.tenant_id` ⇒ zero rows, public corpus included; (c) the
+  app role can never write PUBLIC_CORPUS, only `corpus_ingestor` (insert/update, no delete);
+  (d) a fourth role `legalai_provisioner` is the only writer of `tenants`; (e) product tables
+  (users, sessions, dossiers, audit_log) are tenant-private — the "own tenant OR PUBLIC_CORPUS"
+  read rule applies only to documents, doc_nodes and chunks; (f) every child row references its
+  parent through a composite FK that includes `tenant_id`; (g) `chunks.country/level/state_code/
+  municipality/doc_type/language/legal_domain/jurisdiction_id` are derived by trigger from the
+  document and the catalog; (h) the anchor is `set_config('app.tenant_id', :t, true)` because
+  `SET LOCAL` cannot take bind parameters. Consequence: citations to client files need the
+  `CF-` prefix (rag.md); client-file cite_ids may repeat across tenants. Pending: user
+  confirmation of (a) and (d), the two that change contracts other workstreams consume.
+- ADR-011 (Proposed, 2026-11-06): Retrieval plan shapes under RLS, measured on 3 000 chunks
+  (tests/test_schema.py). A selective jurisdiction filter is served by `chunks_prefilter_idx`
+  and the survivors are ranked exactly (no ANN); an unselective query uses HNSW with the RLS
+  predicate as a scan filter, so every vector query sets `hnsw.iterative_scan` per transaction
+  (else a filtered top-k can come back short). Consequence for WS3: do not force HNSW for
+  selective sessions (a municipal session is exact search, by design). Pending: re-measure at
+  corpus scale (WS2.T07 seed) and at 50M-chunk tripwire (ADR-001).
+
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →
 hybrid search (prefiltered) → RRF → rerank → τ check → parent expansion → prompt composer →

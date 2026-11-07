@@ -1,11 +1,31 @@
 # Multi-Tenancy / RLS Rules
 
 - Every tenant-scoped table: `tenant_id UUID NOT NULL` + ENABLE + FORCE ROW LEVEL SECURITY.
-- Read policy: own tenant OR PUBLIC_CORPUS ('00000000-0000-0000-0000-000000000001').
-- Write policy: own tenant only. Public corpus ingestion uses dedicated `corpus_ingestor` role.
-- App DB role: `legalai_app` — NO BYPASSRLS, no DDL. Migrations: `legalai_migrator` (separate creds).
-- Session anchor: `SET LOCAL app.tenant_id = :t` inside a transaction — never `SET` (session-wide),
-  never string interpolation.
+- Read policy on corpus tables (documents, doc_nodes, chunks): own tenant OR PUBLIC_CORPUS
+  ('00000000-0000-0000-0000-000000000001'). Product tables (users, sessions, dossiers, audit_log,
+  tenants): own tenant only, never public. Policies are templates in `app/db/rls_templates.sql`
+  rendered by `app/db/rls.py`; never hand-write a policy in a migration.
+- Fail closed: without `app.tenant_id` NOTHING is visible (public corpus included). The helper
+  `app_tenant_id()` returns NULL for unset/empty; every policy requires it to be non-NULL.
+- Write policy: own tenant only, and never PUBLIC_CORPUS. Public corpus ingestion uses the
+  dedicated `corpus_ingestor` role (INSERT/UPDATE of public rows only, no DELETE: reforms flip
+  `is_current`). Only `legalai_provisioner` writes `tenants`; PUBLIC_CORPUS row is immutable.
+- Roles (none superuser, none BYPASSRLS): `legalai_app` (DML under RLS, no DDL), `legalai_migrator`
+  (owns the schema; separate creds; also subject to FORCE RLS), `corpus_ingestor`,
+  `legalai_provisioner`. Created by `docker/initdb/00-roles.sh`; extensions by `01-bootstrap-db.sql`.
+  Data migrations that must touch tenant rows run as an explicit, reviewed superuser step.
+- Session anchor: `app.tenant_id` is bound per transaction with `set_config('app.tenant_id', :t,
+  true)` (the transaction-local equivalent of `SET LOCAL`, which cannot take bind parameters) via
+  `app/db/session.py::tenant_transaction` / `tenant_session` — never `SET` (session-wide), never
+  string interpolation. Those helpers reject non-UUIDs and PUBLIC_CORPUS unless `allow_public`.
+- Every cross-table reference carries `tenant_id` in a composite FK, so a row can never point at
+  another tenant's row. `cite_id` is unique per tenant and client-file ids are prefixed `CF-`
+  (no cross-tenant existence oracle, no shadowing of public ids). `audit_log` is append-only for
+  every role (privileges + trigger).
+- Known limit: `app.tenant_id` is a plain setting. RLS defends against application bugs and
+  missing filters, not against arbitrary SQL executed AS `legalai_app` (e.g. SQL injection could
+  call `set_config`). Mitigation today: parameterized queries only, no raw SQL from request data.
+  Tighter option for the enterprise tier: signed context verified in-database (future ADR).
 - Object storage: `s3://bucket/{tenant_id}/...` with IAM policy mirroring RLS. Presigned URLs only.
 - LiteLLM budgets/rate limits keyed by tenant_id (team = tenant).
 - REQUIRED TEST: `tests/test_tenant_isolation.py` seeds tenants A/B with overlapping content and

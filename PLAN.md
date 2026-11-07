@@ -1,7 +1,7 @@
 # PLAN.md — Legal AI Assistant: de cero a demo funcional
 
 Estados (columna implícita; se marca en el ID o en el Log): `[ ]` pendiente · `[~]` en curso ·
-`[x]` hecho · `[-]` descartado (con ADR o nota). **Fase activa: WS0** (diseño completo, sin código).
+`[x]` hecho · `[-]` descartado (con ADR o nota). **Fase activa: WS0 → WS2** (WS1 hecho y probado contra Postgres real; WS0.T01/T04–T10 pendientes).
 Principio de orden: primero un recuperador **medido sin LLM**, luego generación sobre una
 capa de retrieval que ya demostró su valor. Toda medición registra ambos números (antes/después).
 
@@ -26,8 +26,8 @@ verificadas, refusal estructurado visible en UI, y golden suite v1 en verde.
 | ID | Task | deps | DoD |
 |---|---|---|---|
 | WS0.T01 | Scaffold monorepo (`app/` FastAPI + `web/` Next.js), `uv init`, lockfile, ruff, pre-commit | — | `uv sync && uv run pytest` corre en limpio; CI (lint+tests) en verde |
-| WS0.T02 | `docker-compose` con Postgres 16 + pgvector + Redis; healthchecks | T01 | `docker compose up -d` deja `psql` con `CREATE EXTENSION vector; ltree` disponibles |
-| WS0.T03 | Alembic con doble rol (`legalai_migrator` / `legalai_app` sin BYPASSRLS) | T02 | Migración vacía aplica con migrator; app role no puede DDL (test) |
+| WS0.T02 `[x]` | `docker-compose` con Postgres 16 + pgvector + Redis; healthchecks | T01 | `docker compose up -d` deja `psql` con `CREATE EXTENSION vector; ltree` disponibles |
+| WS0.T03 `[x]` | Alembic con doble rol (`legalai_migrator` / `legalai_app` sin BYPASSRLS) | T02 | Migración vacía aplica con migrator; app role no puede DDL (test) |
 | WS0.T04 | Esqueleto CI: pipeline lint → unit → isolation tests → golden suite (placeholder) | T01 | Pipeline definido; gates documentados aunque suites estén vacías |
 | WS0.T05 | `Brand.md` inicial: paleta, tipografía, tono, componentes base, reglas de render de citas y del bloque `<insuficiente>` | — | `Brand.md` en raíz; linkeado desde CLAUDE.md y `.claude/rules/style.md` |
 | WS0.T06 | Módulo de settings tipado (pydantic-settings): τ, k, RRF k, presupuestos, umbrales de chunk, retries, aliases; sin valores mágicos en código. `Protocol`s `Embedder`/`Reranker`/`LLMClient`/`ObjectStore` con fakes | T01 | Test falla si un umbral aparece como literal en `app/rag`; suite unit usa solo fakes (`tests/fakes.py` determinista); settings se validan al arrancar (presupuesto de contexto + respuesta ≤ ventana por alias; `*_max_tokens` por llamada); `mypy --strict` en CI |
@@ -40,11 +40,11 @@ verificadas, refusal estructurado visible en UI, y golden suite v1 en verde.
 
 | ID | Task | deps | DoD |
 |---|---|---|---|
-| WS1.T01 | Migración: `jurisdictions` (catálogo cerrado) + seed MX (federal, 32 estados, municipios demo) y US (federal, CA) | WS0.T03 | Tabla poblada; constraint UNIQUE verificado |
-| WS1.T02 | Migraciones: `documents`, `doc_nodes` (ltree), `chunks` (vector 1024, tsvector generado, columnas jurisdiccionales desnormalizadas) + índices (compuesto prefilter, GIN, HNSW) | T01 | `EXPLAIN` de un prefilter usa el índice compuesto; HNSW creado |
-| WS1.T03 | RLS: políticas read/write en todas las tablas tenant-scoped + `FORCE`; tenant sintético `PUBLIC_CORPUS`; middleware `SET LOCAL app.tenant_id` | T02 | Política visible en `\d+`; query sin contexto devuelve 0 filas |
-| WS1.T04 | Test harness de aislamiento (`tests/test_tenant_isolation.py`): tenants A/B, intersección vacía, registro de tablas obligatorio | T03 | Test CI-blocking en verde; falla si una tabla nueva carece de políticas |
-| WS1.T05 | Tablas de producto: `tenants`, `users`, `sessions`, `dossiers`, `audit_log` (append-only) | T03 | CRUD mínimo bajo RLS; audit_log sin UPDATE/DELETE (revoke + test) |
+| WS1.T01 `[x]` | Migración: `jurisdictions` (catálogo cerrado) + seed MX (federal, 32 estados, municipios demo) y US (federal, CA) | WS0.T03 | Tabla poblada; constraint UNIQUE verificado |
+| WS1.T02 `[x]` | Migraciones: `documents`, `doc_nodes` (ltree), `chunks` (vector 1024, tsvector generado, columnas jurisdiccionales desnormalizadas) + índices (compuesto prefilter, GIN, HNSW) | T01 | `EXPLAIN` de un prefilter usa el índice compuesto; HNSW creado |
+| WS1.T03 `[x]` | RLS: políticas read/write en todas las tablas tenant-scoped + `FORCE`; tenant sintético `PUBLIC_CORPUS`; middleware `SET LOCAL app.tenant_id` | T02 | Política visible en `\d+`; query sin contexto devuelve 0 filas |
+| WS1.T04 `[x]` | Test harness de aislamiento (`tests/test_tenant_isolation.py`): tenants A/B, intersección vacía, registro de tablas obligatorio | T03 | Test CI-blocking en verde; falla si una tabla nueva carece de políticas |
+| WS1.T05 `[x]` | Tablas de producto: `tenants`, `users`, `sessions`, `dossiers`, `audit_log` (append-only) | T03 | CRUD mínimo bajo RLS; audit_log sin UPDATE/DELETE (revoke + test) |
 
 ## WS2 — Ingesta (Docling → árbol jurídico → chunks)
 
@@ -149,5 +149,6 @@ WS3.T04 calibración de τ, WS5.T06 protocolo) preceden a cualquier optimizació
 
 | Fecha | WS | Cambio |
 |---|---|---|
+| 2026-11-06 | WS1 (+WS0.T02/T03) | WS1 completo: `docker-compose` (pgvector 0.8.0-pg16 + redis), 4 roles sin BYPASSRLS (`legalai_migrator`, `legalai_app`, `corpus_ingestor`, `legalai_provisioner`), Alembic 0001–0004 (catálogos MX/US, corpus con ltree/HNSW/tsvector con `unaccent`, RLS ENABLE+FORCE en 8 tablas, producto + `audit_log` append-only), `tenant_transaction` con `set_config(...,true)`, modelos SQLAlchemy. 66 tests contra Postgres real; 4 mutaciones de RLS verificadas (todas detectadas). Hallazgos: ver ADR-010/011. Pendiente de confirmar: ADR-010. |
 | 2026-11-02 | — | Segunda pasada a Library-RAG (scripts, config, indexador, runner de eval, validador de citas, doctor, reset, tests/fakes). Añadido: WS0.T09 `doctor`, WS0.T10 bootstrap idempotente; DoDs de WS0.T06, WS2.T06, WS4.T01, WS5.T06; reglas de determinismo, plegado de acentos, validador puro, detección de refusals en prosa, settings validados, pin de modelos, run record/preflight/varianza de eval, contrato de corrida de ingesta; lecciones 31–42 en `docs/lessons-from-library-rag.md`. |
 | 2026-11-02 | — | Revisión de Library-RAG (README, CLAUDE, DECISIONS, PLAN, reporte académico, skills). Incorporadas lecciones: invariantes 5–6 en CLAUDE.md, ADR-006…009 (Proposed), reglas de chunker/validador/retrieval ampliadas, skills `decision-record` y `legal-chunking`, `eval-runner` con protocolo antes/después y autoría de golden; tareas WS0.T06–T08, WS2.T08–T10, WS3.T07, WS5.T06–T07, WS6.T08, WS7.T05–T06; `docs/lessons-from-library-rag.md`. |

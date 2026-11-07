@@ -55,7 +55,8 @@ uv run python -m app.doctor               # executable invariants: RLS/roles/ext
 scripts/dev-up.sh | scripts/dev-up.ps1    # idempotent bootstrap: compose, migrate, seed, doctor (WS0.T10)
 uv run mypy app                           # strict typing
 
-uv run pytest                             # full suite (unit tests run with sockets disabled; LLM/embedder mocked)
+uv run pytest                             # full suite: needs `docker compose up -d postgres redis` (an unreachable DB FAILS, never skips);
+                                          # sockets disabled except loopback; LLM/embedder are fakes
 uv run pytest tests/test_tenant_isolation.py       # cross-tenant leak test (must pass ALWAYS)
 uv run pytest tests/test_jurisdiction_predicate.py # property tests for the hard pre-filter
 

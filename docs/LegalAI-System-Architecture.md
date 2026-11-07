@@ -117,15 +117,16 @@ El estado de sesión **no vive en el prompt del usuario** — vive en un objeto 
 class SessionContext(BaseModel):
     tenant_id: UUID
     language: Literal["es-MX", "en-US"]
-    jurisdiction: JurisdictionSelector   # validado contra catálogo
+    jurisdiction: JurisdictionSelector  # validado contra catálogo
     persona: Literal["labor", "criminal", "corporate_finance", "general"]
     workflow: Literal["dossier_builder", "adversarial_counterpart"]
+
 
 class JurisdictionSelector(BaseModel):
     country: Literal["MX", "US"]
     level_scope: list[Literal["federal", "state", "municipal"]]
-    state_code: str | None      # ej. "NL", "JAL", "CDMX" / "CA", "NY"
-    municipality: str | None    # ej. "Monterrey", "Guadalajara"
+    state_code: str | None  # ej. "NL", "JAL", "CDMX" / "CA", "NY"
+    municipality: str | None  # ej. "Monterrey", "Guadalajara"
 ```
 
 Reglas duras en la capa API:
@@ -226,6 +227,18 @@ CREATE INDEX chunks_hnsw_idx      ON chunks USING hnsw (embedding vector_cosine_
                                    WITH (m = 16, ef_construction = 128);
 ```
 
+> **Implementación (migraciones 0001–0004, 2026-11-06).** El DDL ejecutable vive en
+> `app/db/migrations/versions/`; difiere de este esquema ilustrativo en lo siguiente (ADR-010/011):
+> `chunks.content` se divide en `text` (slice exacto de la fuente), `breadcrumb` y `embedded_text`;
+> se añaden `is_navigation`, `char_start/char_end`, `embedding_model`, `embedding_revision`,
+> `chunker_version`, `chunk_thresholds` (invariante 5); `cite_id` es único **por tenant**
+> (`UNIQUE (tenant_id, cite_id)`) y los ids de expedientes llevan el prefijo `CF-`; los hijos
+> referencian a su padre con FK compuestas que incluyen `tenant_id`; las columnas jurisdiccionales
+> desnormalizadas de `chunks` las deriva un trigger desde el documento y el catálogo; el tsvector
+> usa las configuraciones `legal_es`/`legal_en` (con `unaccent`) y pondera breadcrumb (A) y texto
+> (B); `UNIQUE (country, level, state_code, municipality)` es `NULLS NOT DISTINCT`; y el catálogo
+> incluye `personas` y los nombres es/en de cada jurisdicción.
+
 Notas de diseño:
 
 - **`cite_id` es el contrato del sistema anti-alucinación**: es inmutable, humano-legible y versionado. El LLM cita `cite_id`s; el validator los verifica contra el set recuperado; el frontend los resuelve a deep-links del PDF original.
@@ -272,10 +285,16 @@ WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 Las mismas políticas se replican en `documents`, `doc_nodes`, `dossiers`, `audit_log`. El middleware de FastAPI abre cada transacción con:
 
 ```python
-async with db.begin():
-    await db.execute(text("SET LOCAL app.tenant_id = :t"), {"t": str(ctx.tenant_id)})
-    # ... toda la consulta corre bajo RLS; SET LOCAL muere con la transacción
+with engine.begin() as conn:
+    conn.execute(text("SELECT set_config('app.tenant_id', :t, true)"), {"t": str(ctx.tenant_id)})
+    # ... toda la consulta corre bajo RLS; el valor muere con la transacción (== SET LOCAL)
 ```
+
+> `SET LOCAL` no admite parámetros enlazados (es una sentencia de utilidad), por lo que el ancla
+> implementada es `set_config(..., true)`, su equivalente transaccional y parametrizado. Las
+> políticas implementadas son **fail-closed** (sin `app.tenant_id` no se ve nada, ni el corpus
+> público), el rol de la app nunca escribe `PUBLIC_CORPUS`, y las tablas de producto (`users`,
+> `sessions`, `dossiers`, `audit_log`) son privadas del tenant, sin lectura pública (ADR-010).
 
 ### 4.3 Por qué esto es "rock-solid" (y qué lo complementa)
 

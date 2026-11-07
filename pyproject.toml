@@ -1,0 +1,54 @@
+[project]
+name = "legal-ai-assistant"
+version = "0.1.0"
+description = "Multi-tenant legal research SaaS: verifiable citations, hard jurisdiction pre-filtering, structured refusal"
+requires-python = ">=3.12"
+dependencies = [
+    "sqlalchemy>=2.0.36",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "pydantic-settings>=2.6",
+    "pgvector>=0.3.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-socket>=0.7",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[tool.uv]
+package = false   # `app` is run from the repo root, not installed
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+# Network is blocked except loopback (Postgres/Redis in docker compose); providers are always fakes (style.md).
+addopts = "--disable-socket --allow-hosts=127.0.0.1,localhost,::1 -m 'not live'"
+markers = ["live: reaches real providers; never in default CI"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+# `›` is the breadcrumb separator of legal hierarchy paths (rag.md).
+allowed-confusables = ["›"]
+
+[tool.mypy]
+strict = true
+packages = ["app"]
+plugins = []
+
+[[tool.mypy.overrides]]
+module = ["pgvector.*"]
+ignore_missing_imports = true
+
+[tool.ruff.lint.per-file-ignores]
+# SQL strings and test tables read better unwrapped.
+"app/db/migrations/versions/*.py" = ["E501"]
+"app/db/models.py" = ["E501"]
+"tests/*.py" = ["E501", "RUF012", "SIM117", "S608"]

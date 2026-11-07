@@ -1,0 +1,35 @@
+# Dev infrastructure (WS0.T02). Roles/extensions are created by docker/initdb on first start.
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-superuser-only}
+      POSTGRES_DB: legalai
+      LEGALAI_MIGRATOR_PASSWORD: ${LEGALAI_MIGRATOR_PASSWORD:-dev-migrator}
+      LEGALAI_APP_PASSWORD: ${LEGALAI_APP_PASSWORD:-dev-app}
+      LEGALAI_INGESTOR_PASSWORD: ${LEGALAI_INGESTOR_PASSWORD:-dev-ingestor}
+      LEGALAI_PROVISIONER_PASSWORD: ${LEGALAI_PROVISIONER_PASSWORD:-dev-provisioner}
+    ports:
+      - "127.0.0.1:${LEGALAI_PG_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d legalai"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

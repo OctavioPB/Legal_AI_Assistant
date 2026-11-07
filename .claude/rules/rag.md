@@ -91,3 +91,8 @@
   NLI/judge tier is a net, and its agreement with lawyer grading is measured and logged
   (`eval-runner` skill) before it is allowed to gate anything.
 - cite_id format: `{COUNTRY}-{SCOPE}-{CODE}-{NODE}-v{VERSION}` e.g. `MX-FED-LFT-ART47-FRACII-v2025.06`.
+  Client-file chunks use the disjoint namespace `CF-{FILE}-{NODE}` (DB CHECK, ADR-010); a cite_id
+  is unique per tenant, and the validator only ever resolves ids inside THIS query's retrieved set.
+- Vector queries set `hnsw.iterative_scan = 'relaxed_order'` per transaction (ADR-011). A selective
+  jurisdiction filter is answered by the prefilter index with exact ranking; HNSW serves the
+  unselective case. Do not "fix" the former into an ANN scan.
