@@ -39,3 +39,12 @@
   isolation test, and prompts/fragments in traces are subject to the tenant's retention policy.
 - Adding a new table? Copy the policy pair from `app/db/rls_templates.sql`; add it to the
   isolation test's table registry — the test fails if a tenant-scoped table lacks policies.
+
+## Implementation notes (WS7)
+- `app/tenancy/stores.py` is the single registry of tenant data stores (kinds in `DECLARED_KINDS`:
+  postgres, object_storage, cache, traces, llm_gateway, job_queue). `StoreRegistry.offboard` refuses to run
+  with a declared kind unregistered and reports what remains per store. Postgres erasure runs on a
+  privileged engine; the audit log is retained unless erasure is explicit (ADR-013).
+- `app/storage/objects.py`: keys are always `{tenant_id}/{validated name}`; presigned URLs are for one key,
+  GET only, at most 15 minutes; `iam_policy` mirrors RLS (the bucket policy is the real guarantee).
+- Traces (`app/observability/trace.py`) carry the tenant and are an erasable store.

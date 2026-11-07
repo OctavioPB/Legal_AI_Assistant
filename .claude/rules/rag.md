@@ -96,3 +96,13 @@
 - Vector queries set `hnsw.iterative_scan = 'relaxed_order'` per transaction (ADR-011). A selective
   jurisdiction filter is answered by the prefilter index with exact ranking; HNSW serves the
   unselective case. Do not "fix" the former into an ANN scan.
+- Context assembly (WS3.T05): hits that share a parent article are deduped into ONE `<fragmento
+  cite_id="FIRST" also="OTHER ..." cita="...">`; every id in `cite_id`/`also` is in the retrieved set
+  the validator checks. The budget is measured on the RENDERED context (tags included); an article
+  that does not fit falls back to the chunk text, then assembly stops. `<fragmento` inside statute
+  text is neutralized (`&lt;`); everything else stays verbatim.
+- `refusal_tau` defaults to None and the gate refuses to run on it: tau is calibrated (ADR-007).
+- Validator implementation (WS5.T01/T02): `app/validation/`. The verbatim check runs against the fragment
+  cited IN THE SAME SENTENCE (a quote that exists in a different retrieved fragment still fails); sentence
+  terminators inside quotation marks never split a unit. Only the exact `<insuficiente>` block is a model
+  refusal, and even then its content is discarded: the system emits `<insuficiente>{reason_key}</insuficiente>`.

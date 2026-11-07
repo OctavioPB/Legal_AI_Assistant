@@ -9,6 +9,12 @@ dependencies = [
     "alembic>=1.14",
     "pydantic-settings>=2.6",
     "pgvector>=0.3.6",
+    "docling>=2.148.0",
+    "jinja2>=3.1.6",
+    "pyyaml>=6.0.3",
+    "fastapi>=0.162.2",
+    "uvicorn[standard]>=0.54.0",
+    "pyjwt>=2.15.1",
 ]
 
 [dependency-groups]
@@ -17,6 +23,7 @@ dev = [
     "pytest-socket>=0.7",
     "ruff>=0.8",
     "mypy>=1.13",
+    "types-pyyaml>=6.0.12.20261103",
 ]
 
 [tool.uv]
@@ -52,3 +59,9 @@ ignore_missing_imports = true
 "app/db/migrations/versions/*.py" = ["E501"]
 "app/db/models.py" = ["E501"]
 "tests/*.py" = ["E501", "RUF012", "SIM117", "S608"]
+# imports the `corpus` fixture from test_retrieval and uses it as a parameter name
+"tests/test_chat_service.py" = ["F811"]
+"tests/test_api.py" = ["F811"]
+"app/doctor.py" = ["E501"]
+"evals/probes/make_probes.py" = ["E501"]
+"evals/calibrate_tau.py" = ["E501", "RUF028"]  # report lines read better unwrapped  # one check per line reads better than wrapped message strings

@@ -8,3 +8,5 @@ __pycache__/
 *.egg-info/
 evals/runs/
 data/corpus/raw/
+data/corpus/text/
+.demo-credentials

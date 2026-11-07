@@ -171,6 +171,7 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(Text)
     role: Mapped[str] = mapped_column(Text, server_default="member")
     preferred_language: Mapped[str] = mapped_column(Text, server_default="es-MX")
+    password_hash: Mapped[str | None] = mapped_column(Text)  # scrypt string, see app/api/auth.py
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

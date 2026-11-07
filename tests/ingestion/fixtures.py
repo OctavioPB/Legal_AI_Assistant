@@ -52,3 +52,35 @@ FIXTURES: dict[str, str] = {
     + "\n\n".join(f"Párrafo {i} {' '.join(['texto'] * 150)}" for i in range(6)),
     "braces_and_markup": f"Artículo 60.- Texto con {{llaves}} 100% <b>marcas</b> [cite: X] {LONG}",
 }
+
+FIXTURES.update(
+    {
+        # state codes put the reform annotation on the same line, before the marker
+        "lead_annotation_abbrev": (
+            f"(REFORMADO, P.O. 13 DE OCTUBRE DE 2000) Art. 22.- Persona es todo titular. {LONG}\n"
+            f"(ADICIONADO, P.O. 13 DE OCTUBRE DE 2000) Art. 22 Bis.- Son sujetos de derecho. {LONG}\n"
+            f"Art. 21 Bis I.- Primera regla. {LONG}\nArt. 1o.- Texto. {LONG}"
+        ),
+        "ordinal_o_bis_and_n_tilde": (
+            f"Artículo 3o. Bis.- Definiciones. {LONG}\nArtículo 353-Ñ.- Sindicatos. {LONG}\n"
+            f"Artículo 153-F Bis. Los patrones. {LONG}"
+        ),
+        "fraccion_with_letter_suffix": (
+            f"Artículo 73.- Facultades:\nXXIX. Para expedir. {LONG}\nXXIX-A. Para otra cosa. {LONG}\n"
+            f"XXIX-Ñ. Para algo más. {LONG}\nXXX. Final. {LONG}"
+        ),
+        "apartados": (
+            "Artículo 123.- Toda persona tiene derecho al trabajo.\n"
+            f"A. Entre los obreros:\nI. La duración. {LONG}\nII. La jornada. {LONG}\n"
+            f"B. Entre los Poderes de la Unión:\nI. La jornada diaria. {LONG}\nC. Otro apartado. {LONG}"
+        ),
+        "second_list_restarts_numbering": (
+            f"Artículo 139.- Se impondrá pena:\nI. Primera. {LONG}\nII. Segunda. {LONG}\n\n"
+            f"Las sanciones se aumentarán cuando además:\n\nI. El delito sea grave. {LONG}\n"
+            f"II. Se genere daño. {LONG}"
+        ),
+        "annotation_is_not_a_heading": (
+            f"TÍTULO SEGUNDO\nTítulo recorrido DOF 20-01-1967\nCAPITULO I\nArtículo 1.- Texto. {LONG}"
+        ),
+    }
+)

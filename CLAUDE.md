@@ -46,23 +46,34 @@ fragments, every legal claim carries a `[cite: CITE_ID]`, and a structured refus
 
 ```bash
 uv sync                                   # install deps (locked)
-uv run fastapi dev app/main.py            # API, http://localhost:8000
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000   # API (local only); `fastapi dev app/main.py` also works
 docker compose up -d postgres redis       # infra (pg16 + pgvector)
 uv run alembic upgrade head               # migrations (separate role, BYPASSRLS-free app role)
-uv run celery -A app.workers worker -Q ingestion   # ingestion workers
+uv run celery -A app.workers worker -Q ingestion   # ingestion workers   [NOT BUILT YET: WS2.T01]
 
 uv run python -m app.doctor               # executable invariants: RLS/roles/extensions/versions/aliases (WS0.T09)
-scripts/dev-up.sh | scripts/dev-up.ps1    # idempotent bootstrap: compose, migrate, seed, doctor (WS0.T10)
+scripts/dev-up.sh | scripts/dev-up.ps1    # idempotent bootstrap: compose, migrate, seed, doctor (WS0.T10)   [NOT BUILT YET]
 uv run mypy app                           # strict typing
+uv run python -m app.prompts.composer verify       # prompt versions match their pinned hashes
+uv run python -m evals.prompt_sandbox --case gd-0001   # render the full composed prompt
 
 uv run pytest                             # full suite: needs `docker compose up -d postgres redis` (an unreachable DB FAILS, never skips);
                                           # sockets disabled except loopback; LLM/embedder are fakes
 uv run pytest tests/test_tenant_isolation.py       # cross-tenant leak test (must pass ALWAYS)
 uv run pytest tests/test_jurisdiction_predicate.py # property tests for the hard pre-filter
 
-uv run python -m evals.run --suite golden          # golden dataset (required for prompt PRs)
-uv run python -m app.ingestion.cli ingest <pdf> --jurisdiction MX-NL --doc-type codigo
+uv run python -m evals.run --suite golden          # golden dataset (required for prompt PRs)   [NOT BUILT YET: WS5.T04]
+uv run python -m app.ingestion.seed [--only LFT]   # embed + load the demo corpus (needs `ollama pull bge-m3`; ~9 min for all)
+uv run python -m app.orchestration.pins [--check]  # (re)pin the local models from the Ollama runtime / detect drift
+uv run python -m app.demo                          # demo firm + user (random password shown once -> .demo-credentials)
+uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate the refusal threshold from the probe sets
+uv run pytest -m live                              # real local models (Ollama must be running)
+uv run python -m app.ingestion.cli parse|clean|chunks ...   # `ingest <pdf>` is NOT BUILT YET (WS2.T01/T06); store.ingest_document is the library entry point
 uv run ruff check --fix && uv run ruff format      # lint/format
+
+cd web && npm install && npm run dev      # frontend (Next.js), http://localhost:3000
+cd web && npm test && npx tsc --noEmit    # UI guards (catalog parity, literals, external URLs, Brand.md tokens/contrast)
+cd web && npm run build && npx next start -p 3100 & npm run e2e   # real-browser checks (Edge): no-reload language switch, a11y (axe), CSP, keyboard
 ```
 
 ## Non-negotiable invariants

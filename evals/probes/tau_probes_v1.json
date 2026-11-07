@@ -1,0 +1,541 @@
+{
+ "version": 1,
+ "authored_by": "ai-draft",
+ "reviewed_by": null,
+ "note": "Probe sets for tau calibration (ADR-007). A lawyer must review gold ids and absent topics before these numbers gate a release.",
+ "covered": [
+  {
+   "topic": "rescisión sin responsabilidad del patrón",
+   "session": "fed",
+   "gold": [
+    "LFT-ART47"
+   ],
+   "wordings": [
+    "causas de rescisión de la relación de trabajo sin responsabilidad para el patrón",
+    "¿cuándo puede el patrón despedir a un trabajador sin pagarle indemnización?",
+    "grounds for terminating an employee without liability for the employer"
+   ]
+  },
+  {
+   "topic": "indemnización por despido injustificado",
+   "session": "fed",
+   "gold": [
+    "LFT-ART48",
+    "LFT-ART50"
+   ],
+   "wordings": [
+    "indemnización de tres meses de salario por despido injustificado",
+    "me despidieron sin causa, ¿qué me corresponde?",
+    "severance pay after a wrongful dismissal in Mexico"
+   ]
+  },
+  {
+   "topic": "jornada máxima de trabajo",
+   "session": "fed",
+   "gold": [
+    "LFT-ART6"
+   ],
+   "wordings": [
+    "duración máxima de la jornada diurna de trabajo",
+    "¿cuántas horas puedo trabajar al día?",
+    "maximum daily working hours"
+   ]
+  },
+  {
+   "topic": "vacaciones anuales",
+   "session": "fed",
+   "gold": [
+    "LFT-ART76"
+   ],
+   "wordings": [
+    "días de vacaciones que corresponden al trabajador por año de servicio",
+    "¿cuántos días de vacaciones me tocan al cumplir un año?",
+    "annual paid vacation days for employees"
+   ]
+  },
+  {
+   "topic": "aguinaldo",
+   "session": "fed",
+   "gold": [
+    "LFT-ART87"
+   ],
+   "wordings": [
+    "el aguinaldo anual equivalente a quince días de salario",
+    "¿cuándo se paga el aguinaldo y de cuánto es?",
+    "year-end bonus owed to workers"
+   ]
+  },
+  {
+   "topic": "huelga",
+   "session": "fed",
+   "gold": [
+    "LFT-ART44"
+   ],
+   "wordings": [
+    "definición de huelga suspensión temporal del trabajo",
+    "¿qué es una huelga y quién puede declararla?",
+    "right to strike and its legal definition"
+   ]
+  },
+  {
+   "topic": "trabajo de menores",
+   "session": "fed",
+   "gold": [
+    "LFT-ART22",
+    "LFT-ART17"
+   ],
+   "wordings": [
+    "prohibición de utilizar el trabajo de menores de quince años",
+    "¿a qué edad puede trabajar un adolescente?",
+    "minimum age for employment"
+   ]
+  },
+  {
+   "topic": "libertad de expresión",
+   "session": "fed",
+   "gold": [
+    "CPEUM-ART6",
+    "CPEUM-ART7"
+   ],
+   "wordings": [
+    "la manifestación de las ideas no será objeto de inquisición judicial",
+    "¿la Constitución protege la libertad de expresión?",
+    "constitutional protection of freedom of speech"
+   ]
+  },
+  {
+   "topic": "principio pro persona y derechos humanos",
+   "session": "fed",
+   "gold": [
+    "CPEUM-ART1"
+   ],
+   "wordings": [
+    "todas las personas gozarán de los derechos humanos reconocidos en la Constitución",
+    "¿qué es el principio pro persona?",
+    "human rights recognized in the Mexican Constitution"
+   ]
+  },
+  {
+   "topic": "prisión preventiva",
+   "session": "fed",
+   "gold": [
+    "CPEUM-ART19",
+    "CPEUM-ART18"
+   ],
+   "wordings": [
+    "prisión preventiva oficiosa por delitos graves",
+    "¿cuándo puede un juez ordenar prisión preventiva?",
+    "pretrial detention requirements"
+   ]
+  },
+  {
+   "topic": "derechos del imputado",
+   "session": "fed",
+   "gold": [
+    "CPEUM-ART20"
+   ],
+   "wordings": [
+    "derechos de toda persona imputada presunción de inocencia",
+    "¿qué derechos tengo si me acusan de un delito?",
+    "rights of the accused and presumption of innocence"
+   ]
+  },
+  {
+   "topic": "expropiación",
+   "session": "fed",
+   "gold": [
+    "CPEUM-ART27"
+   ],
+   "wordings": [
+    "expropiación por causa de utilidad pública y mediante indemnización",
+    "¿puede el Estado quitarme mi terreno?",
+    "expropriation for public use with compensation"
+   ]
+  },
+  {
+   "topic": "prescripción adquisitiva",
+   "session": "fed",
+   "gold": [
+    "CCF-ART1",
+    "CCF-ART11"
+   ],
+   "wordings": [
+    "prescripción positiva de bienes inmuebles por posesión",
+    "¿en cuánto tiempo puedo adquirir un inmueble por posesión?",
+    "adverse possession of real property"
+   ]
+  },
+  {
+   "topic": "compraventa",
+   "session": "fed",
+   "gold": [
+    "CCF-ART22"
+   ],
+   "wordings": [
+    "el contrato de compraventa obliga a transferir la propiedad de una cosa por un precio cierto",
+    "¿qué es un contrato de compraventa?",
+    "sales contract elements price and object"
+   ]
+  },
+  {
+   "topic": "arrendamiento",
+   "session": "fed",
+   "gold": [
+    "CCF-ART23"
+   ],
+   "wordings": [
+    "contrato de arrendamiento obligaciones del arrendador y arrendatario",
+    "¿qué obligaciones tiene el inquilino?",
+    "lease agreement obligations of landlord and tenant"
+   ]
+  },
+  {
+   "topic": "homicidio",
+   "session": "fed",
+   "gold": [
+    "CPF-ART30",
+    "CPF-ART31",
+    "CPF-ART32"
+   ],
+   "wordings": [
+    "homicidio calificado penalidad prisión",
+    "¿cuántos años de cárcel tiene el homicidio?",
+    "penalty for aggravated homicide"
+   ]
+  },
+  {
+   "topic": "robo",
+   "session": "fed",
+   "gold": [
+    "CPF-ART36",
+    "CPF-ART37"
+   ],
+   "wordings": [
+    "delito de robo se impondrá pena según el valor de lo robado",
+    "¿qué castigo tiene el robo?",
+    "theft penalties depending on value"
+   ]
+  },
+  {
+   "topic": "legítima defensa",
+   "session": "fed",
+   "gold": [
+    "CPF-ART15"
+   ],
+   "wordings": [
+    "causas de exclusión del delito legítima defensa",
+    "¿cuándo no hay delito por defenderse?",
+    "self-defense as an exclusion of criminal liability"
+   ]
+  },
+  {
+   "topic": "fraude",
+   "session": "fed",
+   "gold": [
+    "CPF-ART38"
+   ],
+   "wordings": [
+    "delito de fraude engaño o aprovechamiento del error",
+    "¿qué pena tiene estafar a alguien?",
+    "fraud offense definition and penalty"
+   ]
+  },
+  {
+   "topic": "prescripción adquisitiva en Nuevo León",
+   "session": "nl",
+   "gold": [
+    "CCNL"
+   ],
+   "wordings": [
+    "prescripción adquisitiva de buena fe de bienes inmuebles",
+    "¿cómo se adquiere un inmueble por posesión en Nuevo León?",
+    "how to acquire real property by possession in Nuevo León"
+   ]
+  },
+  {
+   "topic": "matrimonio en Nuevo León",
+   "session": "nl",
+   "gold": [
+    "CCNL"
+   ],
+   "wordings": [
+    "requisitos para contraer matrimonio",
+    "¿qué se necesita para casarse?",
+    "requirements to get married"
+   ]
+  },
+  {
+   "topic": "justicia cívica Monterrey",
+   "session": "mty",
+   "gold": [
+    "RJCMTY"
+   ],
+   "wordings": [
+    "faltas administrativas y sanciones del reglamento de justicia cívica",
+    "¿qué pasa si cometo una falta administrativa en Monterrey?",
+    "civic justice administrative offenses in Monterrey"
+   ]
+  },
+  {
+   "topic": "administración pública municipal",
+   "session": "mty",
+   "gold": [
+    "RAPMTY"
+   ],
+   "wordings": [
+    "atribuciones de las secretarías de la administración pública municipal",
+    "¿qué hace la Secretaría de Seguridad municipal?",
+    "powers of the municipal government departments"
+   ]
+  },
+  {
+   "topic": "whistleblower retaliation California",
+   "session": "ca",
+   "gold": [
+    "LAB-SEC1102P5"
+   ],
+   "wordings": [
+    "employer retaliation against an employee who discloses information to the government",
+    "can my boss fire me for reporting a violation?",
+    "represalias del patrón contra un trabajador que denuncia"
+   ]
+  },
+  {
+   "topic": "meal and rest periods California",
+   "session": "ca",
+   "gold": [
+    "LAB-SEC226P7",
+    "LAB-SEC512"
+   ],
+   "wordings": [
+    "meal period and rest break premium pay",
+    "does an employer have to give me a lunch break?",
+    "descansos y comidas obligatorias en California"
+   ]
+  },
+  {
+   "topic": "overtime California",
+   "session": "ca",
+   "gold": [
+    "LAB-SEC510"
+   ],
+   "wordings": [
+    "overtime compensation for work over eight hours in a day",
+    "how much overtime pay am I owed?",
+    "pago de horas extra en California"
+   ]
+  },
+  {
+   "topic": "minimum wage California",
+   "session": "ca",
+   "gold": [
+    "LAB-SEC1182"
+   ],
+   "wordings": [
+    "minimum wage rate for employees",
+    "what is the legal minimum wage?",
+    "salario mínimo en California"
+   ]
+  }
+ ],
+ "absent": [
+  {
+   "topic": "impuesto sobre la renta",
+   "session": "fed",
+   "wordings": [
+    "tasa del impuesto sobre la renta de personas morales",
+    "¿cuánto ISR debo pagar este año?",
+    "corporate income tax rate"
+   ]
+  },
+  {
+   "topic": "patentes y marcas",
+   "session": "fed",
+   "wordings": [
+    "requisitos para registrar una patente",
+    "¿cómo registro una marca ante el IMPI?",
+    "how to file a trademark application"
+   ]
+  },
+  {
+   "topic": "derecho aeronáutico",
+   "session": "fed",
+   "wordings": [
+    "responsabilidad de las aerolíneas por equipaje perdido",
+    "¿qué derechos tengo si cancelan mi vuelo?",
+    "airline liability for delayed flights"
+   ]
+  },
+  {
+   "topic": "concurso mercantil",
+   "session": "fed",
+   "wordings": [
+    "procedimiento de concurso mercantil y quiebra de una empresa",
+    "¿cómo declaro la quiebra de mi negocio?",
+    "corporate bankruptcy proceedings"
+   ]
+  },
+  {
+   "topic": "migración y visas",
+   "session": "fed",
+   "wordings": [
+    "requisitos para obtener una visa de residente temporal",
+    "¿cómo tramito la residencia permanente?",
+    "immigration visa requirements"
+   ]
+  },
+  {
+   "topic": "derecho ambiental",
+   "session": "fed",
+   "wordings": [
+    "manifestación de impacto ambiental para una obra",
+    "¿necesito permiso ambiental para construir?",
+    "environmental impact assessment"
+   ]
+  },
+  {
+   "topic": "juicio de amparo",
+   "session": "fed",
+   "wordings": [
+    "plazo para promover el juicio de amparo indirecto",
+    "¿cómo presento un amparo?",
+    "deadline to file an amparo lawsuit"
+   ]
+  },
+  {
+   "topic": "seguridad social IMSS",
+   "session": "fed",
+   "wordings": [
+    "cuotas obrero patronales del IMSS",
+    "¿cuánto se paga al seguro social por empleado?",
+    "social security contributions"
+   ]
+  },
+  {
+   "topic": "protección de datos personales",
+   "session": "fed",
+   "wordings": [
+    "aviso de privacidad y derechos ARCO",
+    "¿cómo ejerzo mis derechos de acceso a mis datos personales?",
+    "personal data protection rights"
+   ]
+  },
+  {
+   "topic": "hidrocarburos",
+   "session": "fed",
+   "wordings": [
+    "permisos para exploración petrolera en aguas profundas",
+    "¿quién regula la extracción de hidrocarburos?",
+    "offshore oil exploration permits"
+   ]
+  },
+  {
+   "topic": "receta de cocina",
+   "session": "fed",
+   "wordings": [
+    "receta de pastel de chocolate con tres huevos",
+    "¿cómo preparo unas enchiladas verdes?",
+    "how to bake a chocolate cake"
+   ]
+  },
+  {
+   "topic": "deportes",
+   "session": "fed",
+   "wordings": [
+    "resultado del partido de fútbol de anoche",
+    "¿quién ganó el campeonato de la liga?",
+    "who won the football championship"
+   ]
+  },
+  {
+   "topic": "programación",
+   "session": "fed",
+   "wordings": [
+    "cómo ordenar una lista en Python",
+    "escribe una función que invierta una cadena",
+    "how to sort a list in Python"
+   ]
+  },
+  {
+   "topic": "medicina",
+   "session": "fed",
+   "wordings": [
+    "tratamiento para el dolor de cabeza y la migraña",
+    "¿qué medicina tomo para la gripa?",
+    "treatment for a persistent headache"
+   ]
+  },
+  {
+   "topic": "clima y viajes",
+   "session": "fed",
+   "wordings": [
+    "pronóstico del clima para mañana en Guadalajara",
+    "¿qué hotel me recomiendas en Cancún?",
+    "best hotels in Cancun"
+   ]
+  },
+  {
+   "topic": "mercados financieros",
+   "session": "fed",
+   "wordings": [
+    "precio de las acciones de Apple hoy",
+    "¿conviene comprar bitcoin ahora?",
+    "should I buy tech stocks this week"
+   ]
+  },
+  {
+   "topic": "municipio hermano: San Pedro",
+   "session": "mty",
+   "wordings": [
+    "permiso de construcción en San Pedro Garza García",
+    "reglamento de zonificación de San Pedro Garza García",
+    "building permit in San Pedro Garza García"
+   ]
+  },
+  {
+   "topic": "estado hermano: Jalisco",
+   "session": "nl",
+   "wordings": [
+    "código civil de Jalisco sobre la posesión",
+    "¿qué dice la ley de Jalisco sobre herencias?",
+    "Jalisco inheritance rules"
+   ]
+  },
+  {
+   "topic": "California Vehicle Code",
+   "session": "ca",
+   "wordings": [
+    "fines for speeding on a California highway",
+    "California vehicle registration deadline",
+    "multas por exceso de velocidad en California"
+   ]
+  },
+  {
+   "topic": "California Family Code",
+   "session": "ca",
+   "wordings": [
+    "child custody after divorce in California",
+    "community property division in a California divorce",
+    "custodia de hijos en un divorcio en California"
+   ]
+  },
+  {
+   "topic": "derecho mexicano en sesión de California",
+   "session": "ca",
+   "wordings": [
+    "causas de rescisión de la relación de trabajo sin responsabilidad para el patrón",
+    "Ley Federal del Trabajo aguinaldo",
+    "artículo 47 de la Ley Federal del Trabajo"
+   ]
+  },
+  {
+   "topic": "GDPR",
+   "session": "ca",
+   "wordings": [
+    "GDPR data transfer to third countries",
+    "right to be forgotten under European law",
+    "derecho al olvido en la Unión Europea"
+   ]
+  }
+ ]
+}

@@ -91,7 +91,7 @@ below are the original one-liners and are Accepted.
   (else a filtered top-k can come back short). Consequence for WS3: do not force HNSW for
   selective sessions (a municipal session is exact search, by design). Pending: re-measure at
   corpus scale (WS2.T07 seed) and at 50M-chunk tripwire (ADR-001).
-- ADR-012 (Proposed, 2026-11-06): Chunk size vs the embedder window. Context: Cohere
+- ADR-012 (Superseded by ADR-014 for the embedder window, 2026-11-07): Chunk size vs the embedder window. Context: Cohere
   embed-multilingual-v3.0 accepts 512 tokens (1024 dims) and `truncate` defaults to `END`, i.e.
   text past the window is dropped silently (docs.cohere.com/docs/cohere-embed and /reference/embed,
   read 2026-11-06). rag.md's `max_tokens` 800 would be truncated by the vector arm. Options:
@@ -103,6 +103,31 @@ below are the original one-liners and are Accepted.
   are stored per chunk. Consequence: more, smaller chunks (re-measure parent expansion budget);
   token counts use `ApproxCounter` (x1.3 words) until the Cohere tokenizer is wired in WS2.T06.
   Pending: golden run comparing A vs B once WS5.T04 exists; user choice A/B.
+- ADR-013 (Proposed, 2026-11-07): Tenant offboarding and the audit log. Context: `audit_log` is
+  append-only for every role (privileges + trigger, ADR-010) and holds `query_text`/`output_text`, i.e.
+  client content; offboarding must "leave no trace" (WS7.T06) yet a firm may owe a retention period.
+  Options: (A) erase it with the rest, as an explicit superuser step that bypasses the trigger in one
+  transaction; (B) retain it for a contractual period, then erase; (C) retain forever (rejected: client
+  content outlives the contract). Decision (provisional): the code supports A and B; the DEFAULT is
+  retain (`PostgresStore(audit="retain")`), erasure must be asked for explicitly, and the tenant row is
+  tombstoned (`status='suspended'`), never deleted. Consequence: offboarding is only "zero traces" once
+  the retention period is chosen. Pending: user/legal choice of A vs B and the retention length.
+- ADR-014 (Accepted 2026-11-07, chosen by the product owner): The demo runs 100% locally. No provider,
+  API key or network call is involved. Stack: Ollama on loopback serves (a) the embedder `bge-m3`
+  (1024 dimensions = the existing column, multilingual es/en, 8192-token window; revision = model
+  digest `790764642607`), (b) `gemma4:26b-a4b-it-qat` for drafting/adversarial/heavy and
+  `qwen3:4b-instruct-2507-q4_K_M` for utility/fallback. Pins (digest, context length, date, source) are
+  generated from the runtime into `config/models.local.yaml` and checked for drift. Consequences:
+  (1) ADR-012 is superseded for the window: chunk thresholds return to rag.md's 80/800 tokens, counted
+  with the REAL bge-m3 tokenizer (about 1.4 tokens per word; the old x1.3 approximation under-counted
+  ~8%); the real corpus now has 0 chunks over the window and 46-90% fewer sub-minimum chunks;
+  (2) Cohere embed-v3 is not used, so its 512-token window and `truncate=END` hazard disappear;
+  (3) changing embedder or thresholds is a new generation (ADR-006), built aside; the first real
+  ingestion defines the baseline, so there is no golden "before" for this switch;
+  (4) the installed torch is CPU-only (no CUDA): a cross-encoder runs on CPU. Rerank = dense cosine
+  (baseline) vs bge-reranker-v2-m3 cross-encoder is decided by `evals.calibrate_tau` (AUC and the
+  false-refusal cost), not by assumption. Pending: lawyer review of the AI-drafted probe sets; golden
+  suite before/after for any later change of model, prompt or threshold.
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

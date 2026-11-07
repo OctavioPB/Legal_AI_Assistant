@@ -1,0 +1,36 @@
+# Pinned prompt versions (rules/prompts.md). A version file is immutable: its sha256 is pinned here
+# and the composer refuses to load a file whose bytes differ. To change a prompt, add
+# `name@v2.j2`, run the golden suite before/after, then point `version` at v2 and run
+# `uv run python -m app.prompts.composer pin` for the new entry's hash.
+layers:
+  core:
+    anti_hallucination:
+      version: v1
+      sha256: 3a50c0d71d4e92437f8119c0c30a5614de6d3e3d4a9b4d0e4b23cedf08e93bef
+  workflow:
+    dossier_builder:
+      version: v2
+      sha256: 9d802c90e451ad9e83718ceb94ce0b25709a70549f16a835ec3860ee74dc8f76
+    adversarial:
+      version: v1
+      sha256: 1045089bb149f4713198a77d69cff96c905badbfd9cefb800f28b6bdb76b923d
+  persona:
+    general:
+      version: v1
+      sha256: 6c0bf79fab947b5071ad68190f83ac15a304b5fb3e64789016a694809fc7bd05
+    labor:
+      version: v1
+      sha256: f90de20f5931cd8fb0aab49a709810070011d56cec2048d9f2036b051f12a154
+    criminal:
+      version: v1
+      sha256: 51e8609d5bafa71d718d1b337ab612af83738ea4b1ee2842d02475e251d1c72f
+    corporate:
+      version: v1
+      sha256: 3dc53f15ba26302e1b64a9b128311a4b60310b9205d2b8e26e4196a6d8e5b373
+    corporate_finance:
+      version: v1
+      sha256: f79fc6fcf84a9b9f1886c8ef29c8af7974584881cb449c8a0d2e664d201c6d8c
+  session:
+    session:
+      version: v1
+      sha256: 1c790e9ccabf3a130fc20261464bbaf66dd7e5ddb7a2d324c24be234c461f3c0

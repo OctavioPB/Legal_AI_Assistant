@@ -11,20 +11,24 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import time
 import uuid
 from datetime import date
-from typing import Protocol
+from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import CursorResult, Engine, text
 
+from app.db.models import EMBEDDING_DIM, DocNode, Document
 from app.db.models import Chunk as ChunkRow
-from app.db.models import DocNode, Document
 from app.db.session import PUBLIC_CORPUS_TENANT_ID, tenant_session
 from app.ingestion.chunker import CHUNKER_VERSION, Chunker, report
 from app.ingestion.model import ChunkThresholds, DocMeta
-from app.ingestion.normalizer_mx import normalize_text, parse
+from app.ingestion.normalizer_mx import normalize_text as normalize_mx
+from app.ingestion.normalizer_mx import parse as parse_mx
+from app.ingestion.normalizer_us import normalize_us_text
+from app.ingestion.normalizer_us import parse as parse_us
 from app.ingestion.tokens import TokenCounter
 
 EMBED_BATCH = 96  # Cohere embed: up to 96 texts per request (docs.cohere.com/reference/embed)
@@ -39,6 +43,23 @@ class Embedder(Protocol):
 
 class VersionMismatchError(RuntimeError):
     """Writing would mix generations in the live set (invariant 5)."""
+
+
+class InvalidEmbeddingError(RuntimeError):
+    """The embedder returned a vector that would corrupt or hide a chunk."""
+
+
+def validate_vectors(cite_ids: list[str], vectors: list[list[float]]) -> None:
+    """Reject BEFORE writing: a wrong dimension or non-finite value fails with a cryptic database
+    error, and a zero vector is silently accepted yet can never be reached by the cosine HNSW
+    index (an invisible chunk)."""
+    for cite, v in zip(cite_ids, vectors, strict=True):
+        if len(v) != EMBEDDING_DIM:
+            raise InvalidEmbeddingError(f"{cite}: {len(v)} dimensions, expected {EMBEDDING_DIM}")
+        if not all(math.isfinite(x) for x in v):
+            raise InvalidEmbeddingError(f"{cite}: vector has NaN or infinite values")
+        if not any(v):
+            raise InvalidEmbeddingError(f"{cite}: zero vector (unsearchable by cosine distance)")
 
 
 class IngestStats(BaseModel):
@@ -78,11 +99,15 @@ def ingest_document(
     official_id: str | None = None,
     legal_domain: list[str] | None = None,
     valid_from: date | None = None,
+    grammar: Literal["mx", "us"] = "mx",
 ) -> IngestStats:
     t0 = time.monotonic()
     public = tenant_id == PUBLIC_CORPUS_TENANT_ID
     th = thresholds or ChunkThresholds(counter=counter.name)
-    src = normalize_text(raw_text)
+    normalize, parse = (
+        (normalize_us_text, parse_us) if grammar == "us" else (normalize_mx, parse_mx)
+    )
+    src = normalize(raw_text)
     checksum = hashlib.sha256(src.encode("utf-8")).hexdigest()
 
     with tenant_session(engine, tenant_id, allow_public=public) as s:
@@ -109,6 +134,7 @@ def ingest_document(
     embed_seconds = time.monotonic() - e0
     if len(vectors) != len(chunks):
         raise RuntimeError("embedder returned a different number of vectors than texts")
+    validate_vectors([c.cite_id for c in chunks], vectors)
 
     gen = _generation(embedder, th)
     with tenant_session(engine, tenant_id, allow_public=public) as s:

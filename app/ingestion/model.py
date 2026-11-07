@@ -7,6 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
+from app.settings import Settings
+
 NodeType = Literal[
     "libro", "titulo", "capitulo", "seccion", "articulo", "fraccion", "inciso", "parrafo",
     "transitorio",
@@ -45,6 +47,16 @@ class ChunkThresholds(Frozen):
     max_tokens: int = 400  # ADR-012 (Proposed): 800 > Cohere v3 window of 512
     embedder_window: int = 512  # embed-multilingual-v3.0, verified 2026-11-06 (docs.cohere.com)
     counter: str = "approx-words-x1.3"
+
+    @classmethod
+    def from_settings(cls, settings: Settings, counter_name: str) -> ChunkThresholds:
+        """The active profile (ADR-014): thresholds and window come from typed settings."""
+        return cls(
+            min_tokens=settings.chunk_min_tokens,
+            max_tokens=settings.chunk_max_tokens,
+            embedder_window=settings.embedder_window,
+            counter=counter_name,
+        )
 
     @model_validator(mode="after")
     def _consistent(self) -> ChunkThresholds:
@@ -90,4 +102,5 @@ class Chunk(Frozen):
     is_navigation: bool
     oversized: bool  # text > max_tokens (single paragraph that cannot be split)
     undersized: bool  # text < min_tokens (whole-node chunk that could not merge up)
+    ambiguous: bool = False  # cite_id was disambiguated (-DUPn): source numbering is ambiguous
     exceeds_window: bool  # embedded_text > embedder window: would be silently truncated

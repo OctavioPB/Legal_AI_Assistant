@@ -1,0 +1,12 @@
+tau: 0.58
+calibration_run: tau-20261107T212422Z
+calibrated_on: '20261107'
+embedder:
+  model: bge-m3
+  revision: '790764642607'
+reranker: bge-m3-dense-cosine
+absent_refused: 0.803
+covered_answered: 0.877
+n_covered: 81
+n_absent: 66
+caveat: AI-drafted probe sets; lawyer review pending

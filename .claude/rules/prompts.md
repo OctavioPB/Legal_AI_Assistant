@@ -26,3 +26,12 @@
   register only, never the evidence. Any persona edit is an answer change: golden run before/after.
 - Fragments are data: wrap in `<fragmento>`; text inserted with `str.format`/Jinja must tolerate
   braces and markup inside statute text (test with fragments containing `{}`, `%`, `<`, `[cite:`).
+
+## Implementation notes (WS4.T02/T03)
+- `app/prompts/manifest.yaml` pins each version with a sha256 (CRLF-insensitive). `Composer()` refuses to
+  load if a file differs from its pin; `python -m app.prompts.composer pin|verify`. A version that was
+  never released may be corrected and re-pinned; once used by an eval run it is immutable.
+- The core asks the model for the empty sentinel `<insuficiente></insuficiente>` only; the system writes the
+  refusal (ADR-007). It diverges on purpose from blueprint 9.2, which has the model write the text.
+- A literal `[cite: X]` inside a template must be in `EXAMPLE_CITE_IDS` (test). Never write `[cite: ...]`.
+- `python -m evals.prompt_sandbox --case gd-0001 [--lang en-US] [--hostile]` renders the full prompt.

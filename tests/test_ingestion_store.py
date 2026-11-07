@@ -162,3 +162,52 @@ def test_client_file_ingest_uses_cf_namespace_under_tenant(
             .all()
         )
     assert ids == ["CF-EXP0001-ART8", "CF-EXP0001-ART9"]
+
+
+@pytest.mark.parametrize(
+    ("name", "vector", "message"),
+    [
+        ("dimension", [0.1] * 768, "768 dimensions"),
+        ("nan", [float("nan")] * 1024, "NaN or infinite"),
+        ("inf", [float("inf")] * 1024, "NaN or infinite"),
+        ("zero", [0.0] * 1024, "zero vector"),
+    ],
+)
+def test_bad_embeddings_are_rejected_before_anything_is_written(
+    ingestor_engine: Engine, fed_id: int, name: str, vector: list[float], message: str
+) -> None:
+    from app.ingestion.store import InvalidEmbeddingError
+
+    class Bad(CountingEmbedder):
+        def embed(self, texts: list[str]) -> list[list[float]]:
+            return [list(vector) for _ in texts]
+
+    with pytest.raises(InvalidEmbeddingError, match=message):
+        _ingest(ingestor_engine, fed_id, Bad(), FIXTURES["derogated"])
+    with tenant_transaction(ingestor_engine, PUBLIC_CORPUS_TENANT_ID, allow_public=True) as c:
+        assert c.execute(text("SELECT count(*) FROM documents")).scalar_one() == 0, name
+
+
+def test_the_us_grammar_goes_through_the_same_store(ingestor_engine: Engine, fed_id: int) -> None:
+    us = (
+        "Division - Title - Part 3 Chapter 5 Article -\n\n"
+        "§ 1102.5. (a)An employer shall not retaliate against an employee for disclosing information "
+        "to a government agency. (b)An employer shall not adopt any policy preventing such disclosure."
+    )
+    meta = DocMeta(
+        country="US",
+        scope="CA",
+        code="LAB",
+        title="Cal. Lab. Code",
+        version_label="2025",
+        language="en",
+    )
+    stats = ingest_document(
+        ingestor_engine, PUBLIC_CORPUS_TENANT_ID, meta=meta, doc_type="statute", jurisdiction_id=fed_id,
+        source_uri="file://us.txt", raw_text=us, embedder=CountingEmbedder(), counter=ApproxCounter(),
+        grammar="us",
+    )  # fmt: skip
+    assert stats.status == "added" and stats.chunks_written >= 1
+    with tenant_transaction(ingestor_engine, PUBLIC_CORPUS_TENANT_ID, allow_public=True) as c:
+        ids = c.execute(text("SELECT cite_id FROM chunks ORDER BY cite_id")).scalars().all()
+    assert all(i.startswith("US-CA-LAB-SEC1102P5") for i in ids), ids

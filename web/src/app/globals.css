@@ -1,0 +1,557 @@
+/* Brand.md v1. Tokens first; brand overrides LAST (an earlier rule with the same selector loses).
+   Every value in section 1 must equal the Brand.md table: web/tests/brand.test.ts enforces it.
+   Fonts are self-hosted (public/fonts, VERSION.txt). Never link a font or asset from outside. */
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter-latin-wght-italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("/fonts/source-serif-4-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("/fonts/source-serif-4-latin-wght-italic.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---- 1. Tokens (light is the default; dark by preference or by data-theme) ---------------- */
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --text: #1b1f24;
+  --text-muted: #4a5260;
+  --primary: #1f3a5f;
+  --on-primary: #ffffff;
+  --accent: #b58a2b;
+  --accent-ink: #7a5a12;
+  --border: #8a8f98;
+  --focus: #1d5fd6;
+  --verified-fg: #0b5d46;
+  --verified-bg: #e6f3ee;
+  --reasoning-fg: #6b4a00;
+  --reasoning-bg: #fff3d6;
+  --unsupported-fg: #2d3a4f;
+  --unsupported-bg: #eef1f6;
+
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-legal: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --radius: 4px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1318;
+    --surface: #171c23;
+    --text: #e8eaed;
+    --text-muted: #a8b0bc;
+    --primary: #8db4e8;
+    --on-primary: #0f1318;
+    --accent-ink: #e0b85a;
+    --border: #7b8494;
+    --focus: #7fb0ff;
+    --verified-fg: #7fd1b1;
+    --verified-bg: #12332a;
+    --reasoning-fg: #f2cf7a;
+    --reasoning-bg: #3a2d0b;
+    --unsupported-fg: #c9d3e5;
+    --unsupported-bg: #1e2735;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1318;
+  --surface: #171c23;
+  --text: #e8eaed;
+  --text-muted: #a8b0bc;
+  --primary: #8db4e8;
+  --on-primary: #0f1318;
+  --accent-ink: #e0b85a;
+  --border: #7b8494;
+  --focus: #7fb0ff;
+  --verified-fg: #7fd1b1;
+  --verified-bg: #12332a;
+  --reasoning-fg: #f2cf7a;
+  --reasoning-bg: #3a2d0b;
+  --unsupported-fg: #c9d3e5;
+  --unsupported-bg: #1e2735;
+  color-scheme: dark;
+}
+
+/* ---- 2. Base ----------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  font-size: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 var(--space-3);
+}
+h1 {
+  font-size: 1.5rem;
+}
+p {
+  margin: 0 0 var(--space-4);
+}
+.legal-text {
+  font-family: var(--font-legal);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  max-width: 75ch;
+}
+.cite-id {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -4rem;
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+}
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+/* ---- 3. Layout and controls -------------------------------------------------------------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-6);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* Brand.md section 6: touch targets >= 44px */
+  font-weight: 650;
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
+  color: var(--primary);
+  text-decoration: none;
+  border-bottom: 2px solid var(--accent);
+}
+.header-controls {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.segmented button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-3);
+  background: var(--surface);
+  color: var(--text);
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.segmented button + button {
+  border-left: 1px solid var(--border);
+}
+.segmented button[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+.empty-state {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+}
+.empty-state p {
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+.field {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+.field input {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.button {
+  min-height: 44px;
+  padding: 0 var(--space-6);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.button[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+.form-status {
+  color: var(--unsupported-fg);
+  background: var(--unsupported-bg);
+  border-left: 3px solid var(--border);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.login-card {
+  max-width: 24rem;
+  margin: var(--space-8) auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+}
+.app-footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+.accent-note {
+  color: var(--accent-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* ---- 3b. Workspace, answer, the three marks, source viewer ------------------------------ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.session-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-4);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-3);
+}
+.workspace {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  align-items: start;
+  margin-bottom: var(--space-6);
+}
+.controls {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.controls legend {
+  font-weight: 600;
+  padding: 0 var(--space-2);
+}
+.field select,
+.field textarea {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.field select:disabled {
+  opacity: 0.6;
+}
+.field textarea {
+  resize: vertical;
+}
+.check {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 44px;
+}
+.check input {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.scope {
+  margin: 0;
+  color: var(--text-muted);
+}
+.query {
+  grid-column: 1 / -1;
+}
+.count {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0 0 var(--space-3);
+}
+.button-quiet {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--border);
+  font-weight: 500;
+  padding: 0 var(--space-4);
+}
+.result {
+  outline: none;
+}
+.stage {
+  color: var(--text-muted);
+}
+
+/* Mark 1: verified citation. Square chip, mono, check icon, visible label. */
+.cite-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  vertical-align: baseline;
+  margin: 0 var(--space-1);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--verified-fg);
+  border-radius: var(--radius);
+  background: var(--verified-bg);
+  color: var(--verified-fg);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-align: left;
+}
+.chip:hover {
+  background: var(--surface);
+}
+.cite-id {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+.answer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+}
+.answer-heading {
+  margin-top: var(--space-6);
+}
+.answer ul {
+  padding-left: var(--space-6);
+}
+.source-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* Mark 2: model-added reasoning. Shaded, dashed left border, italic, labelled; never a chip. */
+.reasoning {
+  background: var(--reasoning-bg);
+  color: var(--reasoning-fg);
+  border-left: 3px dashed var(--reasoning-fg);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-2) 0;
+  font-style: italic;
+}
+.reasoning-label {
+  margin: 0 0 var(--space-1);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.reasoning-body {
+  font-family: var(--font-ui);
+}
+
+/* Mark 3 (small form): one section without sources, inside an otherwise grounded answer. */
+.gap {
+  background: var(--unsupported-bg);
+  color: var(--unsupported-fg);
+  border: 1px dotted var(--unsupported-fg);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0;
+}
+
+/* Mark 3: no support (refusal). Dotted card, striped background; not an error, never red. */
+.refusal {
+  background: repeating-linear-gradient(135deg, var(--unsupported-bg), var(--unsupported-bg) 12px, var(--surface) 12px, var(--surface) 24px);
+  color: var(--unsupported-fg);
+  border: 2px dotted var(--unsupported-fg);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+}
+.refusal h2,
+.refusal h3 {
+  color: var(--unsupported-fg);
+}
+.refusal p,
+.refusal li {
+  background: var(--unsupported-bg);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+}
+
+.viewer {
+  width: min(52rem, 94vw);
+  max-height: 88vh;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+}
+.viewer::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+.viewer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.viewer-cite {
+  margin-bottom: var(--space-1);
+}
+.viewer-crumb {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+.viewer-meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+}
+.viewer-meta dt {
+  color: var(--text-muted);
+}
+.viewer-meta dd {
+  margin: 0;
+}
+.viewer-article {
+  white-space: pre-wrap;
+  max-height: 40vh;
+  overflow: auto;
+}
+.cited-passage {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  color: inherit;
+}
+.badge {
+  border: 1px solid var(--verified-fg);
+  color: var(--verified-fg);
+  border-radius: var(--radius);
+  padding: 0 var(--space-2);
+  font-size: 0.8125rem;
+}
+.badge-warn {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+
+/* ---- 4. Brand overrides (keep LAST) ------------------------------------------------------ */
+.wordmark:hover {
+  border-bottom-color: var(--accent-ink);
+}

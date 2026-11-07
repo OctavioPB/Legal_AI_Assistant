@@ -1,0 +1,151 @@
+{
+  "brand": {
+    "name": "Legal AI Assistant",
+    "tagline": "Investigación jurídica con fuentes verificables"
+  },
+  "nav": {
+    "language": "Idioma",
+    "theme": "Tema",
+    "skip": "Saltar al contenido"
+  },
+  "lang": {
+    "es-MX": "Español",
+    "en-US": "English"
+  },
+  "theme": {
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "session": {
+    "signedInAs": "Sesión de {name}",
+    "logout": "Cerrar sesión"
+  },
+  "home": {
+    "empty": {
+      "title": "Comience seleccionando la jurisdicción",
+      "body": "Elija país, estado y municipio para delimitar el derecho aplicable. Las respuestas solo usan fuentes de esa jurisdicción."
+    }
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "tenant": "Despacho",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Entrar",
+    "submitting": "Verificando…",
+    "error": {
+      "invalid": "Credenciales no válidas.",
+      "unavailable": "El servicio no está disponible. Intente de nuevo en unos minutos."
+    }
+  },
+  "workspace": {
+    "title": "Consulta jurídica",
+    "loading": "Cargando catálogo…",
+    "catalogError": "No fue posible cargar los catálogos. Recargue la página.",
+    "jurisdiction": {
+      "legend": "Jurisdicción",
+      "country": "País",
+      "state": "Estado",
+      "municipality": "Municipio",
+      "federalOnly": "Solo federal",
+      "noMunicipality": "Sin municipio",
+      "scope": "Alcance aplicable: {chain}",
+      "scopeNote": "El derecho federal siempre aplica; cambiar el alcance es una decisión suya."
+    },
+    "country": {
+      "MX": "México",
+      "US": "Estados Unidos"
+    },
+    "persona": {
+      "label": "Perfil",
+      "general": "General",
+      "labor": "Laboral",
+      "criminal": "Penal",
+      "corporate": "Corporativo",
+      "corporate_finance": "Corporativo-financiero"
+    },
+    "workflow": {
+      "label": "Flujo",
+      "dossier_builder": "Expediente",
+      "adversarial": "Contraparte"
+    },
+    "includeHistorical": "Incluir versiones anteriores (no vigentes)",
+    "query": {
+      "label": "Consulta",
+      "placeholder": "Describa el asunto jurídico o la pregunta…",
+      "submit": "Consultar",
+      "submitting": "Consultando…",
+      "count": "{count} de {max} caracteres"
+    },
+    "stage": {
+      "retrieving": "Buscando en las fuentes…",
+      "generating": "Redactando con las fuentes recuperadas y verificando las citas…"
+    },
+    "error": {
+      "rate_limited": "Demasiadas consultas seguidas. Espere unos segundos e intente de nuevo.",
+      "llm_unavailable": "El servicio de modelos no está disponible por ahora. Intente de nuevo en unos minutos.",
+      "session": "Su sesión terminó. Inicie sesión de nuevo.",
+      "generic": "No fue posible completar la consulta. Intente de nuevo."
+    }
+  },
+  "answer": {
+    "title": "Respuesta",
+    "citationsTitle": "Fuentes citadas",
+    "noCitations": "Esta respuesta no cita fuentes.",
+    "gap": "Sin fuentes suficientes para esta sección."
+  },
+  "mark": {
+    "strategic": {
+      "label": "Razonamiento estratégico",
+      "note": "sin respaldo normativo"
+    },
+    "own": {
+      "label": "Análisis del asistente",
+      "note": "sin respaldo normativo"
+    }
+  },
+  "cite": {
+    "verified": "Cita verificada",
+    "open": "Abrir fuente",
+    "unverified": "Identificador sin verificar"
+  },
+  "refusal": {
+    "title": "Fuentes insuficientes",
+    "intro": "El sistema no puede responder con rigor a esta consulta con las fuentes disponibles. No es un error.",
+    "missingTitle": "Qué falta",
+    "actionsTitle": "Qué puede hacer",
+    "reason": {
+      "retrieval": {
+        "no_hits": "No se recuperó ninguna fuente de esta jurisdicción relacionada con la consulta.",
+        "below_threshold": "Las fuentes recuperadas no son suficientemente pertinentes para la consulta."
+      },
+      "validation": {
+        "model_declined": "El modelo no pudo sustentar una respuesta con las fuentes recuperadas.",
+        "format_violation": "La respuesta generada no cumplió el formato exigido y fue descartada.",
+        "unsupported": "La respuesta generada no pudo verificarse contra las fuentes recuperadas."
+      }
+    },
+    "action": {
+      "widen": "Cambie el alcance de jurisdicción si la norma aplicable es de otro nivel.",
+      "rephrase": "Reformule la consulta con términos del artículo o la figura jurídica.",
+      "upload": "Cargue el documento o la norma que falta para incluirlo en las fuentes."
+    }
+  },
+  "viewer": {
+    "title": "Fuente",
+    "close": "Cerrar",
+    "loading": "Cargando fuente…",
+    "unavailable": "La fuente no está disponible.",
+    "document": "Documento",
+    "version": "Versión",
+    "citedText": "Texto citado",
+    "article": "Artículo completo",
+    "notCurrent": "No vigente",
+    "current": "Vigente",
+    "identifier": "Identificador"
+  },
+  "footer": {
+    "disclaimer": "Herramienta de investigación. No sustituye el criterio profesional del abogado."
+  }
+}

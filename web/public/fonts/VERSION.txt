@@ -1,0 +1,6 @@
+Self-hosted fonts (Brand.md section 2). Never link a font from a CDN.
+Source: npm packages by Fontsource (https://fontsource.org), copied 2026-11-07, subset latin.
+  inter-latin-wght-{normal,italic}.woff2            Inter (variable)           @fontsource-variable/inter 5.3.0           SIL OFL 1.1
+  source-serif-4-latin-wght-{normal,italic}.woff2   Source Serif 4 (variable)  @fontsource-variable/source-serif-4 5.3.1  SIL OFL 1.1
+  jetbrains-mono-latin-{400,600}-normal.woff2       JetBrains Mono             @fontsource/jetbrains-mono 5.3.0           SIL OFL 1.1
+Licenses: ./licenses/*.txt

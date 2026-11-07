@@ -40,6 +40,16 @@ def parse_cite(cite_id: str) -> dict[str, str] | None:
     return m.groupdict() if m else None
 
 
+def _disambiguate(cite_id: str, count: int) -> str:
+    """`...-ART47-v2025.06` -> `...-ART47-DUP2-v2025.06`: the suffix goes in the NODE part so the
+    result still parses (the version stays last)."""
+    m = CITE_RE.match(cite_id)
+    if m:
+        head = cite_id[: m.start("version") - 2]  # strip "-v"
+        return f"{head}-DUP{count}-v{m.group('version')}"
+    return f"{cite_id}-DUP{count}"
+
+
 def _blocks(src: str, start: int, end: int) -> list[tuple[int, int]]:
     """Paragraph blocks of src[start:end] as (s, e) spans: blank-line separated; if there are no
     blank lines, line separated."""
@@ -70,6 +80,17 @@ class Chunker:
         out: list[Chunk] = []
         for root in kids.get(None, []):
             self._emit(src, root, kids, by_path, meta, out)
+        # Ambiguous numbering in the source (e.g. an uppercase roman "(I)" next to a lettered list)
+        # must not abort a whole code: the later duplicate gets a deterministic suffix and is
+        # listed in the report (`duplicate_ids`).
+        seen: dict[str, int] = {}
+        for i, c in enumerate(out):
+            count = seen.get(c.cite_id, 0) + 1
+            seen[c.cite_id] = count
+            if count > 1:
+                out[i] = c.model_copy(
+                    update={"cite_id": _disambiguate(c.cite_id, count), "ambiguous": True}
+                )
         return out
 
     def _tok(self, src: str, s: int, e: int) -> int:
@@ -203,18 +224,27 @@ class Chunker:
 
     @staticmethod
     def _citation(meta: DocMeta, nodes: list[Node], part: int) -> str:
+        if meta.language == "en":  # "Cal. Lab. Code, § 1102.5(a)(1)": subdivisions attach directly
+            out = ""
+            for n in nodes:
+                if n.node_type == "seccion":
+                    continue
+                if n.node_type == "articulo":
+                    out = n.label
+                elif n.label.startswith("("):
+                    out += n.label
+                else:
+                    out += f", {n.label}"
+            base = f"{meta.title}, {out}" if out else meta.title
+            return base + (f" (part {part})" if part else "")
         pieces: list[str] = []
         for n in nodes:
             if n.node_type == "seccion":
                 continue
             if n.node_type == "articulo":
-                pieces.append(
-                    ("art. " if meta.language == "es" else "§ ") + n.label.split(" ", 1)[1]
-                )
+                pieces.append("art. " + n.label.split(" ", 1)[1])
             elif n.node_type == "fraccion":
                 pieces.append("fracc. " + n.label.split(" ", 1)[1])
-            elif n.node_type in _ES_SHORT:
-                pieces.append(n.label)
             else:
                 pieces.append(n.label)
         base = f"{meta.title}, " + ", ".join(pieces) if pieces else meta.title
@@ -229,4 +259,5 @@ def report(chunks: list[Chunk]) -> dict[str, object]:
         "undersized": [c.cite_id for c in chunks if c.undersized],
         "exceeds_window": [c.cite_id for c in chunks if c.exceeds_window],
         "navigation": sum(c.is_navigation for c in chunks),
+        "duplicate_ids": [c.cite_id for c in chunks if c.ambiguous],
     }

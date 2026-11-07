@@ -144,3 +144,59 @@ def test_deterministic() -> None:
 def test_counter_mismatch_with_stored_thresholds_is_refused() -> None:
     with pytest.raises(ValueError):
         Chunker(ApproxCounter(), ChunkThresholds(counter="cohere-tokenizer"))
+
+
+def labels(name: str) -> list[str]:
+    return [n.label for n in run(name)[1]]
+
+
+def test_state_code_forms_annotation_prefix_abbreviation_and_bis_roman() -> None:
+    _, nodes, chunks = run("lead_annotation_abbrev")
+    assert [n.label for n in nodes] == [
+        "Artículo 22",
+        "Artículo 22 Bis",
+        "Artículo 21 Bis I",
+        "Artículo 1",
+    ]
+    assert nodes[0].reform_notes and "REFORMADO" in nodes[0].reform_notes[0]
+    assert "ART21BISI" in chunks[2].cite_id
+
+
+def test_ordinal_o_nuance_n_tilde_and_compound_suffix() -> None:
+    assert labels("ordinal_o_bis_and_n_tilde") == [
+        "Artículo 3 Bis", "Artículo 353 Ñ", "Artículo 153 F Bis",
+    ]  # fmt: skip
+
+
+def test_fraccion_letter_suffix_gives_distinct_nodes() -> None:
+    assert labels("fraccion_with_letter_suffix") == [
+        "Artículo 73", "Fracción XXIX", "Fracción XXIX A", "Fracción XXIX Ñ", "Fracción XXX",
+    ]  # fmt: skip
+
+
+def test_apartados_nest_fracciones_and_ids_are_unique() -> None:
+    _, nodes, chunks = run("apartados")
+    assert [n.label for n in nodes if n.label.startswith("Apartado")] == [
+        "Apartado A", "Apartado B", "Apartado C",
+    ]  # fmt: skip
+    ids = {c.cite_id for c in chunks}
+    assert "MX-FED-LFT-ART123-APARTADOA-FRACI-v2025.06" in ids
+    assert "MX-FED-LFT-ART123-APARTADOB-FRACI-v2025.06" in ids
+    assert not any(c.ambiguous for c in chunks)
+
+
+def test_restarted_numbering_opens_a_new_parrafo_not_a_duplicate_id() -> None:
+    _, _nodes, chunks = run("second_list_restarts_numbering")
+    assert not any(c.ambiguous for c in chunks)
+    ids = [c.cite_id for c in chunks]
+    assert any("ART139-FRACI-" in i for i in ids) and any("ART139-PARR1-FRACI-" in i for i in ids)
+    lead_in = next(c for c in chunks if "Las sanciones se aumentarán" in c.text)
+    assert "FRACII" not in lead_in.cite_id.split("PARR1")[0]  # not glued to the first list
+
+
+def test_annotation_starting_with_titulo_is_not_a_heading() -> None:
+    assert [n.node_type for n in run("annotation_is_not_a_heading")[1]][:3] == [
+        "titulo",
+        "capitulo",
+        "articulo",
+    ]

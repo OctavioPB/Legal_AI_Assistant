@@ -1,0 +1,151 @@
+{
+  "brand": {
+    "name": "Legal AI Assistant",
+    "tagline": "Legal research with verifiable sources"
+  },
+  "nav": {
+    "language": "Language",
+    "theme": "Theme",
+    "skip": "Skip to content"
+  },
+  "lang": {
+    "es-MX": "Español",
+    "en-US": "English"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "session": {
+    "signedInAs": "Signed in as {name}",
+    "logout": "Sign out"
+  },
+  "home": {
+    "empty": {
+      "title": "Start by selecting the jurisdiction",
+      "body": "Choose country, state and municipality to define the applicable law. Answers only use sources from that jurisdiction."
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "tenant": "Firm",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Verifying…",
+    "error": {
+      "invalid": "Invalid credentials.",
+      "unavailable": "The service is unavailable. Please try again in a few minutes."
+    }
+  },
+  "workspace": {
+    "title": "Legal research",
+    "loading": "Loading catalog…",
+    "catalogError": "The catalogs could not be loaded. Reload the page.",
+    "jurisdiction": {
+      "legend": "Jurisdiction",
+      "country": "Country",
+      "state": "State",
+      "municipality": "Municipality",
+      "federalOnly": "Federal only",
+      "noMunicipality": "No municipality",
+      "scope": "Applicable scope: {chain}",
+      "scopeNote": "Federal law always applies; widening the scope is your decision."
+    },
+    "country": {
+      "MX": "Mexico",
+      "US": "United States"
+    },
+    "persona": {
+      "label": "Profile",
+      "general": "General",
+      "labor": "Labor",
+      "criminal": "Criminal",
+      "corporate": "Corporate",
+      "corporate_finance": "Corporate finance"
+    },
+    "workflow": {
+      "label": "Workflow",
+      "dossier_builder": "Dossier",
+      "adversarial": "Opposing counsel"
+    },
+    "includeHistorical": "Include earlier versions (no longer in force)",
+    "query": {
+      "label": "Question",
+      "placeholder": "Describe the legal matter or question…",
+      "submit": "Research",
+      "submitting": "Researching…",
+      "count": "{count} of {max} characters"
+    },
+    "stage": {
+      "retrieving": "Searching the sources…",
+      "generating": "Drafting from the retrieved sources and verifying the citations…"
+    },
+    "error": {
+      "rate_limited": "Too many requests in a row. Wait a few seconds and try again.",
+      "llm_unavailable": "The model service is unavailable right now. Please try again in a few minutes.",
+      "session": "Your session ended. Please sign in again.",
+      "generic": "The request could not be completed. Please try again."
+    }
+  },
+  "answer": {
+    "title": "Answer",
+    "citationsTitle": "Cited sources",
+    "noCitations": "This answer cites no sources.",
+    "gap": "Not enough sources for this section."
+  },
+  "mark": {
+    "strategic": {
+      "label": "Strategic reasoning",
+      "note": "without normative support"
+    },
+    "own": {
+      "label": "Assistant analysis",
+      "note": "without normative support"
+    }
+  },
+  "cite": {
+    "verified": "Verified citation",
+    "open": "Open source",
+    "unverified": "Unverified identifier"
+  },
+  "refusal": {
+    "title": "Insufficient sources",
+    "intro": "The system cannot answer this question rigorously with the available sources. This is not an error.",
+    "missingTitle": "What is missing",
+    "actionsTitle": "What you can do",
+    "reason": {
+      "retrieval": {
+        "no_hits": "No source from this jurisdiction related to the question was retrieved.",
+        "below_threshold": "The retrieved sources are not relevant enough to the question."
+      },
+      "validation": {
+        "model_declined": "The model could not support an answer with the retrieved sources.",
+        "format_violation": "The generated answer did not meet the required format and was discarded.",
+        "unsupported": "The generated answer could not be verified against the retrieved sources."
+      }
+    },
+    "action": {
+      "widen": "Change the jurisdiction scope if the applicable law is at another level.",
+      "rephrase": "Rephrase the question using the terms of the article or legal concept.",
+      "upload": "Upload the missing document or statute so it becomes a source."
+    }
+  },
+  "viewer": {
+    "title": "Source",
+    "close": "Close",
+    "loading": "Loading source…",
+    "unavailable": "The source is not available.",
+    "document": "Document",
+    "version": "Version",
+    "citedText": "Cited text",
+    "article": "Full article",
+    "notCurrent": "Not in force",
+    "current": "In force",
+    "identifier": "Identifier"
+  },
+  "footer": {
+    "disclaimer": "Research tool. It does not replace a lawyer's professional judgment."
+  }
+}
