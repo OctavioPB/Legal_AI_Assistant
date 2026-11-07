@@ -91,6 +91,18 @@ below are the original one-liners and are Accepted.
   (else a filtered top-k can come back short). Consequence for WS3: do not force HNSW for
   selective sessions (a municipal session is exact search, by design). Pending: re-measure at
   corpus scale (WS2.T07 seed) and at 50M-chunk tripwire (ADR-001).
+- ADR-012 (Proposed, 2026-11-06): Chunk size vs the embedder window. Context: Cohere
+  embed-multilingual-v3.0 accepts 512 tokens (1024 dims) and `truncate` defaults to `END`, i.e.
+  text past the window is dropped silently (docs.cohere.com/docs/cohere-embed and /reference/embed,
+  read 2026-11-06). rag.md's `max_tokens` 800 would be truncated by the vector arm. Options:
+  (A) keep embed-v3, lower `max_tokens` to 400 so breadcrumb + text fit in 512, always send
+  `truncate=NONE` so an overflow fails loudly; (B) embed-v4.0 (128k window) — its default is 1536
+  dims, 1024 is selectable, and it changes the model pinned in ADR-006; (C) keep 800 and accept
+  truncation (rejected: violates the zero-silent-loss rule). Decision (provisional): A, implemented
+  as `ChunkThresholds(max_tokens=400, embedder_window=512)`, refusing any max > window; thresholds
+  are stored per chunk. Consequence: more, smaller chunks (re-measure parent expansion budget);
+  token counts use `ApproxCounter` (x1.3 words) until the Cohere tokenizer is wired in WS2.T06.
+  Pending: golden run comparing A vs B once WS5.T04 exists; user choice A/B.
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

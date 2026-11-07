@@ -36,7 +36,7 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 # `›` is the breadcrumb separator of legal hierarchy paths (rag.md).
-allowed-confusables = ["›"]
+allowed-confusables = ["›", "–", " "]  # legal text: dashes and nbsp are real input
 
 [tool.mypy]
 strict = true
