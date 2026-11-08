@@ -45,7 +45,7 @@ no lo uses fuera de tu equipo. La cookie sigue siendo `httpOnly` y `SameSite=Str
 
 ## Pruebas
 ```bash
-uv run pytest                          # 1 900+ pruebas; requiere Postgres levantado
+uv run pytest                          # 1 800+ pruebas; requiere Postgres levantado
 uv run pytest -m live                  # contra el Ollama real (lento)
 cd web && npm test && npx tsc --noEmit
 cd web && npm run e2e                  # navegador real, sin modelos (API caída a propósito)

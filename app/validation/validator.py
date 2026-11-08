@@ -24,7 +24,9 @@ _HEADING_LINE = re.compile(r"^\s*(?:#{1,6}\s+\S.*|[-*•]?\s*\*\*[^*\n]{1,200}\*
 _QUOTE_PAIRS = (('"', '"'), ("“", "”"), ("«", "»"))
 _MAX_QUOTE_CHARS = 3000
 _UNIT_SPLIT = re.compile(r"(?<=[.!?])\s+(?!\[)")
-_ELLIPSIS = re.compile(r"\.\.\.|…")
+# Omission marks: "...", "…" and the bracketed legal convention "[...]". The brackets belong to the
+# mark, so they must not stay behind as stray characters at the edge of a segment.
+_ELLIPSIS = re.compile(r"\[?\s*(?:\.\.\.|…)\s*\]?")
 
 # Template tokens a model copies from a prompt. Compared after upper-casing.
 _PLACEHOLDERS = {"CITE_ID", "X", "ID", "XXX", "...", "…", "N/A", "NA", "NONE", ""} | {

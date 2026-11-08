@@ -103,6 +103,24 @@ catálogo en ambos idiomas; el texto lo escribe el catálogo, jamás el modelo.
 priorizadas" es una lista numerada 3–5 con la fuente faltante que resolvería cada punto, y
 conserva ambos tipos de marca visibles y distinguibles.
 
+### 3.4 Laguna de sección y etiqueta de párrafo
+- **Laguna de sección** (`<insuficiente></insuficiente>` dentro de una respuesta fundamentada, p. ej. una
+  sección de jurisprudencia sin fuentes recuperadas): forma pequeña de la marca 3, párrafo con borde
+  punteado `--unsupported`, ícono ⌕ y el texto del catálogo "Sin fuentes suficientes para esta sección".
+  Lo que el modelo haya escrito dentro del bloque se descarta; nunca se muestra.
+- **Etiqueta de párrafo:** `[razonamiento estratégico]` / `[análisis propio]` solas en su línea marcan el
+  párrafo siguiente, hasta una línea en blanco. Se muestran con la marca 2 (sombreado, borde discontinuo,
+  cursiva, rótulo "sin respaldo normativo").
+- **Chips repetidos:** cada afirmación lleva su propia cita (regla del validador), así que una respuesta
+  puede tener decenas de chips de la misma fuente. Pendiente de diseño: variante compacta para repeticiones
+  consecutivas del mismo `cite_id` (no se improvisa en el componente).
+
+### 3.5 Visor de fuentes
+Diálogo modal nativo (`<dialog>`: foco atrapado, Esc cierra). Muestra la cita completa, la jerarquía
+(breadcrumb), documento, versión e insignia de vigencia ("Vigente" / "No vigente"), el identificador en mono
+y el artículo completo con el pasaje citado resaltado (`--accent` al 25 %). El artículo es una región con
+scroll alcanzable por teclado (`tabindex=0`, `role=region`). El idioma del texto (`lang`) es el de la fuente.
+
 ## 4. Componentes base
 - **Selector de jurisdicción:** país → estado → municipio en cascada, valores solo del catálogo
   cerrado. Las opciones inexistentes no se pueden escribir (select/combobox sin texto libre); un nivel

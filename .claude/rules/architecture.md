@@ -128,6 +128,18 @@ below are the original one-liners and are Accepted.
   (baseline) vs bge-reranker-v2-m3 cross-encoder is decided by `evals.calibrate_tau` (AUC and the
   false-refusal cost), not by assumption. Pending: lawyer review of the AI-drafted probe sets; golden
   suite before/after for any later change of model, prompt or threshold.
+- ADR-015 (Accepted 2026-11-07, chosen by the product owner): Coverage stays STRICT. Context: with the real
+  local model (gemma4:26b), 7 of 12 long-form queries were answered (baseline and after the verification
+  fixes, identical: 1-2 cases of difference is noise). Every one of the 10 failing attempts inspected failed
+  ONLY on coverage: correct closing sentences ("Asimismo, existe una figura de intereses moratorios...") with
+  no citation; zero invented ids, zero non-verbatim quotations after the fixes. Options: (A) keep strict,
+  (B) demote an uncited sentence to a shaded "Assistant analysis - no normative support" and deliver the
+  answer, (C) allow a second regeneration. Decision: A. The contract "no uncited legal assertion reaches the
+  user" is not relaxed; the answer rate is improved only by instructions (workflow prompt versions) and by
+  verification bugs fixed, each measured. Consequence: long enumerations (art. 47 has 15 fracciones) are
+  refused some of the time; the refusal is a first-class output, never an error. Revisit with a golden run
+  (WS5.T04) and lawyer-reviewed cases before reconsidering B. Evidence: PLAN.md log 2026-11-07, runs in
+  `evals/runs/`.
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

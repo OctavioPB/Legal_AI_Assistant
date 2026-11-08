@@ -43,9 +43,12 @@ class ValidatedAnswer(BaseModel):
     attempts: tuple[Attempt, ...] = ()
 
 
+MAX_PREVIOUS_CHARS = 16_000
+
+
 def build_feedback(v: Verdict) -> str:
     """Correction instructions written by code from the verdict (never by a model)."""
-    lines = ["Tu respuesta anterior no cumplió las reglas. Corrígela:"]
+    lines = ["Tu respuesta anterior no cumplió las reglas. Corrige SOLO lo que se indica:"]
     if v.invalid:
         lines.append(f"- Citaste ids que no están en los fragmentos: {', '.join(v.invalid)}.")
     if v.placeholders:
@@ -60,6 +63,7 @@ def build_feedback(v: Verdict) -> str:
         lines.extend(f'    "{s}"' for s in v.bad_quotes[:5])
     if not v.cited and not v.invalid and not v.placeholders:
         lines.append("- No incluiste ninguna cita válida.")
+    lines.append("Responde con la respuesta completa, conservando igual todo lo que no se señala.")
     lines.append("Usa solo los ids de los fragmentos y copia literalmente lo que entrecomilles.")
     return "\n".join(lines)
 
@@ -134,7 +138,13 @@ def generate_validated(
                 regenerations=attempt,
                 resolved_model_id=model_id,
             )
-        current_user = f"{user}\n\n--- Corrección requerida ---\n{build_feedback(v)}"
+        # The call is single-turn: without the previous answer in front of it, "fix it" makes the
+        # model rewrite from scratch, drift and fail on something else (seen with the real model).
+        previous = result.text[:MAX_PREVIOUS_CHARS]
+        current_user = (
+            f"{user}\n\n--- Respuesta anterior (tiene errores) ---\n{previous}\n\n"
+            f"--- Corrección requerida ---\n{build_feedback(v)}"
+        )
     return ValidatedAnswer(
         answer=None,
         refusal=_refusal("validation.unsupported", verdicts),
