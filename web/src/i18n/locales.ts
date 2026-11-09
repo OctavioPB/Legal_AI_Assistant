@@ -13,3 +13,7 @@ export const CATALOGS: Record<Locale, typeof esMX> = {
 export function isLocale(value: string | undefined): value is Locale {
   return LOCALES.includes(value as Locale);
 }
+
+// Fixed so server and browser render identical markup (next-intl warns ENVIRONMENT_FALLBACK on every
+// request otherwise). Legal dates (vigencia) are calendar dates: UTC never shifts them by a day.
+export const TIME_ZONE = "UTC";

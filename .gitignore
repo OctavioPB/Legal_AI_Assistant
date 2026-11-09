@@ -6,7 +6,19 @@ __pycache__/
 .ruff_cache/
 .env
 *.egg-info/
-evals/runs/
+# Eval runs are scratch by default; the ones an ADR or a pinned config cites are evidence and are tracked.
+evals/runs/*
+!evals/runs/tau-*.json
+!evals/runs/variance-*.log
+!evals/runs/workspaces-*.jsonl
+# measurements cited by ADR-020/021 and the PLAN log, and golden run records (report + review sheet)
+!evals/runs/adr020-*.jsonl
+!evals/runs/splits-*.jsonl
+!evals/runs/prompts-v2-*.jsonl
+!evals/runs/adversarial-v3-*.jsonl
+!evals/runs/golden-*/
 data/corpus/raw/
 data/corpus/text/
 .demo-credentials
+.presentation-credentials
+.run/

@@ -32,7 +32,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 PROMPTS_DIR = Path(__file__).parent
 MANIFEST_PATH = PROMPTS_DIR / "manifest.yaml"
 
-Workflow = Literal["dossier_builder", "adversarial"]
+Workflow = Literal["dossier_builder", "adversarial", "conversar", "argumentar"]
 Persona = Literal["general", "labor", "criminal", "corporate", "corporate_finance"]
 Language = Literal["es-MX", "en-US"]
 LANGUAGE_DISPLAY: dict[str, str] = {"es-MX": "español (México)", "en-US": "inglés (Estados Unidos)"}

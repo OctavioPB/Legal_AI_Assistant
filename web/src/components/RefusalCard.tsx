@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useId } from "react";
 
 const KNOWN = [
   "retrieval.no_hits",
@@ -15,10 +16,11 @@ const KNOWN = [
  *  model. */
 export function RefusalCard({ reason }: { reason: string | null }) {
   const t = useTranslations("refusal");
+  const titleId = useId();
   const known = (KNOWN as readonly string[]).includes(reason ?? "") ? (reason as (typeof KNOWN)[number]) : null;
   return (
-    <section className="refusal" role="status" aria-labelledby="refusal-title">
-      <h2 id="refusal-title">
+    <section className="refusal" role="status" aria-labelledby={titleId}>
+      <h2 id={titleId}>
         <span aria-hidden="true">⌕ </span>
         {t("title")}
       </h2>

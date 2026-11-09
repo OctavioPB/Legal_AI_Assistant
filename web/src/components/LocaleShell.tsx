@@ -2,7 +2,7 @@
 
 import { NextIntlClientProvider } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { CATALOGS, type Locale } from "@/i18n/locales";
+import { CATALOGS, TIME_ZONE, type Locale } from "@/i18n/locales";
 
 interface LocaleContextValue {
   locale: Locale;
@@ -28,7 +28,7 @@ export function LocaleShell({ initialLocale, children }: { initialLocale: Locale
   const value = useMemo(() => ({ locale, setLocale }), [locale, setLocale]);
   return (
     <LocaleContext.Provider value={value}>
-      <NextIntlClientProvider locale={locale} messages={CATALOGS[locale]}>
+      <NextIntlClientProvider locale={locale} messages={CATALOGS[locale]} timeZone={TIME_ZONE}>
         {children}
       </NextIntlClientProvider>
     </LocaleContext.Provider>

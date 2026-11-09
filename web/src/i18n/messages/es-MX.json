@@ -1,12 +1,21 @@
 {
   "brand": {
     "name": "Legal AI Assistant",
-    "tagline": "Investigación jurídica con fuentes verificables"
+    "tagline": "Investigación jurídica con fuentes verificables",
+    "wordmark": "Legal <em>AI</em> Assistant"
   },
   "nav": {
     "language": "Idioma",
     "theme": "Tema",
-    "skip": "Saltar al contenido"
+    "skip": "Saltar al contenido",
+    "sections": "Secciones",
+    "conversar": "Conversar",
+    "investigacion": "Investigación",
+    "argumentar": "Argumentar",
+    "settings": "Ajustes",
+    "leyes": "Leyes",
+    "verificar": "Verificar",
+    "asuntos": "Asuntos"
   },
   "lang": {
     "es-MX": "Español",
@@ -18,14 +27,7 @@
     "dark": "Oscuro"
   },
   "session": {
-    "signedInAs": "Sesión de {name}",
     "logout": "Cerrar sesión"
-  },
-  "home": {
-    "empty": {
-      "title": "Comience seleccionando la jurisdicción",
-      "body": "Elija país, estado y municipio para delimitar el derecho aplicable. Las respuestas solo usan fuentes de esa jurisdicción."
-    }
   },
   "login": {
     "title": "Iniciar sesión",
@@ -37,10 +39,12 @@
     "error": {
       "invalid": "Credenciales no válidas.",
       "unavailable": "El servicio no está disponible. Intente de nuevo en unos minutos."
-    }
+    },
+    "intro": "Ingrese con los datos que le entregó su despacho. El despacho y el correo se recuerdan en este equipo; la contraseña, nunca.",
+    "showPassword": "Mostrar contraseña",
+    "help": "¿No tiene sus datos de acceso o los olvidó? Solicítelos a la persona administradora de su despacho."
   },
   "workspace": {
-    "title": "Consulta jurídica",
     "loading": "Cargando catálogo…",
     "catalogError": "No fue posible cargar los catálogos. Recargue la página.",
     "jurisdiction": {
@@ -65,17 +69,8 @@
       "corporate": "Corporativo",
       "corporate_finance": "Corporativo-financiero"
     },
-    "workflow": {
-      "label": "Flujo",
-      "dossier_builder": "Expediente",
-      "adversarial": "Contraparte"
-    },
     "includeHistorical": "Incluir versiones anteriores (no vigentes)",
     "query": {
-      "label": "Consulta",
-      "placeholder": "Describa el asunto jurídico o la pregunta…",
-      "submit": "Consultar",
-      "submitting": "Consultando…",
       "count": "{count} de {max} caracteres"
     },
     "stage": {
@@ -143,9 +138,393 @@
     "article": "Artículo completo",
     "notCurrent": "No vigente",
     "current": "Vigente",
-    "identifier": "Identificador"
+    "identifier": "Identificador",
+    "reformed": "Esta disposición cambió después de citarse ({change}, {date}). Versión vigente:"
   },
   "footer": {
     "disclaimer": "Herramienta de investigación. No sustituye el criterio profesional del abogado."
+  },
+  "workbench": {
+    "you": "Su consulta",
+    "threadLabel": "Conversación",
+    "elapsed": "Tiempo transcurrido: {clock}",
+    "slowNote": "Con el modelo local, una respuesta tarda de 1.5 a 4 minutos; un tema sin fuentes se rechaza en segundos.",
+    "hideHistory": "Ocultar historial",
+    "showHistory": "Mostrar historial",
+    "historical": "Incluye versiones no vigentes",
+    "scopeFixed": "Ámbito fijado al iniciar; para cambiarlo, inicie una nueva.",
+    "history": {
+      "search": "Buscar en el historial…",
+      "failed": "No fue posible cargar el historial.",
+      "noMatch": "Ninguna coincide con la búsqueda.",
+      "messages": "{count, plural, =1 {# mensaje} other {# mensajes}}"
+    },
+    "bar": {
+      "newTitle": "Nuevo título",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "confirmDelete": "¿Eliminar de forma definitiva?",
+      "rename": "Renombrar",
+      "delete": "Eliminar",
+      "shared": "Conversación de un colega, compartida por el asunto: puede consultarla y continuarla."
+    },
+    "sources": {
+      "title": "Fuentes citadas",
+      "empty": "Las fuentes citadas aparecerán aquí. Seleccione una para leer el texto original."
+    },
+    "chat": {
+      "title": "Conversar",
+      "historyLabel": "Historial de conversaciones",
+      "new": "Nueva conversación",
+      "empty": "Aún no hay conversaciones.",
+      "welcomeTitle": "¿Qué necesita consultar?",
+      "welcomeBody": "Escriba su pregunta; si la norma es de un estado o municipio, use «Cambiar». Cada afirmación cita su fuente y las preguntas de seguimiento conservan las fuentes ya citadas.",
+      "composerLabel": "Mensaje",
+      "placeholder": "Escriba su pregunta jurídica…",
+      "followUpPlaceholder": "Escriba una pregunta de seguimiento…",
+      "send": "Enviar",
+      "ex1": "¿Cuáles son las causas de rescisión de la relación de trabajo sin responsabilidad para el patrón?",
+      "ex2": "¿Cuántas horas puede durar la jornada diurna de trabajo?",
+      "ex3": "¿Qué derechos tiene una trabajadora durante el embarazo?"
+    },
+    "research": {
+      "title": "Investigación",
+      "historyLabel": "Historial de investigaciones",
+      "new": "Nueva investigación",
+      "empty": "Aún no hay investigaciones.",
+      "welcomeTitle": "Nueva investigación",
+      "welcomeBody": "Plantee la pregunta de investigación. El resultado es un expediente con planteamiento, marco normativo, criterios, análisis y fuentes citadas, exportable a PDF.",
+      "composerLabel": "Pregunta de investigación",
+      "followUpLabel": "Otra pregunta en esta investigación",
+      "placeholder": "Describa el problema jurídico a investigar…",
+      "send": "Investigar",
+      "question": "Pregunta",
+      "export": "Exportar PDF",
+      "ex1": "¿Qué indemnización corresponde a un trabajador por despido injustificado?",
+      "ex2": "¿Qué requisitos debe cumplir el aviso de rescisión que entrega el patrón?"
+    },
+    "case": {
+      "pageTitle": "Argumentar",
+      "historyLabel": "Casos",
+      "new": "Nuevo caso",
+      "empty": "Aún no hay casos.",
+      "newTitle": "Nuevo caso",
+      "newBody": "Describa los hechos y la parte que representa. En cada ronda, escriba un argumento y solicite el ataque de la contraparte o que se fortalezca con las fuentes.",
+      "title": "Nombre del caso",
+      "titlePlaceholder": "p. ej. Despido de la trabajadora X",
+      "sideLabel": "Parte que representa",
+      "side": {
+        "actor": "Parte actora",
+        "demandado": "Parte demandada",
+        "defensa": "Defensa",
+        "acusacion": "Acusación",
+        "tercero": "Tercero interesado"
+      },
+      "facts": "Hechos",
+      "factsPlaceholder": "Hechos relevantes, en orden cronológico…",
+      "claim": "Pretensión o teoría del caso",
+      "claimPlaceholder": "Lo que se pide o se sostiene (opcional)…",
+      "privacyNote": "Los hechos se guardan solo para su usuario, dentro del despacho, y nunca salen de este equipo.",
+      "create": "Crear caso",
+      "cardTitle": "Caso",
+      "roundsLabel": "Rondas",
+      "yourArgument": "Su argumento",
+      "attackTitle": "Ataque de la contraparte",
+      "strengthenTitle": "Argumento fortalecido",
+      "vulnerabilities": "Vulnerabilidades priorizadas",
+      "reinforce": "Puntos a reforzar",
+      "composerLabel": "Su argumento",
+      "composerPlaceholder": "Escriba el argumento que desea someter a prueba…",
+      "attack": "Enviar a la contraparte",
+      "strengthen": "Fortalecer mi argumento",
+      "example": {
+        "load": "Cargar un caso de ejemplo",
+        "title": "Despido sin aviso escrito",
+        "facts": "La trabajadora laboró tres años como auxiliar administrativa. El 3 de marzo fue despedida verbalmente; el patrón no le entregó aviso escrito de rescisión. Ahora el patrón alega faltas de probidad que no documentó.",
+        "claim": "Reinstalación y pago de salarios caídos."
+      }
+    },
+    "answerReady": "La respuesta está lista.",
+    "refusalReady": "No hay fuentes suficientes para responder; se muestran sugerencias.",
+    "busyElsewhere": "Hay una respuesta en curso en otra conversación. Podrá enviar cuando termine.",
+    "examplesLabel": "¿No sabe por dónde empezar? Pruebe con un ejemplo:",
+    "shortcut": "Ctrl + Enter para enviar",
+    "scope": {
+      "current": "Se consultará:",
+      "withHistorical": "incluye versiones no vigentes",
+      "currentOnly": "solo normas vigentes",
+      "change": "Cambiar",
+      "done": "Listo",
+      "personaHelp": "El perfil orienta el vocabulario y el orden de las fuentes; no amplía ni restringe la jurisdicción.",
+      "historicalHelp": "Actívelo solo si necesita saber qué decía una norma antes de una reforma."
+    }
+  },
+  "home": {
+    "title": "¿Qué necesita hacer <em>hoy</em>?",
+    "intro": "Asistente de investigación jurídica que responde solo con las normas cargadas y cita cada fuente. Si no encuentra fundamento, lo dice en lugar de inventarlo.",
+    "choose": "Elija cómo quiere trabajar",
+    "conversar": {
+      "title": "Conversar",
+      "text": "Haga preguntas jurídicas y continúe con preguntas de seguimiento, como en una conversación.",
+      "when": "Úselo para dudas puntuales: «¿Qué dice la ley sobre…?»",
+      "go": "Empezar a conversar →"
+    },
+    "investigacion": {
+      "title": "Investigación",
+      "text": "Plantee un problema y reciba un expediente ordenado: planteamiento, normas aplicables, análisis y fuentes.",
+      "when": "Úselo para preparar un escrito o un memorándum; se puede exportar a PDF.",
+      "go": "Iniciar una investigación →"
+    },
+    "argumentar": {
+      "title": "Argumentar",
+      "text": "Describa un caso y ponga a prueba sus argumentos: el sistema actúa como la contraparte o los fortalece.",
+      "when": "Úselo para preparar una audiencia o anticipar las objeciones del otro abogado.",
+      "go": "Trabajar un caso →"
+    },
+    "howTitle": "Cómo funciona",
+    "step1": "Escriba su pregunta. Por omisión se consulta el derecho federal de México; puede cambiar la jurisdicción con el botón «Cambiar».",
+    "step2": "Espere la respuesta: con el modelo local tarda de 1.5 a 4 minutos. La pantalla indica en qué etapa va.",
+    "step3": "Revise las fuentes: cada cita marcada con ✓ abre el texto original de la norma con el pasaje resaltado.",
+    "step4": "Si no hay fuentes suficientes, el sistema lo indica y sugiere qué hacer. No es un error: es una garantía de que no inventa.",
+    "tools": "Herramientas",
+    "leyes": {
+      "title": "Leyes",
+      "text": "Consulte el texto de cada ley por títulos, capítulos y artículos, y compare sus versiones.",
+      "go": "Abrir el navegador →"
+    },
+    "verificar": {
+      "title": "Verificar citas",
+      "text": "Pegue o suba un escrito y revise si cada artículo citado existe, está vigente y dice lo que se le atribuye.",
+      "go": "Verificar un escrito →"
+    },
+    "asuntos": {
+      "title": "Asuntos",
+      "text": "Agrupe conversaciones, investigaciones, casos, fuentes y notas por asunto, y compártalos con sus colegas.",
+      "go": "Ver mis asuntos →"
+    },
+    "reformas": {
+      "title": "Reformas",
+      "text": "Vea qué leyes cambiaron y qué parte de su trabajo cita disposiciones reformadas.",
+      "go": "Ver reformas →"
+    },
+    "eyebrow": "Investigación jurídica verificable"
+  },
+  "matters": {
+    "title": "Asuntos",
+    "intro": "Cada asunto reúne el trabajo de un expediente de cliente. Solo lo ven usted y los colegas que agregue.",
+    "loadError": "No fue posible cargar los asuntos. Intente de nuevo.",
+    "list": "Mis asuntos",
+    "empty": "Todavía no tiene asuntos. Cree el primero con el formulario de arriba.",
+    "role": {
+      "owner": "Responsable",
+      "member": "Colaborador"
+    },
+    "itemsCount": "{n} elementos",
+    "membersCount": "{n} personas",
+    "closed": "Cerrado",
+    "new": "Nuevo asunto",
+    "matterTitle": "Nombre del asunto",
+    "matterTitlePlaceholder": "Por ejemplo: Pérez vs. ACME",
+    "clientRef": "Referencia del cliente o expediente (opcional)",
+    "clientRefPlaceholder": "Por ejemplo: EXP-2026-014",
+    "description": "Descripción (opcional)",
+    "privacy": "El asunto es privado: solo lo ven usted y las personas que agregue.",
+    "create": "Crear asunto",
+    "notFound": "El asunto no existe o no tiene acceso a él.",
+    "back": "← Todos los asuntos",
+    "loading": "Cargando…",
+    "close": "Cerrar asunto",
+    "reopen": "Reabrir asunto",
+    "confirmDelete": "¿Eliminar el asunto? Sus conversaciones no se borran: vuelven a ser privadas de su autor.",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "work": "Trabajo del asunto",
+    "newIn": "Nueva en {page}",
+    "verifyIn": "Verificar un escrito",
+    "noWork": "Aún no hay conversaciones en este asunto.",
+    "byColleague": "de un colega",
+    "reports": "Verificaciones de escritos",
+    "reportCounts": "{total} referencias, {ok} vigentes",
+    "sources": "Fuentes guardadas",
+    "noSources": "Aún no hay fuentes guardadas.",
+    "reformedOpen": "Esta fuente fue reformada después de guardarse.",
+    "openCurrent": "Abrir la versión vigente",
+    "addedBy": "Guardada por {who}",
+    "remove": "Quitar",
+    "sourcesHelp": "Para guardar una fuente, ábrala (desde una respuesta o desde Leyes) y use «Guardar en asunto».",
+    "notes": "Notas",
+    "newNote": "Nueva nota",
+    "addNote": "Agregar nota",
+    "members": "Personas con acceso",
+    "addMember": "Agregar a un colega del despacho",
+    "choose": "Elija una persona",
+    "add": "Agregar",
+    "noColleagues": "No hay más colegas del despacho para agregar.",
+    "membersHelp": "Las personas agregadas ven todo el asunto y pueden trabajar en él; solo la persona responsable lo administra.",
+    "picker": {
+      "label": "Asunto",
+      "none": "Sin asunto",
+      "unavailable": "Asunto no disponible",
+      "help": "Opcional: guárdela dentro de un asunto para compartirla con sus colegas."
+    },
+    "save": {
+      "open": "Guardar en asunto",
+      "loading": "Cargando asuntos…",
+      "noMatters": "No tiene asuntos abiertos.",
+      "which": "Asunto donde guardar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "error": "No se pudo guardar.",
+      "saved": "Guardada en el asunto."
+    }
+  },
+  "laws": {
+    "title": "Leyes",
+    "intro": "Consulte el texto vigente de cada ley cargada, tal como se publicó, y compárelo con versiones anteriores. Aquí no interviene el modelo.",
+    "loadError": "No fue posible cargar las leyes. Intente de nuevo.",
+    "empty": "No hay leyes cargadas.",
+    "structure": "Estructura de la ley",
+    "law": "Ley",
+    "version": "Versión {version}",
+    "lastReform": "última reforma registrada: {date}",
+    "find": "Ir al artículo",
+    "findPlaceholder": "Por ejemplo: 47 o 50 Bis",
+    "go": "Ir",
+    "notFound": "Esa ley no tiene ese artículo.",
+    "loading": "Cargando…",
+    "pick": "Elija un artículo en la estructura o escriba su número.",
+    "trail": "Ubicación en la ley",
+    "prev": "← Artículo anterior",
+    "next": "Artículo siguiente →",
+    "citables": "Partes citables",
+    "citablesHelp": "Cada parte tiene su propia cita. Puede copiarla o guardarla en un asunto.",
+    "notCurrent": "No vigente",
+    "copied": "Copiada",
+    "copy": "Copiar cita",
+    "history": "Versiones",
+    "hideHistory": "Ocultar versiones",
+    "showHistory": "Comparar con versiones anteriores",
+    "onlyVersion": "Solo hay una versión registrada de este artículo.",
+    "compareWith": "Comparar la versión vigente con",
+    "versionOption": "versión {version} (vigente hasta {until})",
+    "diffLegend": "Texto subrayado: agregado por la reforma. Texto tachado: eliminado.",
+    "didNotExist": "El artículo no existía en esa versión.",
+    "noLongerExists": "El artículo ya no existe en la versión vigente.",
+    "added": "agregado",
+    "removed": "eliminado"
+  },
+  "reforms": {
+    "title": "Reformas",
+    "intro": "El sistema revisa las fuentes oficiales y, cuando una ley cambia, carga la nueva versión sin borrar la anterior y avisa qué parte de su trabajo cita disposiciones reformadas.",
+    "loadError": "No fue posible cargar las reformas. Intente de nuevo.",
+    "alerts": "Su trabajo afectado",
+    "noAlerts": "Ninguna de sus conversaciones, fuentes guardadas o verificaciones cita una disposición reformada.",
+    "where": {
+      "conversation": "Conversación",
+      "matter_source": "Fuente guardada en el asunto",
+      "report": "Verificación de escrito"
+    },
+    "openCited": "Abrir lo citado",
+    "openCurrent": "Abrir la versión vigente",
+    "changes": "Reformas registradas",
+    "noChanges": "Todavía no se ha registrado ninguna reforma.",
+    "checks": "Última revisión de cada fuente",
+    "checksHelp": "Si una fuente oficial rechaza la descarga automática, se anota y no se insiste.",
+    "noChecks": "Todavía no se ha revisado ninguna fuente.",
+    "law": "Ley",
+    "checkedAt": "Revisada",
+    "outcomeLabel": "Resultado",
+    "outcome": {
+      "unchanged": "Sin cambios",
+      "ingested": "Nueva versión cargada",
+      "failed": "Error al revisar",
+      "blocked": "La fuente rechazó la descarga",
+      "skipped": "Sin descarga automática (se actualiza a mano)"
+    },
+    "versions": "de la versión {from} a la {to}",
+    "published": "publicada el {date}",
+    "hideDetail": "Ocultar detalle",
+    "showDetail": "Ver qué cambió",
+    "bannerTitle": "Hay reformas que afectan su trabajo",
+    "bannerBody": "{n} citas de su trabajo apuntan a disposiciones que cambiaron.",
+    "bannerAction": "Revisar",
+    "change": {
+      "unchanged": "Sin cambio",
+      "amended": "Reformada",
+      "derogated": "Derogada",
+      "removed": "Eliminada",
+      "added": "Nueva"
+    }
+  },
+  "verify": {
+    "title": "Verificar citas",
+    "intro": "Revise cada artículo que cita un escrito: si existe, si está vigente y si el texto entre comillas coincide con la ley. La revisión la hace el sistema, no el modelo.",
+    "untitled": "Escrito sin título",
+    "mode": "¿Cómo quiere entregar el escrito?",
+    "modes": {
+      "text": "Pegar el texto",
+      "pdf": "Subir un PDF"
+    },
+    "docTitle": "Nombre del escrito (para el reporte)",
+    "docTitlePlaceholder": "Por ejemplo: Contestación de la demanda",
+    "text": "Texto del escrito",
+    "textPlaceholder": "Pegue aquí el escrito completo o la parte que quiere revisar.",
+    "example": "¿Quiere ver cómo funciona?",
+    "loadExample": "Cargar un texto de ejemplo",
+    "exampleText": "Con fundamento en el artículo 47, fracción II, de la Ley Federal del Trabajo, que establece como causa de rescisión \"Incurrir el trabajador, durante sus labores, en faltas de probidad u honradez\", así como en el artículo 48 de la misma ley. Véase también el artículo 21 de la Ley del Seguro Social.",
+    "file": "Archivo PDF (hasta 15 MB)",
+    "fileHelp": "El PDF debe tener texto (no una imagen escaneada). Leerlo puede tardar uno o dos minutos.",
+    "privacy": "El escrito no se guarda: se procesa en este equipo y solo se conserva el reporte (referencias y resultados, sin el texto).",
+    "running": "Verificando…",
+    "run": "Verificar",
+    "runningPdf": "Leyendo el PDF y verificando las referencias…",
+    "errors": {
+      "tooLarge": "El archivo es demasiado grande (máximo 15 MB).",
+      "unreadable": "No se pudo leer texto del archivo. ¿Es un PDF escaneado?",
+      "generic": "No fue posible verificar el escrito. Intente de nuevo."
+    },
+    "reports": "Reportes anteriores",
+    "noReports": "Todavía no hay reportes.",
+    "counts": "{total} referencias, {ok} vigentes",
+    "openReport": "Ver",
+    "deleteReport": "Eliminar",
+    "resultTitle": "Resultado: {title}",
+    "none": "No se encontraron referencias a artículos en el texto.",
+    "summary": "Resumen",
+    "pdfWarnings": "Aviso: parte del PDF no se pudo leer bien; revise el resultado con cuidado.",
+    "disclaimer": "La verificación comprueba existencia, vigencia y coincidencia textual. No juzga si la interpretación del escrito es correcta.",
+    "status": {
+      "vigente": "Vigente",
+      "derogado": "Derogado",
+      "no_vigente": "No vigente",
+      "inexistente": "No existe",
+      "fuera_del_corpus": "Ley no cargada",
+      "ley_no_identificada": "Ley no identificada",
+      "ambigua": "Ley ambigua"
+    },
+    "statusHelp": {
+      "vigente": "La disposición existe en la versión vigente de la ley.",
+      "derogado": "La disposición existe pero está derogada en la versión vigente.",
+      "no_vigente": "La disposición solo existe en una versión anterior: una reforma la eliminó o la sustituyó.",
+      "inexistente": "La ley está cargada pero no contiene esa disposición. Revise el número del artículo o de la fracción.",
+      "fuera_del_corpus": "La ley citada no está cargada en el sistema; no se puede verificar.",
+      "ley_no_identificada": "No se pudo saber a qué ley pertenece la referencia. Revise que el escrito nombre la ley.",
+      "ambigua": "El nombre de la ley corresponde a más de una ley cargada (por ejemplo, «Código Civil»)."
+    },
+    "quote": {
+      "coincide": "La cita textual coincide",
+      "no_coincide": "La cita textual NO coincide",
+      "coincide_version_anterior": "La cita coincide con una versión anterior",
+      "corta": "Cita demasiado corta para verificar"
+    },
+    "inferred": "La ley no se nombra junto a la referencia: se tomó de la última ley mencionada. Confírmelo.",
+    "reform": "Reforma registrada: {change} ({date}).",
+    "inBrief": "Referencia {n} en el escrito",
+    "openSource": "Abrir fuente"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "close": "Cerrar",
+    "session": "Sesión"
   }
 }

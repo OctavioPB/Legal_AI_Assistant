@@ -43,3 +43,6 @@ class Fragment(BaseModel):
     text: str
     expanded: bool  # True: the whole parent article; False: the chunk text alone
     tokens: int
+    # ADR-020: (cite_id, citation_string) of every citable unit rendered inside an expanded
+    # article that was not itself a hit; their ids are also listed in `also_cite_ids`.
+    unit_names: tuple[tuple[str, str], ...] = ()

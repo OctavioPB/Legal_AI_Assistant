@@ -35,9 +35,45 @@ from app.validation.types import RetrievedSet, ValidationConfig
 
 WORKFLOW_ALIAS: dict[str, AliasName] = {
     "dossier_builder": "drafting-primary",
+    "conversar": "drafting-primary",
     "adversarial": "adversarial-primary",
+    "argumentar": "adversarial-primary",
 }
 MAX_QUERY_CHARS = 4000
+CaseSide = Literal["actor", "demandado", "defensa", "acusacion", "tercero"]
+_SIDE_LABEL: dict[str, dict[str, str]] = {
+    "es": {"actor": "parte actora", "demandado": "parte demandada", "defensa": "defensa",
+           "acusacion": "acusación", "tercero": "tercero interesado"},
+    "en": {"actor": "plaintiff", "demandado": "defendant", "defensa": "defense",
+           "acusacion": "prosecution", "tercero": "interested third party"},
+}  # fmt: skip
+_TURN_LABEL = {
+    "es": {"case": "Caso", "side": "Parte que represento", "facts": "Hechos",
+           "claim": "Pretensión", "history": "Conversación previa (no es fuente)",
+           "user": "Usuario", "assistant": "Asistente", "now": "Mensaje actual"},
+    "en": {"case": "Case", "side": "Side I represent", "facts": "Facts", "claim": "Claim",
+           "history": "Previous conversation (not a source)", "user": "User",
+           "assistant": "Assistant", "now": "Current message"},
+}  # fmt: skip
+
+
+class Turn(BaseModel):
+    """One earlier message of the same conversation, as stored (ADR-016)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class CaseBrief(BaseModel):
+    """The case a sparring round is about. Free text: it travels in the USER turn only."""
+
+    model_config = ConfigDict(frozen=True)
+
+    side: CaseSide
+    facts: str
+    claim: str = ""
 
 
 class ChatRequest(BaseModel):
@@ -48,6 +84,9 @@ class ChatRequest(BaseModel):
     query: str
     persona: Persona
     workflow: Workflow
+    history: tuple[Turn, ...] = ()  # earlier turns, oldest first (clipped by `user_turn`)
+    carry: tuple[str, ...] = ()  # ids cited earlier in the conversation (ADR-016)
+    case: CaseBrief | None = None
 
     @field_validator("query")
     @classmethod
@@ -117,15 +156,55 @@ def jurisdiction_display(conn: Connection, ctx: SessionContext) -> str:
 
 
 def _retrieved_set(r: Retrieval) -> RetrievedSet:
-    entries: list[tuple[str, list[str]]] = [(h.cite_id, [h.text]) for h in r.hits]
+    """The ids the answer may cite: exactly those rendered into the model's context. A hit that
+    did not fit the budget was never shown, so a citation to it cannot come from reading it."""
+    shown = {cid for f in r.fragments for cid in (f.cite_id, *f.also_cite_ids)}
+    entries: list[tuple[str, list[str]]] = [
+        (h.cite_id, [h.text]) for h in r.hits if h.cite_id in shown
+    ]
     for f in r.fragments:
         entries.extend((cid, [f.text]) for cid in (f.cite_id, *f.also_cite_ids))
     return RetrievedSet.build(entries)
 
 
 def _citations(r: Retrieval, cited: tuple[str, ...]) -> tuple[Citation, ...]:
-    names = {h.cite_id: h.citation_string for h in r.hits}
+    names = {cid: name for f in r.fragments for cid, name in f.unit_names}  # ADR-020
+    names.update({h.cite_id: h.citation_string for h in r.hits})
     return tuple(Citation(cite_id=c, citation_string=names[c]) for c in cited if c in names)
+
+
+def user_turn(req: ChatRequest, language: str, settings: Settings) -> str:
+    """The user message the model receives. Without history or case it is the query itself,
+    byte for byte (the single-question path is unchanged). Newest history is kept first when
+    clipping; the case has its own limit; the current message is never clipped."""
+    if not req.history and req.case is None:
+        return req.query
+    lab = _TURN_LABEL[language]
+    parts: list[str] = []
+    if req.case is not None:
+        c = req.case
+        lines = [
+            lab["case"],
+            f"{lab['side']}: {_SIDE_LABEL[language][c.side]}",
+            f"{lab['facts']}:",
+            c.facts,
+        ]
+        if c.claim:
+            lines += [f"{lab['claim']}:", c.claim]
+        parts.append("\n".join(lines)[: settings.conversation_case_max_chars])
+    turns = req.history[-2 * settings.conversation_history_turns :] if req.history else ()
+    kept: list[str] = []
+    budget = settings.conversation_history_chars
+    for t in reversed(turns):
+        line = f"{lab[t.role]}: {t.content}"
+        if len(line) > budget:
+            break
+        kept.append(line)
+        budget -= len(line)
+    if kept:
+        parts.append(lab["history"] + "\n" + "\n\n".join(reversed(kept)))
+    parts.append(f"{lab['now']}:\n{req.query}")
+    return "\n\n".join(parts)
 
 
 class TenantMismatchError(RuntimeError):
@@ -154,7 +233,7 @@ def answer_query(
     s = deps.settings
     retrieval = retrieve(
         conn, ctx, req.query, embedder=deps.embedder, reranker=deps.reranker,
-        counter=deps.counter, settings=s,
+        counter=deps.counter, settings=s, carry=req.carry,
     )  # fmt: skip
     pred = build_jurisdiction_predicate(ctx)
     hit_ids = [h.cite_id for h in retrieval.hits]
@@ -221,7 +300,8 @@ def answer_query(
         else deps.aliases.spec(alias)
     )
     result: ValidatedAnswer = generate_validated(
-        deps.llm, alias, system=prompt.system, user=req.query, retrieved=_retrieved_set(retrieval),
+        deps.llm, alias, system=prompt.system, user=user_turn(req, ctx.language, s),
+        retrieved=_retrieved_set(retrieval),
         workflow=req.workflow, tenant_id=str(ctx.tenant_id), max_tokens=spec.max_answer_tokens,
         regen_max_tokens=s.validator_regen_max_tokens, config=ValidationConfig.from_settings(s),
     )  # fmt: skip

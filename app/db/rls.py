@@ -8,7 +8,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-TemplateKind = Literal["corpus", "private", "append_only"]
+TemplateKind = Literal[
+    "corpus", "private", "append_only", "personal", "matter_root", "matter_child", "message"
+]
 
 _TEMPLATES_FILE = Path(__file__).with_name("rls_templates.sql")
 _BLOCK = re.compile(r"-- @template (\w+)\n(.*?)-- @end", re.DOTALL)

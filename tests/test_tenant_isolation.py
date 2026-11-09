@@ -24,20 +24,33 @@ from app.db.session import (
 )
 from tests import helpers
 
-# table -> (column holding the tenant, policy template kind)
-TENANT_TABLES: dict[str, tuple[str, str]] = {
-    "documents": ("tenant_id", "corpus"),
-    "doc_nodes": ("tenant_id", "corpus"),
-    "chunks": ("tenant_id", "corpus"),
-    "users": ("tenant_id", "private"),
-    "sessions": ("tenant_id", "private"),
-    "dossiers": ("tenant_id", "private"),
-    "audit_log": ("tenant_id", "append_only"),
-    "tenants": ("id", "tenants"),
+# table -> (column holding the tenant, policy template kinds). A table may stack a RESTRICTIVE kind on
+# top of its base kind (ADR-018: the user anchor).
+TENANT_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "documents": ("tenant_id", ("corpus",)),
+    "doc_nodes": ("tenant_id", ("corpus",)),
+    "chunks": ("tenant_id", ("corpus",)),
+    "corpus_changes": ("tenant_id", ("corpus",)),
+    "cite_lineage": ("tenant_id", ("corpus",)),
+    "source_checks": ("tenant_id", ("corpus",)),
+    "users": ("tenant_id", ("private",)),
+    "sessions": ("tenant_id", ("private",)),
+    "dossiers": ("tenant_id", ("private",)),
+    "conversations": ("tenant_id", ("private", "personal")),
+    "messages": ("tenant_id", ("private", "message")),
+    "matters": ("tenant_id", ("private", "matter_root")),
+    "matter_members": ("tenant_id", ("private",)),
+    "matter_notes": ("tenant_id", ("private", "matter_child")),
+    "matter_sources": ("tenant_id", ("private", "matter_child")),
+    "verification_reports": ("tenant_id", ("private", "personal")),
+    "audit_log": ("tenant_id", ("append_only",)),
+    "tenants": ("id", ("tenants",)),
 }
+# Tables invisible without the user anchor (ADR-018).
+USER_SCOPED = [t for t, (_, kinds) in TENANT_TABLES.items() if len(kinds) > 1]
 # Global, non-tenant data: read-only catalogs and alembic bookkeeping.
 GLOBAL_TABLES = {"jurisdictions", "personas", "alembic_version"}
-CORPUS_TABLES = [t for t, (_, kind) in TENANT_TABLES.items() if kind == "corpus"]
+CORPUS_TABLES = [t for t, (_, kinds) in TENANT_TABLES.items() if "corpus" in kinds]
 
 
 # ── registry completeness ────────────────────────────────────────────────────────────────────────
@@ -88,12 +101,13 @@ def test_every_tenant_table_has_forced_rls_and_its_policies(
     assert enabled, f"{table}: RLS not enabled"
     assert forced, f"{table}: RLS not FORCED (the table owner would bypass it)"
     assert policies, f"{table}: no policies"
-    kind = TENANT_TABLES[table][1]
-    if kind != "tenants":
+    for kind in TENANT_TABLES[table][1]:
+        if kind == "tenants":
+            continue
         expected = {
             stmt.split()[2]
-            for stmt in rls.statements(kind, table)
-            if stmt.startswith("CREATE POLICY")  # type: ignore[arg-type]
+            for stmt in rls.statements(kind, table)  # type: ignore[arg-type]
+            if stmt.startswith("CREATE POLICY")
         }
         assert expected <= policies, f"{table}: missing policies {expected - policies}"
 
@@ -114,6 +128,15 @@ def test_raw_sql_sees_only_own_and_public_rows(
         # tenant-private tables: strictly own rows, never public
         for table in ("users", "sessions", "dossiers", "audit_log"):
             assert helpers.visible_tenants(app_engine, me, table) <= {me}
+        # client content (ADR-016/018/019): both tenants have rows, each sees exactly its own, and
+        # only with the user anchor; without it (same tenant!) nothing at all
+        user = helpers.SEEDED_USERS[me]
+        for table in [*USER_SCOPED, "matter_members"]:
+            assert helpers.visible_tenants(app_engine, me, table, user) == {me}, table
+        for table in USER_SCOPED:
+            assert helpers.visible_tenants(app_engine, me, table) == set(), (
+                f"{table} visible without app.user_id"
+            )
         with tenant_transaction(app_engine, me) as conn:
             visible = conn.execute(text("SELECT id FROM tenants")).scalars().all()
         assert visible == [me], "a tenant must see only its own tenants row"
@@ -303,3 +326,58 @@ def test_session_tenant_must_be_a_real_user_tenant() -> None:
     with pytest.raises(TenantContextError):
         with tenant_transaction(None, "00000000-0000-0000-0000-0000000000aa"):  # type: ignore[arg-type]
             pass
+
+
+# ── matters (ADR-018): sharing inside a firm is membership, nothing else ─────────────────────────
+def test_matter_membership_is_the_only_way_to_share(
+    app_engine: Engine, ingestor_engine: Engine, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+) -> None:
+    helpers.seed_overlapping_tenants(app_engine, ingestor_engine, tenant_a, tenant_b)
+    owner = helpers.SEEDED_USERS[tenant_a]
+    with tenant_transaction(app_engine, tenant_a) as conn:
+        colleague = conn.execute(
+            text(
+                "INSERT INTO users (tenant_id, email, display_name) "
+                "VALUES (:t, 'colega@firm.mx', 'Colega') RETURNING id"
+            ),
+            {"t": tenant_a},
+        ).scalar_one()
+
+    def visible(user: uuid.UUID) -> dict[str, int]:
+        with tenant_transaction(app_engine, tenant_a, user_id=user) as conn:
+            return {
+                t: conn.execute(text(f"SELECT count(*) FROM {t}")).scalar_one() for t in USER_SCOPED
+            }
+
+    assert all(n == 0 for n in visible(colleague).values()), "a colleague saw a private matter"
+    with tenant_transaction(app_engine, tenant_a, user_id=owner) as conn:
+        matter = conn.execute(text("SELECT id FROM matters")).scalar_one()
+        conn.execute(
+            text(
+                "INSERT INTO matter_members (tenant_id, matter_id, user_id, role) "
+                "VALUES (:t, :m, :u, 'member')"
+            ),
+            {"t": tenant_a, "m": matter, "u": colleague},
+        )
+    seen = visible(colleague)
+    # the matter, its note, its source, its conversation and its report; NOT the owner's private case
+    assert seen == {
+        "conversations": 1, "messages": 0, "matters": 1, "matter_notes": 1, "matter_sources": 1,
+        "verification_reports": 1,
+    }, seen  # fmt: skip
+    with tenant_transaction(app_engine, tenant_a, user_id=colleague) as conn:
+        title = conn.execute(text("SELECT title FROM conversations")).scalar_one()
+        assert title == "Consulta del asunto"
+        # a member cannot slip a private conversation of the owner into view by writing it
+        with pytest.raises(DBAPIError, match="row-level security"):
+            conn.execute(
+                text(
+                    "INSERT INTO conversations (tenant_id, user_id, kind, title, language, "
+                    "jurisdiction_id, persona) VALUES (:t, :u, 'chat', 'x', 'es', "
+                    "(SELECT id FROM jurisdictions WHERE country = 'MX' AND level = 'federal'), "
+                    "'labor')"
+                ),
+                {"t": tenant_a, "u": owner},
+            )
+    # another firm's user id anchored on this firm sees nothing either
+    assert all(n == 0 for n in visible(helpers.SEEDED_USERS[tenant_b]).values())

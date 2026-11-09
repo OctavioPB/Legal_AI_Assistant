@@ -4,7 +4,7 @@ these dev defaults, which match docker-compose.yml and `.env.example`."""
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -54,9 +54,35 @@ class Settings(BaseSettings):
     rate_user_per_s: float = 0.5
     rate_user_burst: int = 10
 
+    # --- conversations (ADR-016) -------------------------------------------------------------
+    conversation_history_turns: int = 3  # previous exchanges the model sees, in the USER turn
+    conversation_history_chars: int = 6_000  # clip of that history (newest kept)
+    conversation_carry_max: int = 12  # ids cited earlier in the conversation, carried into context
+    conversation_case_max_chars: int = 8_000  # facts + claim of a case
+
     # --- citation validator (rag.md) ---------------------------------------------------------
     validator_max_retries: int = 1  # one regeneration, then a system-written refusal
     validator_regen_max_tokens: int = 4096  # its own cap, never the model default
+    # ADR-017: reform watcher (the only component that may reach the network) and its alerts
+    reform_watch_timeout_s: float = 120.0
+    reform_watch_user_agent: str = "LegalAI-ReformWatcher/1.0"
+    reform_watch_max_bytes: int = 60 * 1024 * 1024
+    reform_alert_days: int = 365  # a reform older than this no longer raises alerts
+    # Retrieval experiments (golden protocol, 2026-11-08). Off by default until measured:
+    # lexical_match "any" ORs the query lexemes (websearch_to_tsquery ANDs them: a natural question
+    # matched nothing); rerank_breadcrumb scores breadcrumb + text, as the chunks were embedded.
+    lexical_match: Literal["all", "any"] = "all"
+    # ADR-022: a unit the query names explicitly ("artículo 123, apartado B, fracción XIII de la
+    # Constitución") is resolved by the citation grammar and placed first; it passes the tau gate.
+    retrieval_explicit_reference: bool = True
+    retrieval_explicit_max: int = (
+        8  # units taken from explicit references (an article's fracciones)
+    )
+    rerank_breadcrumb: bool = False
+    # ADR-020: the units of an expanded article are citable (they are rendered to the model)
+    context_citable_units: bool = True
+    # ADR-023: a unit inside an apartado expands to that apartado, not to the whole article
+    context_unit_apartado: bool = True
     validator_quote_min_words: int = 5  # a quoted run shorter than this is not checked
     validator_coverage_min_words: int = 6  # shorter units (headings, labels) need no citation
 

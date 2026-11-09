@@ -179,7 +179,31 @@ def test_expansion_returns_whole_article_deduped_within_budget(
     assert "Artículo 48" not in f.text  # the parent article, not its sibling
     assert f.also_cite_ids  # both fracción chunks stay citable
     offered = {f.cite_id, *f.also_cite_ids}
-    assert offered <= {h.cite_id for h in r.hits}
+    # ADR-020: what is offered = the hits + the units rendered inside the expanded article
+    assert offered <= {h.cite_id for h in r.hits} | {cid for cid, _ in f.unit_names}
+    assert len(offered) == len(f.also_cite_ids) + 1, "no id is offered twice"
+
+
+def test_every_unit_rendered_in_an_expanded_article_is_citable(
+    app_engine: Engine, corpus: dict[str, int], tenant_a: uuid.UUID
+) -> None:
+    """ADR-020 regression: the whole art. 47 was rendered but only the retrieved fracción was
+    citable, so a correct citation to the sibling fracción the model had read was rejected."""
+    one = Settings(refusal_tau=0.0, retrieval_rerank_top=1)
+    r = _run(app_engine, tenant_a, corpus["fed"], "certificados falsos capacidad", settings=one)
+    [f] = [f for f in r.fragments if "ART47" in f.cite_id]
+    assert f.expanded and "faltas de probidad" in f.text  # fracción II is IN the rendered text
+    names = dict(f.unit_names)
+    sibling = next(cid for cid in names if "FRACII" in cid)
+    assert sibling in f.also_cite_ids and sibling not in {h.cite_id for h in r.hits}
+    assert names[sibling].endswith("fracc. II")
+    assert not any("ART48" in cid for cid in names), "units of another article are not offered"
+    assert f'also="{" ".join(f.also_cite_ids)}"' in render_context(r.fragments)
+    # the switch restores the previous contract exactly
+    off = Settings(refusal_tau=0.0, retrieval_rerank_top=1, context_citable_units=False)
+    r_off = _run(app_engine, tenant_a, corpus["fed"], "certificados falsos capacidad", settings=off)
+    [f_off] = [f for f in r_off.fragments if "ART47" in f.cite_id]
+    assert f_off.also_cite_ids == () and f_off.unit_names == ()
 
 
 @pytest.mark.parametrize("budget", [60, 200, 500, 3000])

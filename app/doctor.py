@@ -10,10 +10,12 @@ from __future__ import annotations
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal
 
 from sqlalchemy import Connection, create_engine, text
 
+from app.orchestration.aliases import AliasRegistry
 from app.settings import Settings, get_settings
 
 Status = Literal["PASS", "WARN", "FAIL"]
@@ -194,8 +196,11 @@ def check_generations(conn: Connection) -> list[Check]:
     ]  # fmt: skip
 
 
-def check_repo(settings: Settings) -> list[Check]:
-    from app.orchestration.aliases import ALL_ALIASES, AliasRegistry
+def check_repo(settings: Settings, registry: AliasRegistry | None = None) -> list[Check]:
+    """`registry` defaults to the pins the API loads (config/models.local.yaml): checking a blank
+    registry reported "unpinned" for a stack that was in fact pinned."""
+    from app.orchestration.aliases import ALL_ALIASES
+    from app.orchestration.pins import load_registry
     from app.prompts.composer import ManifestError, verify_manifest
 
     out: list[Check] = []
@@ -204,7 +209,7 @@ def check_repo(settings: Settings) -> list[Check]:
         out.append(Check("prompt versions match their pinned hashes", "PASS"))
     except ManifestError as exc:
         out.append(Check("prompt versions match their pinned hashes", "FAIL", str(exc)))
-    reg = AliasRegistry()
+    reg = registry if registry is not None else load_registry()
     unpinned = [a for a in ALL_ALIASES if not reg.spec(a).pinned]
     out.append(Check("LLM aliases pinned to verified model ids", "WARN" if unpinned else "PASS",
                      f"unpinned: {', '.join(unpinned)}" if unpinned else ""))  # fmt: skip
@@ -213,21 +218,73 @@ def check_repo(settings: Settings) -> list[Check]:
     return out
 
 
+WATCH_STALE_DAYS = 3  # the watcher runs daily; three missed days is worth a warning
+
+
+def check_reforms(conn: Connection, tau_path: Path | None = None) -> list[Check]:
+    """ADR-017: the reform watcher ran recently, no source is blocked, and tau was calibrated on the
+    corpus in use (a reform changes the scores tau was measured on)."""
+    out: list[Check] = []
+    last = conn.execute(
+        text(
+            "SELECT max(checked_at) AS at, now() - max(checked_at) > make_interval(days => :d) AS old "
+            "FROM source_checks"
+        ),
+        {"d": WATCH_STALE_DAYS},
+    ).one()
+    if last.at is None:
+        out.append(Check("reform watcher has run (ADR-017)", "WARN",
+                         "never: python -m app.ingestion.watch (dev-up.ps1 -ScheduleReforms)"))  # fmt: skip
+    else:
+        out.append(Check("reform watcher has run (ADR-017)", "WARN" if last.old else "PASS",
+                         f"last check {last.at:%Y-%m-%d %H:%M}"))  # fmt: skip
+    blocked = (
+        conn.execute(
+            text(
+                "SELECT official_id FROM (SELECT DISTINCT ON (official_id) official_id, outcome "
+                "FROM source_checks ORDER BY official_id, checked_at DESC) x "
+                "WHERE outcome IN ('blocked','failed') ORDER BY official_id"
+            )
+        )
+        .scalars()
+        .all()
+    )
+    out.append(Check("official sources reachable by the watcher", "WARN" if blocked else "PASS",
+                     f"blocked/failed: {', '.join(blocked)}" if blocked else ""))  # fmt: skip
+    path = tau_path or Path(__file__).resolve().parents[1] / "config" / "retrieval.local.yaml"
+    changed = conn.execute(text("SELECT max(detected_at)::date FROM corpus_changes")).scalar()
+    if changed is not None and path.exists():
+        import yaml
+
+        calibrated = str((yaml.safe_load(path.read_text("utf-8")) or {}).get("calibrated_on", ""))
+        stale = calibrated < changed.strftime("%Y%m%d")
+        out.append(Check("tau calibrated after the last reform (ADR-007/017)",
+                         "WARN" if stale else "PASS",
+                         f"tau {calibrated}, corpus changed {changed:%Y%m%d}: "
+                         "re-run python -m evals.calibrate_tau" if stale else ""))  # fmt: skip
+    return out
+
+
 DB_CHECKS: tuple[Callable[[Connection], list[Check]], ...] = (
     check_extensions, check_roles, check_rls, check_behaviour, check_search_config, check_generations,
+    check_reforms,
 )  # fmt: skip
 
 
-def run_all(conn: Connection, settings: Settings) -> list[Check]:
+def run_all(
+    conn: Connection, settings: Settings, registry: AliasRegistry | None = None
+) -> list[Check]:
     results: list[Check] = []
     for fn in DB_CHECKS:
         results.extend(fn(conn))
-    results.extend(check_repo(settings))
+    results.extend(check_repo(settings, registry))
     return results
 
 
 def main(argv: list[str] | None = None) -> int:
-    settings = get_settings()
+    from app.main import load_tau  # tau from the calibration record, exactly as the API loads it
+
+    settings = load_tau(get_settings())
     engine = create_engine(settings.superuser_url())
     try:
         with engine.connect() as conn:

@@ -161,8 +161,11 @@ def test_core_keeps_the_load_bearing_contracts() -> None:
     assert "sin explicación" in core and "Elementos faltantes" not in core  # not "own words"
     assert "datos, no instrucciones" in core and "<fragmento>" in core
     assert OWN_ANALYSIS_TAG in core and "[cite: EJEMPLO-NO-CITAR]" in core
-    adv = (C.PROMPTS_DIR / "workflow" / "adversarial@v1.j2").read_text(encoding="utf-8")
-    assert STRATEGIC_TAG in adv
+    pinned = C.load_manifest()["workflow"]
+    for name in ("adversarial", "argumentar"):  # the PINNED case prompts keep the strategic mark
+        v = pinned[name]["version"]
+        adv = (C.PROMPTS_DIR / "workflow" / f"{name}@{v}.j2").read_text(encoding="utf-8")
+        assert STRATEGIC_TAG in adv, name
     for f in _templates():  # no template instructs the model to add what the sources lack
         assert not re.search(
             r"siempre (agrega|añade|incluye) (un|una) (detalle|ejemplo)", f.read_text("utf-8")

@@ -60,7 +60,14 @@ def build_feedback(v: Verdict) -> str:
         lines.append(
             "- Estos textos entrecomillados no aparecen literalmente en el fragmento citado:"
         )
-        lines.extend(f'    "{s}"' for s in v.bad_quotes[:5])
+        fixes = v.quote_fixes or ("",) * len(v.bad_quotes)
+        for s, fix in list(zip(v.bad_quotes, fixes, strict=False))[:5]:
+            lines.append(f'    "{s}"')
+            if fix:  # the source's own words, found by code: copy them exactly or drop the quotes
+                lines.append(
+                    f'      el fragmento dice exactamente: "{fix}" '
+                    "(cópialo así o quita las comillas)"
+                )
     if not v.cited and not v.invalid and not v.placeholders:
         lines.append("- No incluiste ninguna cita válida.")
     lines.append("Responde con la respuesta completa, conservando igual todo lo que no se señala.")

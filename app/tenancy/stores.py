@@ -34,9 +34,19 @@ DECLARED_KINDS: tuple[str, ...] = (
 # Children before parents (composite FKs). `tenants` is tombstoned, never deleted: cite ids and
 # audit references must not dangle.
 POSTGRES_ERASE_ORDER: tuple[str, ...] = (
+    "cite_lineage",
+    "corpus_changes",
+    "source_checks",
     "chunks",
     "doc_nodes",
     "documents",
+    "matter_sources",
+    "matter_notes",
+    "verification_reports",
+    "messages",
+    "conversations",
+    "matter_members",
+    "matters",
     "dossiers",
     "sessions",
     "users",

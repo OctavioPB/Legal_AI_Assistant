@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { citedIds, parseAnswer, parseInline } from "../src/lib/answer";
 import { countries, municipalitiesOf, resolve, scopeChain, select, statesOf, type Jurisdiction, type Selection } from "../src/lib/jurisdiction";
-import { match } from "../src/lib/proxy";
+import { isSameOriginJson, match } from "../src/lib/proxy";
 
 const J = (id: number, country: "MX" | "US", level: Jurisdiction["level"], state: string | null, muni: string | null, es: string, en = es): Jurisdiction => ({
   id, country, level, state_code: state, municipality: muni, name_es: es, name_en: en,
@@ -100,5 +100,26 @@ describe("gateway allow-list", () => {
     ] as [string, string[]][]) {
       expect(match(m, p), `${m} ${p.join("/")}`).toBeNull();
     }
+  });
+});
+
+describe("CSRF guard on state-changing route handlers", () => {
+  const HOST = { host: "127.0.0.1:3100" };
+  const h = (o: Record<string, string>) => new Headers({ ...HOST, ...o });
+  it("accepts the app's own JSON fetches (with or without Origin, any host name the user typed)", () => {
+    expect(isSameOriginJson(h({ "content-type": "application/json" }))).toBe(true);
+    expect(isSameOriginJson(h({ "content-type": "application/json; charset=utf-8", origin: "http://127.0.0.1:3100", "sec-fetch-site": "same-origin" }))).toBe(true);
+    expect(isSameOriginJson(new Headers({ host: "localhost:3100", "content-type": "application/json", origin: "http://localhost:3100" }))).toBe(true);
+  });
+  it("rejects a cross-site text/plain form smuggling a JSON body (login CSRF)", () => {
+    expect(isSameOriginJson(h({ "content-type": "text/plain", origin: "https://evil.example", "sec-fetch-site": "cross-site" }))).toBe(false);
+    expect(isSameOriginJson(h({ "content-type": "text/plain" }))).toBe(false);
+    expect(isSameOriginJson(h({}))).toBe(false);
+  });
+  it("rejects JSON marked cross-site or from another origin", () => {
+    expect(isSameOriginJson(h({ "content-type": "application/json", "sec-fetch-site": "cross-site" }))).toBe(false);
+    expect(isSameOriginJson(h({ "content-type": "application/json", "sec-fetch-site": "same-site" }))).toBe(false);
+    expect(isSameOriginJson(h({ "content-type": "application/json", origin: "http://127.0.0.1:3101" }))).toBe(false);
+    expect(isSameOriginJson(h({ "content-type": "application/json", origin: "null" }))).toBe(false);
   });
 });

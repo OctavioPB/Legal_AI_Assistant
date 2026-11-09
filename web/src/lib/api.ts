@@ -27,6 +27,17 @@ export interface Source {
   document_title: string;
   version_label: string | null;
   valid_to: string | null;
+  reform: Succession | null; // ADR-017: a reform changed this unit after it was cited
+}
+
+export type ChangeKind = "unchanged" | "amended" | "derogated" | "removed" | "added";
+
+export interface Succession {
+  old: string;
+  current: string | null;
+  change: ChangeKind;
+  published_on: string | null;
+  citation_string: string;
 }
 
 export interface Persona {
@@ -117,3 +128,359 @@ export async function chatStream(body: ChatBody, onStage: (stage: string) => voi
   }
   throw new ApiError(502, "stream_ended");
 }
+
+// ---- conversations (ADR-016) ----------------------------------------------------------------
+export type Kind = "chat" | "research" | "case";
+export type Action = "ask" | "research" | "attack" | "strengthen";
+export type Side = "actor" | "demandado" | "defensa" | "acusacion" | "tercero";
+export const SIDES: Side[] = ["actor", "demandado", "defensa", "acusacion", "tercero"];
+
+export interface CaseBrief {
+  side: Side;
+  facts: string;
+  claim: string;
+}
+
+export interface Conversation {
+  id: string;
+  kind: Kind;
+  title: string;
+  language: "es" | "en";
+  jurisdiction_id: number;
+  persona: string;
+  include_historical: boolean;
+  case: CaseBrief | null;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+  matter_id: string | null;
+  mine: boolean;
+}
+
+export interface Message {
+  seq: number;
+  role: "user" | "assistant";
+  action: Action;
+  content: string;
+  status: "answered" | "refused" | null;
+  refusal_reason: string | null;
+  citations: Citation[];
+  request_id: string | null;
+  created_at: string;
+}
+
+export interface NewConversation {
+  kind: Kind;
+  title: string;
+  jurisdiction_id: number;
+  persona: string;
+  language: "es" | "en";
+  include_historical: boolean;
+  case?: CaseBrief;
+  matter_id?: string | null;
+}
+
+async function send(path: string, method: "POST" | "PATCH" | "DELETE", body?: unknown): Promise<Response> {
+  const res = await fetch(`/api/v1/${path}`, {
+    method,
+    headers: { "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err: { code?: string } = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, err.code ?? "error");
+  }
+  return res;
+}
+
+export const listConversations = (kind: Kind, q = "") =>
+  json<Conversation[]>(`conversations?kind=${kind}${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ""}`);
+export const getConversation = (id: string) =>
+  json<{ conversation: Conversation; messages: Message[] }>(`conversations/${encodeURIComponent(id)}`);
+export const createConversation = async (body: NewConversation) =>
+  (await (await send("conversations", "POST", body)).json()) as Conversation;
+export const renameConversation = async (id: string, title: string) =>
+  (await (await send(`conversations/${encodeURIComponent(id)}`, "PATCH", { title })).json()) as Conversation;
+export const moveConversation = async (id: string, matterId: string | null) =>
+  (await (await send(`conversations/${encodeURIComponent(id)}`, "PATCH", { move: true, matter_id: matterId })).json()) as Conversation;
+export const listMatterConversations = (matterId: string) =>
+  json<Conversation[]>(`conversations?matter=${encodeURIComponent(matterId)}`);
+export const deleteConversation = async (id: string) => {
+  await send(`conversations/${encodeURIComponent(id)}`, "DELETE");
+};
+
+/** One turn: stages while it runs, then the two stored messages (the user's and the answer). */
+export async function sendMessage(
+  id: string,
+  text: string,
+  action: Action,
+  onStage: (stage: string) => void,
+): Promise<{ result: ChatResult; messages: Message[] }> {
+  const res = await send(`conversations/${encodeURIComponent(id)}/messages/stream`, "POST", { text, action });
+  for await (const ev of readSse(res)) {
+    if (ev.event === "stage") onStage(String(ev.data));
+    else if (ev.event === "result") return ev.data as { result: ChatResult; messages: Message[] };
+    else if (ev.event === "error") throw new ApiError(500, (ev.data as { code?: string }).code ?? "error");
+  }
+  throw new ApiError(502, "stream_ended");
+}
+
+// ---- 1. law navigator --------------------------------------------------------------------------
+export interface Law {
+  official_id: string;
+  title: string;
+  doc_type: string;
+  language: "es" | "en";
+  version_label: string | null;
+  valid_from: string | null;
+  jurisdiction_id: number;
+  jurisdiction_es: string;
+  jurisdiction_en: string;
+  last_reform: string | null;
+}
+
+export interface TocNode {
+  path: string;
+  node_type: string;
+  label: string;
+  heading: string;
+  children: TocNode[];
+}
+
+export interface Citable {
+  cite_id: string;
+  citation_string: string;
+  label: string;
+  text: string;
+  is_current: boolean;
+}
+
+export interface NodeReform {
+  cite_id: string;
+  previous_cite_id: string | null;
+  change: ChangeKind;
+  published_on: string | null;
+  previous_version: string | null;
+}
+
+export interface NodeView {
+  official_id: string;
+  law_title: string;
+  version_label: string | null;
+  path: string;
+  node_type: string;
+  label: string;
+  text: string;
+  trail: { path: string; label: string }[];
+  children: { path: string; node_type: string; label: string }[];
+  citables: Citable[];
+  prev_path: string | null;
+  next_path: string | null;
+  reforms: NodeReform[];
+}
+
+export interface LawVersion {
+  document_id: string;
+  version_label: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  current: boolean;
+  text: string | null;
+}
+
+const lawPath = (id: string) => `laws/${encodeURIComponent(id)}`;
+export const listLaws = () => json<Law[]>("laws");
+export const getToc = (id: string) => json<TocNode[]>(`${lawPath(id)}/toc`);
+export const findArticle = (id: string, ref: string) =>
+  json<{ path: string; label: string }>(`${lawPath(id)}/find?ref=${encodeURIComponent(ref)}`);
+export const getNode = (id: string, path: string) =>
+  json<NodeView>(`${lawPath(id)}/node?path=${encodeURIComponent(path)}`);
+export const getHistory = (id: string, path: string) =>
+  json<LawVersion[]>(`${lawPath(id)}/history?path=${encodeURIComponent(path)}`);
+
+// ---- 5. matters (ADR-018) ----------------------------------------------------------------------
+export interface Matter {
+  id: string;
+  title: string;
+  client_ref: string;
+  description: string;
+  status: "open" | "closed";
+  role: "owner" | "member";
+  members: number;
+  items: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MatterSource {
+  id: string;
+  cite_id: string;
+  citation_string: string;
+  note: string;
+  added_by: string;
+  added_at: string;
+  change: ChangeKind | null;
+  current_cite_id: string | null;
+}
+
+export interface MatterDetail {
+  matter: Matter;
+  members: { user_id: string; display_name: string; email: string; role: "owner" | "member" }[];
+  notes: { id: string; body: string; author: string; mine: boolean; created_at: string }[];
+  sources: MatterSource[];
+  reports: { id: string; title: string; summary: Record<string, number>; created_at: string }[];
+}
+
+export interface Colleague {
+  user_id: string;
+  display_name: string;
+  email: string;
+}
+
+const matterPath = (id: string) => `matters/${encodeURIComponent(id)}`;
+export const listMatters = () => json<Matter[]>("matters");
+export const getMatter = (id: string) => json<MatterDetail>(matterPath(id));
+export const listColleagues = () => json<Colleague[]>("matters/colleagues");
+export const createMatter = async (body: { title: string; client_ref: string; description: string }) =>
+  (await (await send("matters", "POST", body)).json()) as Matter;
+export const updateMatter = async (
+  id: string,
+  body: Partial<Pick<Matter, "title" | "client_ref" | "description" | "status">>,
+) => (await (await send(matterPath(id), "PATCH", body)).json()) as Matter;
+export const deleteMatter = async (id: string) => {
+  await send(matterPath(id), "DELETE");
+};
+export const addMember = async (id: string, userId: string) => {
+  await send(`${matterPath(id)}/members`, "POST", { user_id: userId });
+};
+export const removeMember = async (id: string, userId: string) => {
+  await send(`${matterPath(id)}/members/${encodeURIComponent(userId)}`, "DELETE");
+};
+export const addNote = async (id: string, body: string) => {
+  await send(`${matterPath(id)}/notes`, "POST", { body });
+};
+export const deleteNote = async (id: string, noteId: string) => {
+  await send(`${matterPath(id)}/notes/${encodeURIComponent(noteId)}`, "DELETE");
+};
+export const saveSource = async (id: string, citeId: string, note = "") => {
+  await send(`${matterPath(id)}/sources`, "POST", { cite_id: citeId, note });
+};
+export const deleteSource = async (id: string, sourceId: string) => {
+  await send(`${matterPath(id)}/sources/${encodeURIComponent(sourceId)}`, "DELETE");
+};
+
+// ---- 2. brief verifier (ADR-019) ---------------------------------------------------------------
+export type FindingStatus =
+  | "vigente"
+  | "derogado"
+  | "no_vigente"
+  | "inexistente"
+  | "fuera_del_corpus"
+  | "ley_no_identificada"
+  | "ambigua";
+export type QuoteStatus = "coincide" | "no_coincide" | "coincide_version_anterior" | "corta";
+export const FINDING_STATUSES: FindingStatus[] = [
+  "vigente",
+  "derogado",
+  "no_vigente",
+  "inexistente",
+  "fuera_del_corpus",
+  "ley_no_identificada",
+  "ambigua",
+];
+
+export interface Finding {
+  ref: string;
+  official_id: string | null;
+  status: FindingStatus;
+  quote: QuoteStatus | null;
+  cite_ids: string[];
+  citation_string: string | null;
+  reform: { change: ChangeKind; published_on: string } | null;
+  span?: [number, number];
+  inferred: boolean;
+}
+
+export interface VerifyResult {
+  report_id: string;
+  title: string;
+  summary: Record<string, number>;
+  findings: Finding[];
+  text: string | null;
+  warnings: string[];
+}
+
+export interface Report {
+  id: string;
+  title: string;
+  source_kind: "text" | "pdf";
+  matter_id: string | null;
+  mine: boolean;
+  summary: Record<string, number>;
+  items: Finding[];
+  created_at: string;
+}
+
+export const verifyText = async (title: string, text: string, matterId: string | null) =>
+  (await (await send("verify", "POST", { title, text, matter_id: matterId })).json()) as VerifyResult;
+
+export async function verifyPdf(title: string, file: Blob, matterId: string | null): Promise<VerifyResult> {
+  const q = new URLSearchParams({ title });
+  if (matterId) q.set("matter_id", matterId);
+  const res = await fetch(`/api/v1/verify/pdf?${q.toString()}`, {
+    method: "POST",
+    headers: { "content-type": "application/pdf" },
+    body: file,
+  });
+  if (!res.ok) {
+    const err: { code?: string } = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, err.code ?? "error");
+  }
+  return (await res.json()) as VerifyResult;
+}
+export const listReports = () => json<Report[]>("verify/reports");
+export const getReport = (id: string) => json<Report>(`verify/reports/${encodeURIComponent(id)}`);
+export const deleteReport = async (id: string) => {
+  await send(`verify/reports/${encodeURIComponent(id)}`, "DELETE");
+};
+
+// ---- 6. reforms (ADR-017) ----------------------------------------------------------------------
+export interface Alert {
+  where: "conversation" | "matter_source" | "report";
+  target_id: string;
+  target_title: string;
+  kind: Kind | null;
+  matter_id: string | null;
+  cite_id: string;
+  citation_string: string;
+  change: ChangeKind;
+  published_on: string | null;
+  current_cite_id: string | null;
+}
+
+export interface ReformChange {
+  id: string;
+  official_id: string;
+  title: string;
+  old_version: string | null;
+  new_version: string | null;
+  published_on: string | null;
+  detected_at: string;
+  counts: Record<string, number>;
+}
+
+export interface ReformOverview {
+  changes: ReformChange[];
+  checks: { official_id: string; title: string | null; checked_at: string; outcome: string; http_status: number | null; detail: string | null }[];
+}
+
+export interface LineageRow {
+  change: ChangeKind;
+  citation_string: string;
+  old_cite_id: string | null;
+  new_cite_id: string | null;
+}
+
+export const listAlerts = () => json<Alert[]>("reforms/alerts");
+export const getReforms = () => json<ReformOverview>("reforms");
+export const getReformDetail = (id: string) => json<LineageRow[]>(`reforms/${encodeURIComponent(id)}`);

@@ -76,16 +76,76 @@ def semantic_arm(
     return _hits(list(rows))
 
 
-def lexical_arm(conn: Connection, ctx: SessionContext, query: str, *, top: int) -> list[Hit]:
+def lexical_arm(
+    conn: Connection, ctx: SessionContext, query: str, *, top: int, match: str = "all"
+) -> list[Hit]:
+    """`match="all"`: websearch_to_tsquery (every term, the original behaviour). `match="any"`: the
+    same lexemes ORed (plainto_tsquery's AND turned into OR), ranked by ts_rank_cd, so a question
+    in natural language still reaches the chunks that share its legal identifiers."""
     pred = build_jurisdiction_predicate(ctx)
     cfg = _TS_CONFIG[ctx.language]
+    tsq = (
+        f"CAST(replace(CAST(plainto_tsquery('{cfg}', :t) AS text), ' & ', ' | ') AS tsquery)"
+        if match == "any"
+        else f"websearch_to_tsquery('{cfg}', :t)"
+    )
     rows = conn.execute(
         text(
             f"SELECT {_COLS}, ts_rank_cd(chunks.fts, q.tsq) AS score "
-            f"FROM chunks, (SELECT websearch_to_tsquery('{cfg}', :t) AS tsq) q "
+            f"FROM chunks, (SELECT {tsq} AS tsq) q "
             f"WHERE {pred.sql} AND chunks.fts @@ q.tsq "
             "ORDER BY score DESC, chunks.cite_id LIMIT :k"
         ),
         {**pred.params, "t": query, "k": top},
+    ).all()
+    return _hits(list(rows))
+
+
+def hits_by_stem(
+    conn: Connection, ctx: SessionContext, stems: list[str], embedder: QueryEmbedder, *, limit: int
+) -> list[Hit]:
+    """ADR-022: the units a query names explicitly, by `cite_id` stem ("MX-FED-LFT-ART47" gives the
+    article's units, "...-ART47-FRACII" the fracción), under the SAME jurisdiction predicate (so a
+    named law outside the session never comes back), the active embedding generation, no navigation
+    chunks and no duplicated headings. Order: the stems' order, then document order."""
+    if not stems:
+        return []
+    pred = build_jurisdiction_predicate(ctx)
+    rows = conn.execute(
+        text(
+            f"SELECT {_COLS}, 0.0 AS score, s.ord FROM chunks "
+            "JOIN unnest(CAST(:stems AS text[])) WITH ORDINALITY AS s(stem, ord) "
+            "ON (regexp_replace(chunks.cite_id, '-v[^-]+$', '') = s.stem "
+            "    OR chunks.cite_id LIKE s.stem || '-%') "
+            f"WHERE {pred.sql} AND NOT chunks.is_navigation "
+            "AND regexp_replace(chunks.cite_id, '-v[^-]+$', '') !~ '-DUP[0-9]+(-|$)' "
+            "AND chunks.embedding_model = :em AND chunks.embedding_revision = :er "
+            "ORDER BY s.ord, chunks.char_start, chunks.cite_id LIMIT :k"
+        ),
+        {**pred.params, "stems": stems, "em": embedder.model, "er": embedder.revision, "k": limit},
+    ).all()
+    out: dict[str, Hit] = {}
+    for h in _hits(list(rows)):  # a chunk matched by two stems comes once, at its first stem
+        out.setdefault(h.cite_id, h)
+    return list(out.values())
+
+
+def hits_by_cite(
+    conn: Connection, ctx: SessionContext, cite_ids: list[str], embedder: QueryEmbedder
+) -> list[Hit]:
+    """Chunks already cited earlier in the same conversation (ADR-016), re-read under the SAME
+    jurisdiction predicate and the active embedding generation: a carried id that is now out of
+    scope (or of another generation) simply does not come back. Order follows `cite_ids`."""
+    if not cite_ids:
+        return []
+    pred = build_jurisdiction_predicate(ctx)
+    rows = conn.execute(
+        text(
+            f"SELECT {_COLS}, 0.0 AS score FROM chunks WHERE {pred.sql} "
+            "AND chunks.cite_id = ANY(:ids) AND chunks.embedding_model = :em "
+            "AND chunks.embedding_revision = :er "
+            "ORDER BY array_position(CAST(:ids AS text[]), chunks.cite_id), chunks.cite_id"
+        ),
+        {**pred.params, "ids": cite_ids, "em": embedder.model, "er": embedder.revision},
     ).all()
     return _hits(list(rows))

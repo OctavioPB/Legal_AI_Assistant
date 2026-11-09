@@ -29,6 +29,7 @@ from sqlalchemy import create_engine, text
 from app.db.session import tenant_transaction
 from app.ingestion.embedders import OllamaEmbedder
 from app.ingestion.tokens import HFTokenCounter
+from app.main import rerank_label
 from app.rag.context import load_session_context
 from app.rag.pipeline import retrieve
 from app.rag.rerank import DenseReranker
@@ -171,7 +172,7 @@ def main(argv: list[str] | None = None) -> int:
 
     run_id = datetime.now(UTC).strftime("tau-%Y%m%dT%H%M%SZ")
     record = {"run_id": run_id, "embedder": {"model": emb.model, "revision": emb.revision},
-              "reranker": reranker.name, "auc": round(auc(cs, as_), 4), "probes": str(PROBES.name), "probes_authored_by": probes["authored_by"],
+              "reranker": rerank_label(reranker.name, s), "auc": round(auc(cs, as_), 4), "probes": str(PROBES.name), "probes_authored_by": probes["authored_by"],
               "n_covered": len(cov), "n_absent": len(absn), "pick": pick, "results": results}  # fmt: skip
     runs = ROOT / "evals" / "runs"
     runs.mkdir(exist_ok=True)

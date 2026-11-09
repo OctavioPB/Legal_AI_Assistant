@@ -101,7 +101,9 @@ def authenticate(engine: Engine, slug: str, email: str, password: str) -> Princi
     with engine.begin() as conn:
         conn.execute(text("SELECT set_config('app.login_slug', :s, true)"), {"s": slug})
         tenant_id = conn.execute(
-            text("SELECT id FROM tenants WHERE slug = :s"), {"s": slug}
+            # A suspended firm (ADR-013 tombstone, or a hold) answers exactly like an unknown one.
+            text("SELECT id FROM tenants WHERE slug = :s AND status = 'active'"),
+            {"s": slug},
         ).scalar()
         if tenant_id is None:
             verify_password(password, None)

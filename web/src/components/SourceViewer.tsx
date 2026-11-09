@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { getSource, type Source } from "@/lib/api";
+import { SaveToMatter } from "./tools/SaveToMatter";
 
 type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; source: Source };
 
@@ -49,6 +50,7 @@ export function SourceViewer({ citeId, onClose }: { citeId: string | null; onClo
 
 function SourceBody({ source }: { source: Source }) {
   const t = useTranslations("viewer");
+  const tc = useTranslations("reforms.change");
   const at = source.article_text.indexOf(source.text);
   const before = at >= 0 ? source.article_text.slice(0, at) : "";
   const after = at >= 0 ? source.article_text.slice(at + source.text.length) : "";
@@ -69,6 +71,16 @@ function SourceBody({ source }: { source: Source }) {
         <dt>{t("identifier")}</dt>
         <dd className="cite-id">{source.cite_id}</dd>
       </dl>
+      {source.reform && (
+        <p className="reform-notice" role="note">
+          <span aria-hidden="true">◷ </span>
+          {t("reformed", { change: tc(source.reform.change), date: source.reform.published_on ?? "—" })}
+          {source.reform.current && <span className="cite-id"> {source.reform.current}</span>}
+        </p>
+      )}
+      <p className="viewer-actions">
+        <SaveToMatter citeId={source.cite_id} />
+      </p>
       <h3>{t("article")}</h3>
       <div
         className="legal-text viewer-article"

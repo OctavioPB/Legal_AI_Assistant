@@ -8,6 +8,9 @@
 - `app/validation/` — citation parser, existence/coverage checks, regeneration loop.
 - `app/ingestion/` — Docling wrapper, legal normalizer grammars, chunker, embedder (Celery tasks only).
 - `app/db/` — SQLAlchemy models, RLS session middleware, migrations (alembic).
+- `app/corpus/` — reading the corpus without a model: reform lineage (`lineage.py`, ADR-017) and the brief
+  verifier's grammar (`verify.py`, ADR-019). `app/ingestion/watch.py` + `reform.py`: the reform watcher, the only
+  network-using component (official URLs of `corpus.py`).
 
 ## Interfaces and config
 - The pieces most likely to change are `Protocol`s injected from settings, never imported
@@ -140,6 +143,132 @@ below are the original one-liners and are Accepted.
   refused some of the time; the refusal is a first-class output, never an error. Revisit with a golden run
   (WS5.T04) and lawyer-reviewed cases before reconsidering B. Evidence: PLAN.md log 2026-11-07, runs in
   `evals/runs/`.
+- ADR-016 (Accepted 2026-11-08, chosen by the product owner): Three workspaces (Conversar, Investigación,
+  Argumentar) with persisted conversations. Context: the single-query page became three pages modeled on the
+  Library-RAG layout (top navigation, history sidebar, composer, sources panel). Decisions: (a) structure from
+  Library-RAG, identity from Brand.md v1 (no colour/type change); (b) conversations and cases persist in
+  Postgres (`conversations`, `messages`): tenant-private RLS template, listed per user, in the isolation
+  registry and the offboarding erase order; a user may delete a conversation (the audit log keeps its own
+  copy per ADR-013); (c) follow-ups: every message is searched AS WRITTEN (ADR-009); the ids already cited
+  in the same conversation are carried, loaded under the same jurisdiction predicate and embedding
+  generation, placed AFTER the current hits and only into the remaining context budget; the tau gate looks
+  at the current query's hits only (invariant 4); jurisdiction, persona and language are fixed when the
+  conversation is created (changing them is a new conversation, never an inference); the model sees the
+  last N exchanges in the USER turn, clipped (free text never enters the system prompt); (d) sparring: a
+  case holds facts, the user's side (closed list) and claim; each round the user writes an argument and
+  asks either for the opposing counsel's attack (`adversarial@v1`) or to strengthen it (`argumentar@v1`);
+  the retrieval query is the argument as written. Consequences: two new workflow prompts
+  (`conversar@v1`, `argumentar@v1`) measured with ad-hoc real-model runs until the golden suite exists
+  (WS5.T04); N, the history clip and the carry limit live in settings. Pending: golden before/after for
+  both prompts; lawyer review of the side catalog.
+- ADR-017 (Accepted 2026-11-08, chosen by the product owner): Scheduled reform watcher (ETL) with network
+  egress confined to ingestion. Context: ADR-014 says the demo makes no network call; the product owner chose
+  a scheduled download of official sources over a local inbox only or a manual button. Options: (A) local
+  inbox only (ADR-014 untouched; a change is detected only if someone brings the file), (B) inbox + explicit
+  download button, (C) scheduled download. Decision: C, amending ADR-014 for ingestion ONLY: (a) the query
+  path (retrieval, models, validator, UI) still makes no external call; only `app.ingestion.watch` does, from
+  a registry of official URLs in `app/ingestion/corpus.py` (closed list, never a user-supplied URL);
+  (b) conditional GET (ETag / Last-Modified, then sha256); a 401/403/429 or a robots/bot block is recorded
+  and the source is skipped, never evaded; generic User-Agent, one request per source per run; (c) a changed
+  file is parsed by the same Docling path as the seed and ingested as a NEW document version through
+  `ingest_document` (same embedding generation, invariant 5; the old version is retired, never deleted,
+  invariant 3); (d) the change is diffed per citable unit (`cite_id` without its version suffix) into
+  `corpus_changes` + `cite_lineage` (unchanged / amended / derogated / removed / added); (e) the processes
+  adapt from the lineage, not from guesses: carried ids of a conversation follow `unchanged` successors,
+  every conversation, matter source and verification that cites an amended/derogated/removed id raises an
+  alert, the navigator shows the version history, and `doctor` warns when tau was calibrated on an older
+  corpus; (f) a local inbox (`data/corpus/inbox/`) is also read, for sources without an official URL.
+  Consequences: the machine needs internet for that job only; a reform re-embeds the whole law (minutes on
+  CPU; reusing vectors of unchanged text is an optimization left open); the golden set and probe sets cite
+  versioned ids and must be re-pointed after a reform (alert, not silent). Pending: per-source robots/terms
+  review by a person; reuse of unchanged vectors measured.
+- ADR-018 (Accepted 2026-11-08, chosen by the product owner): Matters (asuntos) with per-matter membership,
+  enforced by RLS. Context: conversations were private to their author by an application filter only.
+  Decision: (a) a second anchor `app.user_id` (set with `app.tenant_id` in the same `set_config` call,
+  fail-closed: unset = NULL) and SQL helper `app_user_id()`; (b) `matters` is visible to its creator and its
+  members (`matter_members`); notes and saved sources inherit the matter's visibility; (c) conversations and
+  verification reports gain an optional `matter_id` and a RESTRICTIVE policy: visible to their author OR to
+  the members of their matter; `messages` inherit their conversation's visibility; (d) `matter_members` stays
+  tenant-private (a policy on it that read `matters` would recurse): it holds only ids, and the API lists
+  members only of matters the caller can see; (e) only the matter owner adds/removes members, renames or
+  deletes it (application rule over the RLS floor). Consequences: every product query on these tables must
+  anchor the user; an unanchored transaction sees none of them (tested). The isolation registry lists more
+  than one policy kind per table.
+- ADR-019 (Accepted 2026-11-08, chosen by the product owner): Citation verifier for external documents keeps
+  the report, never the document. Context: a brief can hold privileged client content. Decision: the text or
+  PDF is processed in memory (a PDF goes through a temporary file deleted in `finally`); citations are
+  extracted by deterministic code against a closed catalog of law names and resolved to `cite_id`s; checks
+  are code only (exists, is current, quoted text matches verbatim after folding, with the same
+  `min_quote_words` as the validator); no LLM judge (anti-roadmap). The stored report holds normalized
+  references, statuses and cite ids, NOT the brief's text nor its quotations; the audit row records counts
+  only. Consequences: a quotation that does not match cannot be shown later (only that it did not match);
+  references to laws outside the corpus are reported as such, never guessed.
+- ADR-020 (Accepted 2026-11-08, option A chosen by the product owner): Every citable unit rendered inside an
+  expanded article is citable. Context: Argumentar answered 0/4 with the local model; the audit log showed the
+  whole art. 47 rendered (parent expansion) while only the retrieved fracciones were in `also`, so a correct
+  citation to fracción II, whose text the model had read, was rejected as invalid; the core already says "use
+  only the ids of cite_id and also", so the model was guessing a real id that was not offered. Options: (A) list
+  the units of an expanded article in `also` and make them citable (verbatim check against the article text, as
+  for any `also` id); (B) a v2 of the case prompts against unmarked framing sentences; (C) both. Decision: A
+  first, alone (B only if coverage failures remain), behind `context_citable_units` (default on). It aligns the
+  code with rag.md ("retrieved set = the ids actually rendered into the context"); provenance is unchanged: no id
+  is citable whose text was not shown. Units: same stored document version, no navigation chunks, non-current
+  only when the session asked for historical text. Consequences: more ids in `also` (tokens counted in the
+  budget); the gate still looks only at the query's own hits. Measured (ad hoc, 10 turns x 2 reps, gemma4:26b,
+  `evals/runs/adr020-{before,after}-20261108.jsonl`): attempts with invalid citations 7/20 -> 0/20; answered
+  Conversar 4/4 -> 4/4, Investigación 0/2 -> 0/2, Argumentar 0/4 -> 0/4 (no regression, no gain in outcomes:
+  2 reps is noise-level). Every remaining failure is coverage: unmarked framing/strategy sentences in the case
+  workflows (B's target) and, in research, list items split off a cited sentence; plus quotations of the USER's
+  own argument flagged as non-verbatim statute text. Pending: golden suite (WS5.T04).
+- ADR-021 (Accepted 2026-11-08, authorized by the product owner): A tag at the start of a line labels that line.
+  Context: in Argumentar the real model writes "* **[razonamiento estratégico] Falacia:** Usted da por sentado...
+  No obstante, ..."; only the first sentence counted as tagged, the rest as uncited legal assertions. Decision: a
+  `[razonamiento estratégico]` (strategic workflows only) or `[análisis propio]` written before the line's first
+  sentence terminator labels every sentence of THAT line (a tag alone on its line keeps labelling the paragraph,
+  as before). Also closed a pre-existing hole: a tag written after a period used to stay inside the PREVIOUS
+  sentence's unit (the splitter never cut before "["); now it starts the next unit (it never cuts before
+  `[cite:`). Trade-off, accepted knowingly: this relaxes ADR-015's strict coverage for tagged lines; a legal
+  claim inside a tagged line is shown as model reasoning (Brand.md §3, "sin respaldo normativo"), never as a
+  citation, and any `[cite:]` in it is still validated. Evidence: re-validating the 16 stored attempts of the
+  last real-model run with the same outputs: 0 accepted -> rejected; Argumentar's uncovered sentences drop
+  (e.g. 14 -> 11) but no attempt passes: what remains is untagged framing, "Fuente faltante:" lines and action
+  lists (option B). No live run was made for this rule alone.
+- ADR-022 (Accepted 2026-11-08, option C chosen by the product owner): Explicit references are resolved, not
+  ranked. Context: golden gd2-009 ("artículo 123, apartado B, fracción XIII de la Constitución") and gd2-025
+  ("¿Qué decía el artículo 525 de la LFT?", historical session) were lost: the dense reranker cannot tell
+  "art. 123 fracc. XIII CPF" from "art. 123-B-XIII CPEUM" (gold at rerank position 8-9 either way) and it scored
+  the bare text, without the breadcrumb that names the unit; and a short unit stays under tau. Measured
+  alternatives (retrieval-only, `evals/runs/golden-*-retrieval-{before,A,B,AB}`): (A) OR the lexemes of the
+  lexical arm (websearch_to_tsquery ANDs them and returned 0 rows for natural questions): fixed gd2-009 by one
+  rank position (noise), flooded the arm with long transitorios; (B) rerank breadcrumb + text: fixed gd2-025,
+  changes the score scale (tau must be recalibrated); A+B lost gd2-009 again. Decision: (C) the citation grammar
+  of the brief verifier (ADR-019) resolves references whose law is NAMED in the query to `cite_id` stems; the
+  units come from `hits_by_stem` under the SAME jurisdiction predicate, embedding generation and vigencia
+  filter (a named law outside the session is never pinned), go first, and an existing named unit passes the
+  tau gate (the validator still checks every citation and quotation). "la Constitución" alone now names the
+  CPEUM (not a state constitution). Retrieval-only result: recall@8 0.90 -> 1.00, 0 cases worse, leakage 0,
+  gate refusals on refuse cases unchanged. A and B stay off (`lexical_match`, `rerank_breadcrumb`), measured
+  and recorded; B is a separate experiment with tau recalibration. Full run (`golden-20261109T065813Z-after-
+  explicit-reference` vs `golden-20261109T061348Z-baseline`, gemma4:26b): 0 cases worse; recall@8 0.90 -> 1.00;
+  false refusal 5/20 -> 3/20 (gd2-011 "§ 203" now answered; gd2-009 answered); leakage 0; refusal accuracy 5/5
+  unchanged (gd2-017/024 flips are the corrected cases, not this change). On by default
+  (`retrieval_explicit_reference`). FOUND BY READING, NOT BY ANY METRIC: gd2-009 cites the right id (123-B-XIII)
+  but paraphrases the text of 123-A-XIII: parent expansion renders the whole art. 123 (both apartados) as one
+  fragment, so the validator (provenance, not faithfulness) accepts it. Pending: context unit = apartado when
+  the unit is inside one (measured), lawyer review of the ai-draft golden set.
+- ADR-023 (Accepted 2026-11-08, authorized by the product owner): The context unit of a unit inside an apartado is
+  that apartado. Context: found by READING the review sheet of the ADR-022 run, not by any metric: gd2-009 cited
+  123-B-XIII but paraphrased 123-A-XIII ("capacitación"), because parent expansion rendered all of art. 123
+  (~34k characters, both apartados) as one fragment and the validator proves provenance, not faithfulness.
+  Decision: with `context_unit_apartado` (default on) a unit under an "Apartado X" node (typed `parrafo` in the
+  tree) expands to that apartado; a unit sitting directly in an article split into apartados (its caput) is its
+  own context, so the whole article never comes back through it; the citable units of ADR-020 follow the same
+  parent (apartado B never offers apartado A's ids). Affects 15 articles of the corpus (CPEUM 2, 6, 20, 26, 30,
+  37, 72, 102, 122, 123; LFT 872, 968; three in the CPF). No re-chunking (context only). Measured (full run,
+  `golden-20261109T073336Z-after-context-apartado` vs `golden-20261109T065813Z-after-explicit-reference`): gd2-009 now states the
+  text of 123-B-XIII (no "capacitación"); 0 cases worse; false refusal 3/20 -> 2/20 (gd2-006 is not under an
+  apartado: model variance, noise); recall, leakage and refusal accuracy unchanged. The harness gained
+  `must_not_contain` (a narrow alarm on known confusions, not a faithfulness metric).
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

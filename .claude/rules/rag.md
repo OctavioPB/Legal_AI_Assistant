@@ -66,7 +66,8 @@
   0.7+. Store τ and the probe-set run id with every release.
 
 ## Citation validator
-- Extract all `[cite: X]`. Each X must be in THIS query's retrieved set — else regenerate once
+- Extract all `[cite: X]`. Each X must be in THIS query's retrieved set (= the ids actually rendered
+  into the context; a hit dropped by the budget was never shown and is not citable) — else regenerate once
   with explicit feedback; if it persists → refusal. Log every verdict to audit_log.
 - The validator is a pure function returning a frozen result
   (`cited`, `invalid`, `placeholders`, `refused`, `grounded`); `grounded` = not refused, ≥ 1 valid
@@ -83,8 +84,14 @@
   the cited fragment after folding accents, case and whitespace, with a minimum run of N
   consecutive words (config) so a trivial match does not pass. Non-matching quote → same
   regenerate-once-then-refuse path.
+- Sentence units: a period after an abbreviation + number ("art. 47"), an inline enumerator after `;` `:` `, y`
+  ("…; II. Si…") or an ordinal before a lower-case word ("artículo 1°. de la…") does not end a unit; a numeral at a
+  real sentence end ("…fracción II. El patrón…") still does (tests/validation/test_unit_splits.py).
 - Coverage: every sentence asserting legal content needs a cite or a `[razonamiento estratégico]`
   tag (adversarial workflow only).
+- Regeneration feedback for a non-verbatim quotation includes the closest EXACT passage of the cited fragment
+  (code-found, `closest_passage`, ratio >= 0.8; none when nothing is close): the model gets the source's words to
+  copy or must drop the quotation marks. The verbatim rule itself is unchanged.
 - Refusal text is produced by the system, from the fixed `<insuficiente>` structure; the validator
   never asks the model to write it.
 - The validator proves provenance, not faithfulness: right cite + inverted summary passes. The
@@ -96,6 +103,9 @@
 - Vector queries set `hnsw.iterative_scan = 'relaxed_order'` per transaction (ADR-011). A selective
   jurisdiction filter is answered by the prefilter index with exact ranking; HNSW serves the
   unselective case. Do not "fix" the former into an ANN scan.
+- Citable units (ADR-020): an expanded article lists in `also` every citable unit rendered inside it (same
+  document version, no navigation chunks, current only unless historical), not just the hits; the UI names
+  them from `Fragment.unit_names`. Switch: `context_citable_units`.
 - Context assembly (WS3.T05): hits that share a parent article are deduped into ONE `<fragmento
   cite_id="FIRST" also="OTHER ..." cita="...">`; every id in `cite_id`/`also` is in the retrieved set
   the validator checks. The budget is measured on the RENDERED context (tags included); an article

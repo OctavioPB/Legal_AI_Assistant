@@ -22,6 +22,13 @@
   another tenant's row. `cite_id` is unique per tenant and client-file ids are prefixed `CF-`
   (no cross-tenant existence oracle, no shadowing of public ids). `audit_log` is append-only for
   every role (privileges + trigger).
+- User anchor (ADR-018): the same `set_config` call binds `app.user_id` (`tenant_transaction(...,
+  user_id=)`); `app_user_id()` is NULL when unset. RESTRICTIVE templates stack on `private`: `personal`
+  (author OR member of the row's matter: conversations, verification_reports), `matter_root` (matters: creator
+  or member), `matter_child` (notes, saved sources: as visible as the matter), `message` (as visible as the
+  conversation). `matter_members` stays plain `private` (a policy reading `matters` back would recurse); the API
+  lists members only of visible matters. Unanchored = zero rows on these tables (isolation test). The registry
+  lists every kind of a table.
 - Known limit: `app.tenant_id` is a plain setting. RLS defends against application bugs and
   missing filters, not against arbitrary SQL executed AS `legalai_app` (e.g. SQL injection could
   call `set_config`). Mitigation today: parameterized queries only, no raw SQL from request data.

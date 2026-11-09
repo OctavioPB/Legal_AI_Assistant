@@ -8,6 +8,7 @@ import uuid
 from sqlalchemy import Connection, Engine, text
 
 from app import doctor
+from app.orchestration.aliases import AliasRegistry
 from app.settings import Settings
 from tests import helpers
 
@@ -18,11 +19,21 @@ def failed(checks: list[doctor.Check]) -> list[str]:
 
 def test_healthy_database_has_no_failures(admin_engine: Engine) -> None:
     with admin_engine.connect() as conn:
-        results = doctor.run_all(conn, Settings())
+        results = doctor.run_all(conn, Settings(), AliasRegistry())  # a blank, unpinned stack
         conn.rollback()
     assert failed(results) == []
     warns = {c.name for c in results if c.status == "WARN"}
     assert any("aliases" in w for w in warns) and any("tau" in w for w in warns)  # honest warnings
+
+
+def test_the_doctor_checks_the_pins_and_tau_the_api_actually_loads() -> None:
+    """Regression: it checked a blank registry and a tau-less Settings, so it warned "unpinned" and
+    "tau is None" about a stack whose pins and calibration record were both in place."""
+    from app.main import load_tau
+
+    by_name = {c.name: c for c in doctor.check_repo(load_tau(Settings()))}
+    assert by_name["LLM aliases pinned to verified model ids"].status == "PASS"
+    assert by_name["refusal tau calibrated (ADR-007)"].status == "PASS"
 
 
 def sabotage(admin_engine: Engine, statement: str, check: object) -> list[str]:
@@ -109,3 +120,37 @@ def test_the_cli_reports_and_sets_the_exit_code(capsys) -> None:  # type: ignore
 
 def unused(_: Connection) -> None:  # keeps the Connection import meaningful for type checkers
     return None
+
+
+def test_the_reform_watcher_checks(admin_engine: Engine, ingestor_engine: Engine, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """ADR-017: never run / stale / blocked sources warn; tau older than the last reform warns."""
+    from tests.lawtext import ingest_law, v1, v2
+
+    def by_name(conn: Connection) -> dict[str, doctor.Check]:
+        return {c.name: c for c in doctor.check_reforms(conn, tmp_path / "tau.yaml")}
+
+    with admin_engine.connect() as conn:
+        assert by_name(conn)["reform watcher has run (ADR-017)"].status == "WARN"
+    ingest_law(ingestor_engine, v1())
+    ingest_law(ingestor_engine, v2(), "2026.10.01")
+    with admin_engine.begin() as conn:
+        pub = "00000000-0000-0000-0000-000000000001"
+        conn.execute(text(
+            "INSERT INTO source_checks (tenant_id, official_id, source, outcome) VALUES "
+            f"('{pub}', 'LFT', 'https://x', 'blocked'), ('{pub}', 'CPF', 'https://y', 'unchanged')"
+        ))  # fmt: skip
+        ids = conn.execute(text("SELECT id FROM documents ORDER BY ingested_at")).scalars().all()
+        conn.execute(text(
+            "INSERT INTO corpus_changes (tenant_id, official_id, old_document_id, new_document_id, "
+            f"source_uri, counts) VALUES ('{pub}', 'LFT', :a, :b, 'x', '{{}}')"
+        ), {"a": ids[0], "b": ids[1]})  # fmt: skip
+    (tmp_path / "tau.yaml").write_text("tau: 0.5\ncalibrated_on: '20200101'\n", encoding="utf-8")
+    with admin_engine.connect() as conn:
+        got = by_name(conn)
+    assert got["reform watcher has run (ADR-017)"].status == "PASS"
+    assert got["official sources reachable by the watcher"].status == "WARN"
+    assert "LFT" in got["official sources reachable by the watcher"].detail
+    assert got["tau calibrated after the last reform (ADR-007/017)"].status == "WARN"
+    (tmp_path / "tau.yaml").write_text("tau: 0.5\ncalibrated_on: '29991231'\n", encoding="utf-8")
+    with admin_engine.connect() as conn:
+        assert by_name(conn)["tau calibrated after the last reform (ADR-007/017)"].status == "PASS"

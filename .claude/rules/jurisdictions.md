@@ -17,3 +17,9 @@
   version of the same article); a case without them measures nothing.
 - Temporal queries ("qué decía antes de la reforma") set `include_historical=true` explicitly;
   responses must carry vigencia warnings.
+- Navigator and verifier (features 1/2): browsing a law is an explicit user choice of THAT law, never a widening
+  of a conversation's scope; the verifier resolves explicit references in a brief against the whole loaded
+  corpus (it answers "does this exist / is it current / is this quotation verbatim", it generates nothing).
+  A law it cannot name from the closed catalog is reported as not loaded / not identified, never guessed.
+- Reforms (ADR-017): a new version is a new document with new versioned `cite_id`s; the old one keeps
+  `is_current=false`. Lineage maps old to new per unit; only `unchanged` units are carried forward silently.

@@ -11,9 +11,15 @@ layers:
     dossier_builder:
       version: v2
       sha256: 9d802c90e451ad9e83718ceb94ce0b25709a70549f16a835ec3860ee74dc8f76
-    adversarial:
+    conversar:
       version: v1
-      sha256: 1045089bb149f4713198a77d69cff96c905badbfd9cefb800f28b6bdb76b923d
+      sha256: d93edf14e90563a7f9a2819c37fa9f3671b9ab3b94649f55facfd57b9d7c1dba
+    argumentar:
+      version: v2
+      sha256: 8cd3afaf94b22e52fd6dcdd489d1e58ac07a18a6f6e83d716c5ba9fe812f3af4
+    adversarial:
+      version: v3
+      sha256: b7c10570f23fc65072ee4c53780f5c31e522c439a80c80d968b3a8adbc74cbdb
   persona:
     general:
       version: v1

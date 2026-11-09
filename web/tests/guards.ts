@@ -135,7 +135,7 @@ export function brandTokens(markdown: string): BrandTokens {
     if (!line.startsWith("| `--")) continue;
     const cells = line.split("|").map((c) => c.trim());
     const pair = cells[1].match(/--([a-z]+)-fg\/bg/);
-    const names = pair ? [`--${pair[1]}-fg`, `--${pair[1]}-bg`] : (cells[1].match(/--[a-z-]+/g) ?? []);
+    const names = pair ? [`--${pair[1]}-fg`, `--${pair[1]}-bg`] : (cells[1].match(/--[a-z0-9-]+/g) ?? []);
     const lights = cells[2].match(/#[0-9a-fA-F]{6}/g) ?? [];
     const darks = cells[3].match(/#[0-9a-fA-F]{6}/g) ?? [];
     names.forEach((name, i) => {
@@ -152,7 +152,7 @@ export function cssTokens(css: string, selectorStart: string): Record<string, st
   if (start < 0) return {};
   const body = css.slice(css.indexOf("{", start) + 1, css.indexOf("}", start));
   const out: Record<string, string> = {};
-  for (const m of body.matchAll(/(--[a-z-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) out[m[1]] = m[2].toLowerCase();
+  for (const m of body.matchAll(/(--[a-z0-9-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) out[m[1]] = m[2].toLowerCase();
   return out;
 }
 

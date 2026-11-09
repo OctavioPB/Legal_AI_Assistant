@@ -1,12 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Fragment } from "react";
+import { Fragment, useId } from "react";
 import { parseAnswer, type Block, type Inline } from "@/lib/answer";
 import type { Citation } from "@/lib/api";
 import { CitationChip, UnverifiedId } from "./CitationChip";
 
-function Inlines({ items, labels, onOpen }: { items: Inline[]; labels: Map<string, string>; onOpen: (id: string) => void }) {
+type Labels = Map<string, { label: string; n: number }>;
+
+function Inlines({ items, labels, onOpen }: { items: Inline[]; labels: Labels; onOpen: (id: string) => void }) {
   return (
     <>
       {items.map((it, i) => {
@@ -16,8 +18,15 @@ function Inlines({ items, labels, onOpen }: { items: Inline[]; labels: Map<strin
         return (
           <span key={i} className="cite-group">
             {it.ids.map((id) => {
-              const label = labels.get(id);
-              return label ? <CitationChip key={id} citeId={id} label={label} onOpen={onOpen} /> : <UnverifiedId key={id} citeId={id} />;
+              const known = labels.get(id);
+              if (!known) return <UnverifiedId key={id} citeId={id} />;
+              return (
+                <Fragment key={id}>
+                  <CitationChip citeId={id} label={known.label} onOpen={onOpen} />
+                  {/* Brand.md 4: the printed dossier keeps each citation as a numbered note */}
+                  <sup className="print-only">{known.n}</sup>
+                </Fragment>
+              );
             })}
           </span>
         );
@@ -51,7 +60,7 @@ function SectionGap() {
   );
 }
 
-function BlockView({ block, labels, onOpen }: { block: Block; labels: Map<string, string>; onOpen: (id: string) => void }) {
+function BlockView({ block, labels, onOpen }: { block: Block; labels: Labels; onOpen: (id: string) => void }) {
   if (block.kind === "gap") return <SectionGap />;
   const inner = <Inlines items={block.inline} labels={labels} onOpen={onOpen} />;
   if (block.kind === "heading") {
@@ -59,12 +68,26 @@ function BlockView({ block, labels, onOpen }: { block: Block; labels: Map<string
     return <H className="answer-heading">{inner}</H>;
   }
   const body = block.marked ? <Reasoning mark={block.marked}>{inner}</Reasoning> : inner;
-  return block.kind === "item" ? <li>{body}</li> : <p className="legal-text">{body}</p>;
+  return block.kind === "item" ? <li>{body}</li> : <p className="answer-text">{body}</p>;
 }
 
-export function AnswerView({ text, citations, onOpen }: { text: string; citations: Citation[]; onOpen: (id: string) => void }) {
+/** `compact`: inside a thread, where the sources panel already lists the citations, the answer
+ *  shows neither its own title nor its sources list (the title stays for screen readers). */
+export function AnswerView({
+  text,
+  citations,
+  onOpen,
+  compact = false,
+}: {
+  text: string;
+  citations: Citation[];
+  onOpen: (id: string) => void;
+  compact?: boolean;
+}) {
   const t = useTranslations("answer");
-  const labels = new Map(citations.map((c) => [c.cite_id, c.citation_string]));
+  const titleId = useId();
+  const sourcesId = useId();
+  const labels: Labels = new Map(citations.map((c, i) => [c.cite_id, { label: c.citation_string, n: i + 1 }]));
   const blocks = parseAnswer(text);
   const out: React.ReactNode[] = [];
   for (let i = 0; i < blocks.length; ) {
@@ -80,23 +103,27 @@ export function AnswerView({ text, citations, onOpen }: { text: string; citation
     }
   }
   return (
-    <article className="answer" aria-labelledby="answer-title">
-      <h2 id="answer-title">{t("title")}</h2>
+    <article className={compact ? "answer answer-compact" : "answer"} aria-labelledby={titleId}>
+      <h2 id={titleId} className={compact ? "sr-only" : undefined}>
+        {t("title")}
+      </h2>
       {out}
-      <section className="answer-sources" aria-labelledby="sources-title">
-        <h3 id="sources-title">{t("citationsTitle")}</h3>
-        {citations.length === 0 ? (
-          <p>{t("noCitations")}</p>
-        ) : (
-          <ul className="source-list">
-            {citations.map((c) => (
-              <li key={c.cite_id}>
-                <CitationChip citeId={c.cite_id} label={c.citation_string} onOpen={onOpen} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {!compact && (
+        <section className="answer-sources" aria-labelledby={sourcesId}>
+          <h3 id={sourcesId}>{t("citationsTitle")}</h3>
+          {citations.length === 0 ? (
+            <p>{t("noCitations")}</p>
+          ) : (
+            <ol className="source-list">
+              {citations.map((c) => (
+                <li key={c.cite_id}>
+                  <CitationChip citeId={c.cite_id} label={c.citation_string} onOpen={onOpen} />
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      )}
     </article>
   );
 }

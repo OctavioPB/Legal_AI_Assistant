@@ -73,6 +73,8 @@ class IngestStats(BaseModel):
     exceeds_window: tuple[str, ...] = ()
     seconds: float = 0.0
     embed_seconds: float = 0.0
+    document_id: uuid.UUID | None = None  # the version written (None when unchanged)
+    retired_document_ids: tuple[uuid.UUID, ...] = ()  # versions this one replaced (ADR-017)
 
 
 def _generation(embedder: Embedder, th: ChunkThresholds) -> dict[str, object]:
@@ -160,8 +162,9 @@ def ingest_document(
                 )
 
         retired = 0
+        old: list[uuid.UUID] = []
         if official_id is not None:
-            old = (
+            old = list(
                 s.execute(
                     text(
                         "UPDATE documents SET valid_to = COALESCE(valid_to, current_date) "
@@ -198,6 +201,7 @@ def ingest_document(
         )
         s.add(doc)
         s.flush()
+        doc_id = doc.id
         ids: dict[str, uuid.UUID] = {}
         parents = {n.path: n.parent for n in nodes}
         for n in nodes:  # document order: parents precede children
@@ -207,7 +211,7 @@ def ingest_document(
             s.add(
                 DocNode(
                     id=ids[n.path],
-                    document_id=doc.id,
+                    document_id=doc_id,
                     tenant_id=tenant_id,
                     parent_id=parent_id,
                     node_type=n.node_type,
@@ -222,7 +226,7 @@ def ingest_document(
             s.add(
                 ChunkRow(
                     tenant_id=tenant_id,
-                    document_id=doc.id,
+                    document_id=doc_id,
                     node_id=ids[c.node_path],
                     is_current=c.is_current,
                     is_navigation=c.is_navigation,
@@ -250,4 +254,6 @@ def ingest_document(
         exceeds_window=tuple(rep["exceeds_window"]),  # type: ignore[arg-type]
         seconds=time.monotonic() - t0,
         embed_seconds=embed_seconds,
+        document_id=doc_id,
+        retired_document_ids=tuple(old),
     )

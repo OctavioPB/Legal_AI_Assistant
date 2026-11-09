@@ -298,3 +298,76 @@ def test_a_context_from_another_tenant_than_the_anchored_connection_is_refused(
             answer_query(c, ctx_b, req, deps(llm))
     assert llm.calls == []  # nothing was retrieved, generated or audited
     assert audit_rows(app_engine, tenant_a) == [] and audit_rows(app_engine, tenant_b) == []
+
+
+def test_only_what_was_rendered_into_the_context_can_be_cited() -> None:
+    """Regression: hits dropped by the context budget used to stay citable although the model
+    never saw them; a 'valid' citation must come from a fragment that was actually shown."""
+    from app.chat.service import _retrieved_set
+    from app.rag.pipeline import Retrieval
+    from app.rag.types import Fragment, Hit
+    from app.validation.validator import validate
+
+    def hit(cid: str, rank: int) -> Hit:
+        return Hit(chunk_id=uuid.uuid4(), cite_id=cid, citation_string=cid,
+                   document_id=uuid.uuid4(), node_id=uuid.uuid4(), text=f"texto de {cid}",
+                   breadcrumb="", score=0.9, rank=rank)  # fmt: skip
+
+    shown, sibling, dropped = (
+        "MX-FED-LFT-ART47-FRACI-v1",
+        "MX-FED-LFT-ART47-FRACII-v1",
+        "MX-FED-LFT-ART48-v1",
+    )
+    r = Retrieval(
+        refusal=None,
+        hits=(hit(shown, 1), hit(sibling, 2), hit(dropped, 3)),
+        fragments=(
+            Fragment(
+                cite_id=shown,
+                also_cite_ids=(sibling,),
+                citation_string="LFT art. 47",
+                text="Artículo 47 completo",
+                expanded=True,
+                tokens=10,
+            ),
+        ),
+        semantic_ids=(),
+        lexical_ids=(),
+    )
+    rs = _retrieved_set(r)
+    assert rs.ids == {shown, sibling}
+    v = validate(
+        f"El patrón puede rescindir la relación [cite: {dropped}].", rs, workflow="dossier_builder"
+    )
+    assert not v.grounded and v.invalid == (dropped,)
+
+
+def test_a_cited_unit_of_an_expanded_article_is_valid_and_named() -> None:
+    """ADR-020: a unit rendered inside the article (not a hit) validates against the article text
+    and reaches the UI with its own citation string."""
+    from app.chat.service import _citations, _retrieved_set
+    from app.rag.pipeline import Retrieval
+    from app.rag.types import Fragment, Hit
+    from app.validation.validator import validate
+
+    hit_id, unit = "MX-FED-LFT-ART47-FRACXV-v1", "MX-FED-LFT-ART47-FRACII-v1"
+    article = (
+        "Artículo 47.- II. Incurrir el trabajador en faltas de probidad u honradez. XV. Otras."
+    )
+    h = Hit(chunk_id=uuid.uuid4(), cite_id=hit_id, citation_string="LFT, art. 47, fracc. XV",
+            document_id=uuid.uuid4(), node_id=uuid.uuid4(), text="XV. Otras.", breadcrumb="",
+            score=0.9, rank=1)  # fmt: skip
+    r = Retrieval(
+        refusal=None, hits=(h,),
+        fragments=(Fragment(cite_id=hit_id, also_cite_ids=(unit,), citation_string="LFT art. 47",
+                            text=article, expanded=True, tokens=10,
+                            unit_names=((unit, "LFT, art. 47, fracc. II"),)),),
+        semantic_ids=(), lexical_ids=(),
+    )  # fmt: skip
+    rs = _retrieved_set(r)
+    v = validate(
+        f'Es causa de rescisión "incurrir el trabajador en faltas de probidad u honradez" [cite: {unit}].',
+        rs, workflow="dossier_builder",
+    )  # fmt: skip
+    assert v.grounded and v.cited == (unit,) and not v.bad_quotes
+    assert [c.citation_string for c in _citations(r, v.cited)] == ["LFT, art. 47, fracc. II"]

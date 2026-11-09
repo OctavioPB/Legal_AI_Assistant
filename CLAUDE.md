@@ -52,7 +52,8 @@ uv run alembic upgrade head               # migrations (separate role, BYPASSRLS
 uv run celery -A app.workers worker -Q ingestion   # ingestion workers   [NOT BUILT YET: WS2.T01]
 
 uv run python -m app.doctor               # executable invariants: RLS/roles/extensions/versions/aliases (WS0.T09)
-scripts/dev-up.sh | scripts/dev-up.ps1    # idempotent bootstrap: compose, migrate, seed, doctor (WS0.T10)   [NOT BUILT YET]
+"Iniciar Legal AI.cmd" / "Detener Legal AI.cmd"   # double-click launchers for non-technical users (wrap dev-up.ps1)
+powershell -ExecutionPolicy Bypass -File scripts/dev-up.ps1 [-Status|-Stop [-All]]   # idempotent: tools, ports, compose, migrate, models+pins, doctor, seed, demo user, build, launch (WS0.T10; no .sh yet)
 uv run mypy app                           # strict typing
 uv run python -m app.prompts.composer verify       # prompt versions match their pinned hashes
 uv run python -m evals.prompt_sandbox --case gd-0001   # render the full composed prompt
@@ -62,18 +63,21 @@ uv run pytest                             # full suite: needs `docker compose up
 uv run pytest tests/test_tenant_isolation.py       # cross-tenant leak test (must pass ALWAYS)
 uv run pytest tests/test_jurisdiction_predicate.py # property tests for the hard pre-filter
 
-uv run python -m evals.run --suite golden          # golden dataset (required for prompt PRs)   [NOT BUILT YET: WS5.T04]
+uv run python -m evals.run --suite golden [--tag x] [--retrieval-only] [--preflight-only]   # golden suite (required for prompt PRs); --compare A B; evals.review_sheet --run <id>
 uv run python -m app.ingestion.seed [--only LFT]   # embed + load the demo corpus (needs `ollama pull bge-m3`; ~9 min for all)
 uv run python -m app.orchestration.pins [--check]  # (re)pin the local models from the Ollama runtime / detect drift
 uv run python -m app.demo                          # demo firm + user (random password shown once -> .demo-credentials)
 uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate the refusal threshold from the probe sets
 uv run pytest -m live                              # real local models (Ollama must be running)
+uv run python -m app.ingestion.watch [--only LFT] [--dry-run] [--check-urls] [--if-stale 20]   # reform watcher (ADR-017; the ONLY job with network: official URLs of corpus.py)
+powershell -File scripts/dev-up.ps1 -ScheduleReforms | -UnscheduleReforms   # daily 03:00 Windows task (scripts/watch-reforms.ps1)
 uv run python -m app.ingestion.cli parse|clean|chunks ...   # `ingest <pdf>` is NOT BUILT YET (WS2.T01/T06); store.ingest_document is the library entry point
 uv run ruff check --fix && uv run ruff format      # lint/format
 
 cd web && npm install && npm run dev      # frontend (Next.js), http://localhost:3000
 cd web && npm test && npx tsc --noEmit    # UI guards (catalog parity, literals, external URLs, Brand.md tokens/contrast)
-cd web && npm run build && npx next start -p 3100 & npm run e2e   # real-browser checks (Edge): no-reload language switch, a11y (axe), CSP, keyboard
+cd web && npm run build && (API_URL=http://127.0.0.1:8999 npx next start -H 127.0.0.1 -p 3101 &) && BASE_URL=http://127.0.0.1:3101 npm run e2e   # UI shell in Edge, API unreachable on purpose: i18n, a11y (axe), CSP, keyboard
+cd web && npm run e2e:full                # Edge + real API + local models on :3100 (minutes)
 ```
 
 ## Non-negotiable invariants

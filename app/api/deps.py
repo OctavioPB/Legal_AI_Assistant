@@ -45,7 +45,9 @@ def principal(st: StateDep, authorization: Annotated[str | None, Header()] = Non
             _USER_SQL,
             {"id": user_id},
         ).one_or_none()
-    if row is None:  # deleted user, or a token for a tenant that no longer owns it
+    # Deleted user, a token for a tenant that no longer owns it, or a firm suspended after the
+    # token was issued: a still-unexpired token must not outlive the suspension.
+    if row is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "unknown user")
     return Principal(
         user_id=row.id, tenant_id=tenant_id, role=row.role, email=row.email,
@@ -54,7 +56,9 @@ def principal(st: StateDep, authorization: Annotated[str | None, Header()] = Non
 
 
 _USER_SQL = text(
-    "SELECT id, role, email, display_name, preferred_language FROM users WHERE id = :id"
+    "SELECT u.id, u.role, u.email, u.display_name, u.preferred_language "
+    "FROM users u JOIN tenants t ON t.id = u.tenant_id "
+    "WHERE u.id = :id AND t.status = 'active'"
 )
 
 PrincipalDep = Annotated[Principal, Depends(principal)]

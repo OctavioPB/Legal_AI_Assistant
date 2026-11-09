@@ -23,10 +23,16 @@ _OPEN, _CLOSE = "<insuficiente>", "</insuficiente>"
 _HEADING_LINE = re.compile(r"^\s*(?:#{1,6}\s+\S.*|[-*•]?\s*\*\*[^*\n]{1,200}\*\*:?)\s*$")
 _QUOTE_PAIRS = (('"', '"'), ("“", "”"), ("«", "»"))
 _MAX_QUOTE_CHARS = 3000
-_UNIT_SPLIT = re.compile(r"(?<=[.!?])\s+(?!\[)")
+# A citation right after the period stays with its sentence; a TAG after the period starts the next
+# sentence (ADR-021: a tag labels what follows it, never the sentence before it).
+_UNIT_SPLIT = re.compile(r"(?<=[.!?])\s+(?!\[\s{0,20}cite\s{0,20}:)", re.IGNORECASE)
 # Omission marks: "...", "…" and the bracketed legal convention "[...]". The brackets belong to the
 # mark, so they must not stay behind as stray characters at the edge of a segment.
 _ELLIPSIS = re.compile(r"\[?\s*(?:\.\.\.|…)\s*\]?")
+
+# Workflows whose answers may carry [razonamiento estratégico] instead of a citation (prompts.md):
+# the opposing counsel (adversarial) and the user's own advocate (argumentar, ADR-016).
+STRATEGIC_WORKFLOWS = frozenset({"adversarial", "argumentar"})
 
 # Template tokens a model copies from a prompt. Compared after upper-casing.
 _PLACEHOLDERS = {"CITE_ID", "X", "ID", "XXX", "...", "…", "N/A", "NA", "NONE", ""} | {
@@ -142,6 +148,16 @@ _ABBREV_END = re.compile(
 _NUMBER_START = re.compile(r"^(?:\d|[IVXLC]+|[A-Z]?\d)")
 
 
+# An inline list ("... menor de un año; II. Si comprueba ...") and an ordinal ("artículo 1°. de la
+# Constitución"): the period belongs to the numeral, not to the sentence (seen with the real model:
+# a cited sentence was cut in two and its first half reported as uncited). Only these exact shapes
+# merge: an enumerator right after ";", ":" or ", y", or an ordinal followed by a lower-case
+# continuation.
+_INLINE_ENUM_END = re.compile(r"(?:[;:]|,\s*[yeo])\s*(?:[IVXLC]{1,7}|[a-z]\)|\d{1,3})\.?$")
+_ORDINAL_END = re.compile(r"\d{1,4}\s?[°º]\.$|\d{1,4}o\.$")
+_LOWER_START = re.compile(r"^[a-záéíóúñü]")
+
+
 def _line_units(line: str) -> list[str]:
     pieces = [
         "".join(_UNMASK.get(ch, ch) for ch in u).strip()
@@ -150,7 +166,11 @@ def _line_units(line: str) -> list[str]:
     ]
     merged: list[str] = []
     for piece in pieces:
-        if merged and _ABBREV_END.search(merged[-1]) and _NUMBER_START.match(piece):
+        if merged and (
+            (_ABBREV_END.search(merged[-1]) and _NUMBER_START.match(piece))
+            or _INLINE_ENUM_END.search(merged[-1])
+            or (_ORDINAL_END.search(merged[-1]) and _LOWER_START.match(piece))
+        ):
             merged[-1] = f"{merged[-1]} {piece}"
         else:
             merged.append(piece)
@@ -168,6 +188,9 @@ def _plain(unit: str) -> str:
     return re.sub(r"^(?:\(?[IVXLC]+\)|\(?\d+[.)]|\([a-z]\))\s*", "", t.strip())
 
 
+_FIRST_STOP = re.compile(r"[.!?](?=\s|$)")
+
+
 def _coverage(
     answer: str, retrieved: RetrievedSet, strategic_ok: bool, min_words: int
 ) -> tuple[list[str], float]:
@@ -175,6 +198,9 @@ def _coverage(
 
     A tag ALONE on its line labels the paragraph that follows (seen with the real local model:
     "[análisis propio]" on its own line, then the paragraph), until a blank line or a new heading.
+    ADR-021: a tag in the FIRST sentence of a line labels the whole line ("* **[razonamiento
+    estratégico] Falacia:** Usted da por sentado... No obstante, ..."), and only that line; a tag
+    later in a line still covers only its own sentence.
     """
     uncovered: list[str] = []
     tagged = total = 0
@@ -192,7 +218,19 @@ def _coverage(
             elif strategic_ok and STRATEGIC_TAG in line:
                 label = "strategic"
             continue
-        for unit in _line_units(line):
+        units = _line_units(line)
+        # the line's lead: everything before its first sentence terminator (quotes masked), so a tag
+        # written AFTER the first sentence never labels the line
+        end = _FIRST_STOP.search(_mask_quotes(line))
+        lead = line[: end.start()] if end else line
+        line_label = (
+            "own"
+            if OWN_ANALYSIS_TAG in lead
+            else "strategic"
+            if strategic_ok and STRATEGIC_TAG in lead
+            else None
+        )
+        for unit in units:
             body = _plain(unit)
             if len(body.split()) < min_words or body.endswith(":"):
                 label = None  # a heading/label line starts a new section
@@ -201,8 +239,10 @@ def _coverage(
             if any(cid in unit for cid in retrieved.ids):
                 continue  # a source listing names its fragment
             has_cite = bool(_CITE.search(unit))
-            analysis = OWN_ANALYSIS_TAG in unit or label == "own"
-            strategic = strategic_ok and (STRATEGIC_TAG in unit or label == "strategic")
+            analysis = OWN_ANALYSIS_TAG in unit or "own" in (label, line_label)
+            strategic = strategic_ok and (
+                STRATEGIC_TAG in unit or "strategic" in (label, line_label)
+            )
             if analysis or strategic:
                 tagged += 1
             if not (has_cite or analysis or strategic):
@@ -210,23 +250,58 @@ def _coverage(
     return uncovered, (tagged / total if total else 0.0)
 
 
+QUOTE_FIX_MIN_RATIO = 0.8  # below this the "closest passage" is a different text: offer none
+
+
+def closest_passage(quote: str, sources: list[str]) -> str:
+    """The exact words of a source that best match a quotation that failed the verbatim check (one
+    word changed, an article dropped...). Pure, deterministic; compares folded words, returns the
+    source's own spelling. Returns "" when nothing reaches QUOTE_FIX_MIN_RATIO."""
+    import difflib
+
+    def toks(t: str) -> list[str]:  # words without the punctuation glued to them
+        return [w.strip(".,;:()«»\"'") for w in fold_words(t).split()]
+
+    qw = [w for w in toks(quote) if w]
+    if not qw:
+        return ""
+    best, best_text = 0.0, ""
+    n = len(qw)
+    for src in sources:
+        words = src.split()
+        folded = [(toks(w) or [""])[0] for w in words]
+        for size in (n - 2, n - 1, n, n + 1, n + 2):
+            if size <= 0:
+                continue
+            for i in range(0, max(1, len(words) - size + 1)):
+                window = [w for w in folded[i : i + size] if w]
+                r = difflib.SequenceMatcher(None, qw, window, autojunk=False).ratio()
+                if r > best:
+                    best, best_text = r, " ".join(words[i : i + size])
+    return best_text.strip(" ,;:.") if best >= QUOTE_FIX_MIN_RATIO else ""
+
+
 def _bad_quotes(answer: str, retrieved: RetrievedSet, min_words: int) -> list[str]:
-    bad: list[str] = []
+    return [b for b, _ in _bad_quotes_with_fixes(answer, retrieved, min_words)]
+
+
+def _bad_quotes_with_fixes(
+    answer: str, retrieved: RetrievedSet, min_words: int
+) -> list[tuple[str, str]]:
+    bad: list[tuple[str, str]] = []
     for unit in _units(answer):
         quotes = [unit[s + 1 : e - 1] for s, e in _quote_spans(unit)]
         if not quotes:
             continue
-        allowed = [
-            _fold_cached(t)
-            for c in parse_citations(unit)
-            if c in retrieved.ids
-            for t in retrieved.texts[c]
+        originals = [
+            t for c in parse_citations(unit) if c in retrieved.ids for t in retrieved.texts[c]
         ]
+        allowed = [_fold_cached(t) for t in originals]
         for q in quotes:
             for seg in _ELLIPSIS.split(q):
                 seg_f = fold_words(seg).strip(" .,;:")
                 if len(seg_f.split()) >= min_words and not any(seg_f in a for a in allowed):
-                    bad.append(seg.strip()[:140])
+                    bad.append((seg.strip()[:140], closest_passage(seg, originals)))
     return bad
 
 
@@ -287,12 +362,15 @@ def validate(
 
     uncovered: list[str] = []
     bad_quotes: list[str] = []
+    quote_fixes: list[str] = []
     share = 0.0
     if not refused and not prose:
         uncovered, share = _coverage(
-            text, retrieved, workflow == "adversarial", cfg.coverage_min_words
+            text, retrieved, workflow in STRATEGIC_WORKFLOWS, cfg.coverage_min_words
         )
-        bad_quotes = _bad_quotes(text, retrieved, cfg.quote_min_words)
+        with_fixes = _bad_quotes_with_fixes(text, retrieved, cfg.quote_min_words)
+        bad_quotes = [b for b, _ in with_fixes]
+        quote_fixes = [f for _, f in with_fixes]
 
     grounded = (
         not refused
@@ -312,6 +390,7 @@ def validate(
         prose_refusal=prose,
         uncovered=tuple(uncovered),
         bad_quotes=tuple(bad_quotes),
+        quote_fixes=tuple(quote_fixes),
         analysis_share=round(share, 4),
         grounded=grounded,
     )

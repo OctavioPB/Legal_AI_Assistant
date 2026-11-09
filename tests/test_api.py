@@ -126,6 +126,26 @@ def test_a_user_of_one_firm_cannot_log_into_another(world) -> None:  # type: ign
     assert login(client, "firm-a", "bruno@b.mx").status_code == 401  # email unique PER tenant
 
 
+def test_a_suspended_firm_can_neither_log_in_nor_use_a_token_issued_before(  # type: ignore[no-untyped-def]
+    world, provisioner_engine
+) -> None:
+    """Regression: suspension (ADR-013 tombstone, or a hold) used to leave login and live tokens working."""
+    client, _, _, _, _, tenant_b = world
+    headers = auth(client, "firm-b", "bruno@b.mx")
+    assert client.get("/me", headers=headers).status_code == 200
+    with provisioner_engine.begin() as c:
+        c.execute(text("UPDATE tenants SET status = 'suspended' WHERE id = :t"), {"t": tenant_b})
+    try:
+        r = login(client, "firm-b", "bruno@b.mx")
+        assert r.status_code == 401 and r.json() == {"detail": "invalid credentials"}
+        assert client.get("/me", headers=headers).status_code == 401
+        assert client.get("/catalog/personas", headers=headers).status_code == 401
+        assert login(client, "firm-a", "ana@a.mx").status_code == 200  # the other firm is untouched
+    finally:
+        with provisioner_engine.begin() as c:
+            c.execute(text("UPDATE tenants SET status = 'active' WHERE id = :t"), {"t": tenant_b})
+
+
 def test_login_rejects_unknown_fields_and_empty_values(world) -> None:  # type: ignore[no-untyped-def]
     client, *_ = world
     assert (
@@ -297,6 +317,20 @@ def test_a_dead_model_service_is_a_503_not_a_made_up_answer(
     with TestClient(create_app(make_state(app_engine, Down()))) as client:
         r = client.post("/chat", json=chat_body(corpus), headers=auth(client))
         assert r.status_code == 503 and r.json()["code"] == "llm_unavailable"
+        # Regression: the stream used to send the internal class name ("LLMUnavailableError"),
+        # which the UI could not map, so it showed a generic error instead of "model unavailable".
+        with client.stream(
+            "POST", "/chat/stream", json=chat_body(corpus), headers=auth(client)
+        ) as s:
+            raw = "".join(s.iter_text())
+        last = raw.strip().split("\n\n")[-1].split("\n")
+        assert last[0] == "event: error" and json.loads(last[1][6:]) == {"code": "llm_unavailable"}
+
+
+def test_an_unexpected_stream_failure_has_a_neutral_code() -> None:
+    from app.api.routes import stream_error_code
+
+    assert stream_error_code(RuntimeError("password=hunter2 at db host")) == "internal"
 
 
 def test_the_sse_stream_reports_stages_then_one_result(world) -> None:  # type: ignore[no-untyped-def]
@@ -375,3 +409,29 @@ def test_the_default_secret_is_refused_outside_development() -> None:
 def test_jurisdiction_helper_is_still_consistent(admin_engine: Engine) -> None:
     with admin_engine.connect() as c:
         assert jurisdiction_id(c, "MX", "federal") > 0
+
+
+def test_tau_is_refused_at_boot_if_it_was_calibrated_for_another_model(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """Regression: a re-pulled bge-m3 (new digest) or a different reranker kept the old tau silently."""
+    from app.main import TAU_PATH, check_tau_provenance, load_tau
+
+    rec = tmp_path / "retrieval.yaml"
+    rec.write_text(
+        "tau: 0.58\nembedder:\n  model: bge-m3\n  revision: '790764642607'\nreranker: bge-m3-dense-cosine\n",
+        encoding="utf-8",
+    )
+    ok = {
+        "embedder_model": "bge-m3",
+        "embedder_revision": "790764642607",
+        "reranker": "bge-m3-dense-cosine",
+    }
+    check_tau_provenance(Settings(), path=rec, **ok)
+    assert load_tau(Settings(), rec).refusal_tau == 0.58
+    for key, other in (("embedder_revision", "aaaaaaaaaaaa"), ("reranker", "bge-reranker-v2-m3"),
+                       ("embedder_model", "nomic-embed-text")):  # fmt: skip
+        with pytest.raises(UnsafeConfigurationError, match="calibrate_tau"):
+            check_tau_provenance(Settings(), path=rec, **{**ok, key: other})
+    # an explicit tau (environment) is the operator's choice and is not compared
+    check_tau_provenance(Settings(refusal_tau=0.5), path=rec, **{**ok, "reranker": "x"})
+    # the committed record names the stack the demo actually runs
+    check_tau_provenance(Settings(), path=TAU_PATH, **ok)

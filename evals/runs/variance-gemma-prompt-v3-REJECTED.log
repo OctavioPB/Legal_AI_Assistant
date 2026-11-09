@@ -1,0 +1,18 @@
+('¿Cuáles son las causales de rescisión de la rela', 1, 'refused', 'validation.unsupported', 0, 169)
+('¿Cuáles son las causales de rescisión de la rela', 2, 'refused', 'validation.unsupported', 0, 158)
+('¿Cuáles son las causales de rescisión de la rela', 3, 'refused', 'validation.unsupported', 0, 158)
+('¿Qué indemnización corresponde por despido injus', 1, 'answered', None, 3, 96)
+('¿Qué indemnización corresponde por despido injus', 2, 'refused', 'validation.unsupported', 0, 96)
+('¿Qué indemnización corresponde por despido injus', 3, 'refused', 'validation.unsupported', 0, 96)
+('What protections does an employee have against r', 1, 'refused', 'validation.unsupported', 0, 152)
+('What protections does an employee have against r', 2, 'answered', None, 4, 84)
+('What protections does an employee have against r', 3, 'answered', None, 4, 83)
+('¿Cuál es la pena por el delito de homicidio cali', 1, 'answered', None, 1, 19)
+('¿Cuál es la pena por el delito de homicidio cali', 2, 'answered', None, 1, 10)
+('¿Cuál es la pena por el delito de homicidio cali', 3, 'answered', None, 1, 10)
+
+SUMMARY
+  ¿Cuáles son las causales de rescisión de la rela answered 0/3  median 158s
+  ¿Qué indemnización corresponde por despido injus answered 1/3  median 96s
+  What protections does an employee have against r answered 2/3  median 84s
+  ¿Cuál es la pena por el delito de homicidio cali answered 3/3  median 10s

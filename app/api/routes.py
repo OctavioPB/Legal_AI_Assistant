@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import queue
 import threading
 import uuid
@@ -17,12 +18,28 @@ from sqlalchemy import text
 from app.api.auth import AuthError, Principal, authenticate, issue_token
 from app.api.deps import AppState, PrincipalDep, StateDep, require_admin
 from app.chat.service import ChatRequest, ChatResult, answer_query
+from app.corpus.lineage import successions
 from app.db.session import tenant_transaction
 from app.observability.trace import TraceRecord
 from app.prompts.composer import Persona, Workflow
 from app.rag.context import UnknownJurisdictionError, load_session_context
 
 router = APIRouter()
+log = logging.getLogger(__name__)
+
+
+def stream_error_code(exc: Exception) -> str:
+    """The public error code for a failure inside the SSE worker (mirrors `register_errors`)."""
+    from app.orchestration.aliases import UnpinnedAliasError
+    from app.orchestration.resilient import LLMUnavailableError, RateLimitExceededError
+
+    if isinstance(exc, RateLimitExceededError):
+        return "rate_limited"
+    if isinstance(exc, LLMUnavailableError):
+        return "llm_unavailable"
+    if isinstance(exc, UnpinnedAliasError):
+        return "alias_unpinned"
+    return "internal"
 
 
 class LoginBody(BaseModel):
@@ -115,7 +132,7 @@ def personas(_: PrincipalDep, st: StateDep) -> list[dict[str, Any]]:
 def _run_chat(st: AppState, p: Principal, body: ChatBody, on_stage: Any = None) -> ChatResult:
     st.limits.check(str(p.tenant_id), str(p.user_id))
     req = ChatRequest(query=body.query, persona=body.persona, workflow=body.workflow)
-    with tenant_transaction(st.engine, p.tenant_id) as conn:
+    with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
         try:
             ctx = load_session_context(
                 conn, p.tenant_id, body.jurisdiction_id, language=body.language,
@@ -143,7 +160,7 @@ def chat_stream(body: ChatBody, p: PrincipalDep, st: StateDep) -> StreamingRespo
     def work() -> None:
         try:
             req = ChatRequest(query=body.query, persona=body.persona, workflow=body.workflow)
-            with tenant_transaction(st.engine, p.tenant_id) as conn:
+            with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
                 ctx = load_session_context(
                     conn, p.tenant_id, body.jurisdiction_id, language=body.language,
                     include_historical=body.include_historical,
@@ -153,7 +170,11 @@ def chat_stream(body: ChatBody, p: PrincipalDep, st: StateDep) -> StreamingRespo
         except UnknownJurisdictionError:
             events.put(("error", {"code": "unknown_jurisdiction"}))
         except Exception as exc:
-            events.put(("error", {"code": type(exc).__name__}))
+            # Same public codes as the non-streaming handlers; never an internal class name.
+            code = stream_error_code(exc)
+            if code == "internal":
+                log.exception("chat stream failed")
+            events.put(("error", {"code": code}))
         finally:
             events.put(None)
 
@@ -191,11 +212,17 @@ def source(cite_id: str, p: PrincipalDep, st: StateDep) -> dict[str, Any]:
     decides visibility: another tenant's client file is simply not found."""
     if not (0 < len(cite_id) <= 200):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "bad cite_id")
-    with tenant_transaction(st.engine, p.tenant_id) as conn:
+    with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
         row = conn.execute(_SOURCE_SQL, {"c": cite_id}).mappings().one_or_none()
+        succ = successions(conn, [cite_id]).get(cite_id) if row is not None else None
     if row is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "source not found")
-    return dict(row)
+    out = dict(row)
+    # ADR-017: a reform changed this unit after it was cited (None: current or never reformed)
+    out["reform"] = (
+        succ.model_dump(mode="json") if succ is not None and succ.change != "unchanged" else None
+    )
+    return out
 
 
 @router.get("/traces/{request_id}")

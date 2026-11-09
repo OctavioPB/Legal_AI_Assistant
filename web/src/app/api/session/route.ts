@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE, decodeClaims, isExpired } from "@/lib/auth";
+import { isSameOriginJson } from "@/lib/proxy";
 
 // Exchanges credentials for the JWT issued by the API and stores it httpOnly. The browser never
 // sees the token. Every failure the user can cause answers the same way (no user enumeration).
 const API_URL = process.env.API_URL ?? "http://127.0.0.1:8000";
 
+const MAX_BODY = 4 * 1024;
+
 export async function POST(request: Request) {
-  const body: unknown = await request.json().catch(() => null);
+  if (!isSameOriginJson(request.headers)) {
+    return NextResponse.json({ error: "invalid" }, { status: 403 });
+  }
+  const raw = await request.text();
+  if (raw.length > MAX_BODY) return NextResponse.json({ error: "invalid" }, { status: 413 });
+  let body: unknown = null;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    body = null;
+  }
   if (typeof body !== "object" || body === null) {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }

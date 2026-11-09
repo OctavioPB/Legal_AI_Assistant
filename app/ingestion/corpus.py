@@ -1,7 +1,10 @@
 """The demo corpus registry (WS2.T07): which file is which law, under which jurisdiction.
 
 The jurisdiction is looked up in the closed catalog by (country, level, state, municipality), never
-from free text. `file` paths are relative to data/corpus (gitignored; see MANIFEST.md).
+from free text. `source_url` is the closed registry of official downloads the reform watcher may
+fetch
+(ADR-017); nothing else on the network is ever contacted. `file` paths are relative to data/corpus
+(gitignored; see MANIFEST.md).
 """
 
 from __future__ import annotations
@@ -26,22 +29,28 @@ class CorpusDoc:
     legal_domain: tuple[str, ...]
     grammar: Literal["mx", "us"] = "mx"
     version_label: str = "2026.11"
+    # ADR-017: the official URL the reform watcher checks (closed list, https only). None: the
+    # source
+    # has no stable official download; a new version is brought to data/corpus/inbox/ by hand.
+    source_url: str | None = None
 
     @property
     def filename(self) -> str:
         return f"{self.key}.txt"
 
 
+_DIP = "https://www.diputados.gob.mx/LeyesBiblio/pdf/"
+
 CORPUS: tuple[CorpusDoc, ...] = (
     CorpusDoc("LFT", "text", "MX", "FED", "LFT", "es", "ley", "Ley Federal del Trabajo",
-              ("MX", "federal", None, None), ("labor",)),
+              ("MX", "federal", None, None), ("labor",), source_url=_DIP + "LFT.pdf"),
     CorpusDoc("CPEUM", "text", "MX", "FED", "CPEUM", "es", "ley",
               "Constitución Política de los Estados Unidos Mexicanos",
-              ("MX", "federal", None, None), ("constitutional",)),
+              ("MX", "federal", None, None), ("constitutional",), source_url=_DIP + "CPEUM.pdf"),
     CorpusDoc("CCF", "text", "MX", "FED", "CCF", "es", "codigo", "Código Civil Federal",
-              ("MX", "federal", None, None), ("civil",)),
+              ("MX", "federal", None, None), ("civil",), source_url=_DIP + "CCF.pdf"),
     CorpusDoc("CPF", "text", "MX", "FED", "CPF", "es", "codigo", "Código Penal Federal",
-              ("MX", "federal", None, None), ("criminal",)),
+              ("MX", "federal", None, None), ("criminal",), source_url=_DIP + "CPF.pdf"),
     CorpusDoc("CC_NL", "text", "MX", "NL", "CCNL", "es", "codigo",
               "Código Civil para el Estado de Nuevo León",
               ("MX", "state", "NL", None), ("civil",)),

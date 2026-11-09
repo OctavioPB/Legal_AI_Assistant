@@ -1,12 +1,21 @@
 {
   "brand": {
     "name": "Legal AI Assistant",
-    "tagline": "Legal research with verifiable sources"
+    "tagline": "Legal research with verifiable sources",
+    "wordmark": "Legal <em>AI</em> Assistant"
   },
   "nav": {
     "language": "Language",
     "theme": "Theme",
-    "skip": "Skip to content"
+    "skip": "Skip to content",
+    "sections": "Sections",
+    "conversar": "Chat",
+    "investigacion": "Research",
+    "argumentar": "Argue",
+    "settings": "Settings",
+    "leyes": "Laws",
+    "verificar": "Verify",
+    "asuntos": "Matters"
   },
   "lang": {
     "es-MX": "Español",
@@ -18,14 +27,7 @@
     "dark": "Dark"
   },
   "session": {
-    "signedInAs": "Signed in as {name}",
     "logout": "Sign out"
-  },
-  "home": {
-    "empty": {
-      "title": "Start by selecting the jurisdiction",
-      "body": "Choose country, state and municipality to define the applicable law. Answers only use sources from that jurisdiction."
-    }
   },
   "login": {
     "title": "Sign in",
@@ -37,10 +39,12 @@
     "error": {
       "invalid": "Invalid credentials.",
       "unavailable": "The service is unavailable. Please try again in a few minutes."
-    }
+    },
+    "intro": "Sign in with the details your firm gave you. The firm and email are remembered on this computer; the password never is.",
+    "showPassword": "Show password",
+    "help": "Don't have your sign-in details, or forgot them? Ask your firm's administrator."
   },
   "workspace": {
-    "title": "Legal research",
     "loading": "Loading catalog…",
     "catalogError": "The catalogs could not be loaded. Reload the page.",
     "jurisdiction": {
@@ -65,17 +69,8 @@
       "corporate": "Corporate",
       "corporate_finance": "Corporate finance"
     },
-    "workflow": {
-      "label": "Workflow",
-      "dossier_builder": "Dossier",
-      "adversarial": "Opposing counsel"
-    },
     "includeHistorical": "Include earlier versions (no longer in force)",
     "query": {
-      "label": "Question",
-      "placeholder": "Describe the legal matter or question…",
-      "submit": "Research",
-      "submitting": "Researching…",
       "count": "{count} of {max} characters"
     },
     "stage": {
@@ -143,9 +138,393 @@
     "article": "Full article",
     "notCurrent": "Not in force",
     "current": "In force",
-    "identifier": "Identifier"
+    "identifier": "Identifier",
+    "reformed": "This provision changed after it was cited ({change}, {date}). Current version:"
   },
   "footer": {
     "disclaimer": "Research tool. It does not replace a lawyer's professional judgment."
+  },
+  "workbench": {
+    "you": "Your question",
+    "threadLabel": "Conversation",
+    "elapsed": "Elapsed time: {clock}",
+    "slowNote": "With the local model an answer takes 1.5 to 4 minutes; a topic without sources is refused in seconds.",
+    "hideHistory": "Hide history",
+    "showHistory": "Show history",
+    "historical": "Includes repealed versions",
+    "scopeFixed": "Scope fixed at creation; start a new one to change it.",
+    "history": {
+      "search": "Search history…",
+      "failed": "The history could not be loaded.",
+      "noMatch": "Nothing matches the search.",
+      "messages": "{count, plural, =1 {# message} other {# messages}}"
+    },
+    "bar": {
+      "newTitle": "New title",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete permanently?",
+      "rename": "Rename",
+      "delete": "Delete",
+      "shared": "A colleague's conversation, shared through the matter: you can read and continue it."
+    },
+    "sources": {
+      "title": "Cited sources",
+      "empty": "Cited sources will appear here. Select one to read the original text."
+    },
+    "chat": {
+      "title": "Chat",
+      "historyLabel": "Conversation history",
+      "new": "New conversation",
+      "empty": "No conversations yet.",
+      "welcomeTitle": "What do you need to look up?",
+      "welcomeBody": "Write your question; if the law is from a state or municipality, use “Change”. Every assertion cites its source and follow-up questions keep the sources already cited.",
+      "composerLabel": "Message",
+      "placeholder": "Write your legal question…",
+      "followUpPlaceholder": "Write a follow-up question…",
+      "send": "Send",
+      "ex1": "What are the grounds for terminating an employment relationship without liability for the employer?",
+      "ex2": "How many hours can a daytime work shift last?",
+      "ex3": "What rights does a worker have during pregnancy?"
+    },
+    "research": {
+      "title": "Research",
+      "historyLabel": "Research history",
+      "new": "New research",
+      "empty": "No research yet.",
+      "welcomeTitle": "New research",
+      "welcomeBody": "State the research question. The result is a dossier with the issue, the applicable law, case law, analysis and cited sources, exportable to PDF.",
+      "composerLabel": "Research question",
+      "followUpLabel": "Another question in this research",
+      "placeholder": "Describe the legal problem to research…",
+      "send": "Research",
+      "question": "Question",
+      "export": "Export PDF",
+      "ex1": "What severance is owed to a worker for unjustified dismissal?",
+      "ex2": "What requirements must the employer's termination notice meet?"
+    },
+    "case": {
+      "pageTitle": "Argue",
+      "historyLabel": "Cases",
+      "new": "New case",
+      "empty": "No cases yet.",
+      "newTitle": "New case",
+      "newBody": "Describe the facts and the side you represent. In each round, write an argument and ask for the opposing counsel's attack or for the argument to be strengthened with the sources.",
+      "title": "Case name",
+      "titlePlaceholder": "e.g. Dismissal of employee X",
+      "sideLabel": "Side you represent",
+      "side": {
+        "actor": "Plaintiff",
+        "demandado": "Defendant",
+        "defensa": "Defense",
+        "acusacion": "Prosecution",
+        "tercero": "Interested third party"
+      },
+      "facts": "Facts",
+      "factsPlaceholder": "Relevant facts, in chronological order…",
+      "claim": "Claim or theory of the case",
+      "claimPlaceholder": "What is requested or argued (optional)…",
+      "privacyNote": "The facts are stored for your user only, inside the firm, and never leave this machine.",
+      "create": "Create case",
+      "cardTitle": "Case",
+      "roundsLabel": "Rounds",
+      "yourArgument": "Your argument",
+      "attackTitle": "Opposing counsel's attack",
+      "strengthenTitle": "Strengthened argument",
+      "vulnerabilities": "Prioritized vulnerabilities",
+      "reinforce": "Points to strengthen",
+      "composerLabel": "Your argument",
+      "composerPlaceholder": "Write the argument you want to test…",
+      "attack": "Send to opposing counsel",
+      "strengthen": "Strengthen my argument",
+      "example": {
+        "load": "Load an example case",
+        "title": "Dismissal without written notice",
+        "facts": "The employee worked three years as an administrative assistant. On March 3 she was dismissed verbally; the employer gave her no written termination notice. The employer now alleges dishonesty that it never documented.",
+        "claim": "Reinstatement and back pay."
+      }
+    },
+    "answerReady": "The answer is ready.",
+    "refusalReady": "There are not enough sources to answer; suggestions are shown.",
+    "busyElsewhere": "An answer is in progress in another conversation. You can send when it finishes.",
+    "examplesLabel": "Not sure where to start? Try an example:",
+    "shortcut": "Ctrl + Enter to send",
+    "scope": {
+      "current": "It will search:",
+      "withHistorical": "includes repealed versions",
+      "currentOnly": "current laws only",
+      "change": "Change",
+      "done": "Done",
+      "personaHelp": "The profile guides vocabulary and the order of sources; it neither widens nor narrows the jurisdiction.",
+      "historicalHelp": "Turn it on only if you need what a law said before an amendment."
+    }
+  },
+  "home": {
+    "title": "What do you need to do <em>today</em>?",
+    "intro": "A legal research assistant that answers only from the loaded laws and cites every source. When it finds no basis, it says so instead of making it up.",
+    "choose": "Choose how you want to work",
+    "conversar": {
+      "title": "Chat",
+      "text": "Ask legal questions and continue with follow-up questions, as in a conversation.",
+      "when": "Use it for specific questions: “What does the law say about…?”",
+      "go": "Start a chat →"
+    },
+    "investigacion": {
+      "title": "Research",
+      "text": "State a problem and get an organized dossier: the issue, the applicable law, analysis and sources.",
+      "when": "Use it to prepare a brief or a memo; it can be exported to PDF.",
+      "go": "Start a research →"
+    },
+    "argumentar": {
+      "title": "Argue",
+      "text": "Describe a case and test your arguments: the system acts as opposing counsel or strengthens them.",
+      "when": "Use it to prepare a hearing or anticipate the other lawyer's objections.",
+      "go": "Work on a case →"
+    },
+    "howTitle": "How it works",
+    "step1": "Write your question. By default it searches Mexican federal law; you can change the jurisdiction with the “Change” button.",
+    "step2": "Wait for the answer: with the local model it takes 1.5 to 4 minutes. The screen shows the current stage.",
+    "step3": "Check the sources: every citation marked with ✓ opens the original text of the law with the passage highlighted.",
+    "step4": "If there are not enough sources, the system says so and suggests what to do. It is not an error: it guarantees nothing is made up.",
+    "tools": "Tools",
+    "leyes": {
+      "title": "Laws",
+      "text": "Read each law by titles, chapters and articles, and compare its versions.",
+      "go": "Open the navigator →"
+    },
+    "verificar": {
+      "title": "Verify citations",
+      "text": "Paste or upload a brief and check that each cited article exists, is current and says what is attributed to it.",
+      "go": "Verify a brief →"
+    },
+    "asuntos": {
+      "title": "Matters",
+      "text": "Group chats, research, cases, sources and notes by matter, and share them with your colleagues.",
+      "go": "See my matters →"
+    },
+    "reformas": {
+      "title": "Amendments",
+      "text": "See which laws changed and which part of your work cites amended provisions.",
+      "go": "See amendments →"
+    },
+    "eyebrow": "Verifiable legal research"
+  },
+  "matters": {
+    "title": "Matters",
+    "intro": "Each matter gathers the work on one client file. Only you and the colleagues you add can see it.",
+    "loadError": "The matters could not be loaded. Please try again.",
+    "list": "My matters",
+    "empty": "You have no matters yet. Create the first one with the form above.",
+    "role": {
+      "owner": "Owner",
+      "member": "Collaborator"
+    },
+    "itemsCount": "{n} items",
+    "membersCount": "{n} people",
+    "closed": "Closed",
+    "new": "New matter",
+    "matterTitle": "Matter name",
+    "matterTitlePlaceholder": "For example: Pérez v. ACME",
+    "clientRef": "Client or file reference (optional)",
+    "clientRefPlaceholder": "For example: EXP-2026-014",
+    "description": "Description (optional)",
+    "privacy": "The matter is private: only you and the people you add can see it.",
+    "create": "Create matter",
+    "notFound": "The matter does not exist or you have no access to it.",
+    "back": "← All matters",
+    "loading": "Loading…",
+    "close": "Close matter",
+    "reopen": "Reopen matter",
+    "confirmDelete": "Delete the matter? Its conversations are not deleted: they become private to their authors again.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "work": "Work on this matter",
+    "newIn": "New in {page}",
+    "verifyIn": "Verify a brief",
+    "noWork": "There are no conversations in this matter yet.",
+    "byColleague": "by a colleague",
+    "reports": "Brief verifications",
+    "reportCounts": "{total} references, {ok} current",
+    "sources": "Saved sources",
+    "noSources": "No sources saved yet.",
+    "reformedOpen": "This source was amended after it was saved.",
+    "openCurrent": "Open the current version",
+    "addedBy": "Saved by {who}",
+    "remove": "Remove",
+    "sourcesHelp": "To save a source, open it (from an answer or from Laws) and use “Save to matter”.",
+    "notes": "Notes",
+    "newNote": "New note",
+    "addNote": "Add note",
+    "members": "People with access",
+    "addMember": "Add a colleague from the firm",
+    "choose": "Choose a person",
+    "add": "Add",
+    "noColleagues": "There are no more colleagues from the firm to add.",
+    "membersHelp": "People you add see the whole matter and can work on it; only the owner manages it.",
+    "picker": {
+      "label": "Matter",
+      "none": "No matter",
+      "unavailable": "Matter not available",
+      "help": "Optional: keep it inside a matter to share it with your colleagues."
+    },
+    "save": {
+      "open": "Save to matter",
+      "loading": "Loading matters…",
+      "noMatters": "You have no open matters.",
+      "which": "Matter to save to",
+      "save": "Save",
+      "cancel": "Cancel",
+      "error": "It could not be saved.",
+      "saved": "Saved to the matter."
+    }
+  },
+  "laws": {
+    "title": "Laws",
+    "intro": "Read the current text of each loaded law, exactly as published, and compare it with earlier versions. No model is involved here.",
+    "loadError": "The laws could not be loaded. Please try again.",
+    "empty": "No laws are loaded.",
+    "structure": "Structure of the law",
+    "law": "Law",
+    "version": "Version {version}",
+    "lastReform": "last recorded amendment: {date}",
+    "find": "Go to article",
+    "findPlaceholder": "For example: 47 or 50 Bis",
+    "go": "Go",
+    "notFound": "That law has no such article.",
+    "loading": "Loading…",
+    "pick": "Choose an article in the structure or type its number.",
+    "trail": "Location in the law",
+    "prev": "← Previous article",
+    "next": "Next article →",
+    "citables": "Citable parts",
+    "citablesHelp": "Each part has its own citation. You can copy it or save it to a matter.",
+    "notCurrent": "Not current",
+    "copied": "Copied",
+    "copy": "Copy citation",
+    "history": "Versions",
+    "hideHistory": "Hide versions",
+    "showHistory": "Compare with earlier versions",
+    "onlyVersion": "Only one version of this article is recorded.",
+    "compareWith": "Compare the current version with",
+    "versionOption": "version {version} (in force until {until})",
+    "diffLegend": "Underlined text: added by the amendment. Struck-through text: removed.",
+    "didNotExist": "The article did not exist in that version.",
+    "noLongerExists": "The article no longer exists in the current version.",
+    "added": "added",
+    "removed": "removed"
+  },
+  "reforms": {
+    "title": "Amendments",
+    "intro": "The system checks the official sources and, when a law changes, loads the new version without deleting the old one and tells you which part of your work cites amended provisions.",
+    "loadError": "The amendments could not be loaded. Please try again.",
+    "alerts": "Your affected work",
+    "noAlerts": "None of your conversations, saved sources or verifications cites an amended provision.",
+    "where": {
+      "conversation": "Conversation",
+      "matter_source": "Source saved in the matter",
+      "report": "Brief verification"
+    },
+    "openCited": "Open what was cited",
+    "openCurrent": "Open the current version",
+    "changes": "Recorded amendments",
+    "noChanges": "No amendment has been recorded yet.",
+    "checks": "Latest check of each source",
+    "checksHelp": "If an official source refuses automated downloads, it is noted and not retried.",
+    "noChecks": "No source has been checked yet.",
+    "law": "Law",
+    "checkedAt": "Checked",
+    "outcomeLabel": "Result",
+    "outcome": {
+      "unchanged": "No changes",
+      "ingested": "New version loaded",
+      "failed": "Check failed",
+      "blocked": "The source refused the download",
+      "skipped": "No automatic download (updated by hand)"
+    },
+    "versions": "from version {from} to {to}",
+    "published": "published on {date}",
+    "hideDetail": "Hide detail",
+    "showDetail": "See what changed",
+    "bannerTitle": "Amendments affect your work",
+    "bannerBody": "{n} citations in your work point to provisions that changed.",
+    "bannerAction": "Review",
+    "change": {
+      "unchanged": "Unchanged",
+      "amended": "Amended",
+      "derogated": "Repealed",
+      "removed": "Removed",
+      "added": "New"
+    }
+  },
+  "verify": {
+    "title": "Verify citations",
+    "intro": "Check every article a brief cites: whether it exists, whether it is current and whether the quoted text matches the law. The check is done by the system, not by the model.",
+    "untitled": "Untitled brief",
+    "mode": "How do you want to provide the brief?",
+    "modes": {
+      "text": "Paste the text",
+      "pdf": "Upload a PDF"
+    },
+    "docTitle": "Brief name (for the report)",
+    "docTitlePlaceholder": "For example: Answer to the complaint",
+    "text": "Text of the brief",
+    "textPlaceholder": "Paste the whole brief here, or the part you want to check.",
+    "example": "Want to see how it works?",
+    "loadExample": "Load an example text",
+    "exampleText": "Con fundamento en el artículo 47, fracción II, de la Ley Federal del Trabajo, que establece como causa de rescisión \"Incurrir el trabajador, durante sus labores, en faltas de probidad u honradez\", así como en el artículo 48 de la misma ley. Véase también el artículo 21 de la Ley del Seguro Social.",
+    "file": "PDF file (up to 15 MB)",
+    "fileHelp": "The PDF must contain text (not a scanned image). Reading it may take a minute or two.",
+    "privacy": "The brief is not stored: it is processed on this computer and only the report is kept (references and results, without the text).",
+    "running": "Verifying…",
+    "run": "Verify",
+    "runningPdf": "Reading the PDF and checking the references…",
+    "errors": {
+      "tooLarge": "The file is too large (15 MB maximum).",
+      "unreadable": "No text could be read from the file. Is it a scanned PDF?",
+      "generic": "The brief could not be verified. Please try again."
+    },
+    "reports": "Earlier reports",
+    "noReports": "There are no reports yet.",
+    "counts": "{total} references, {ok} current",
+    "openReport": "View",
+    "deleteReport": "Delete",
+    "resultTitle": "Result: {title}",
+    "none": "No article references were found in the text.",
+    "summary": "Summary",
+    "pdfWarnings": "Note: part of the PDF could not be read well; review the result carefully.",
+    "disclaimer": "The check covers existence, validity and verbatim match. It does not judge whether the brief's interpretation is right.",
+    "status": {
+      "vigente": "Current",
+      "derogado": "Repealed",
+      "no_vigente": "Not current",
+      "inexistente": "Does not exist",
+      "fuera_del_corpus": "Law not loaded",
+      "ley_no_identificada": "Law not identified",
+      "ambigua": "Ambiguous law"
+    },
+    "statusHelp": {
+      "vigente": "The provision exists in the current version of the law.",
+      "derogado": "The provision exists but is repealed in the current version.",
+      "no_vigente": "The provision only exists in an earlier version: an amendment removed or replaced it.",
+      "inexistente": "The law is loaded but has no such provision. Check the article or fraction number.",
+      "fuera_del_corpus": "The cited law is not loaded in the system; it cannot be verified.",
+      "ley_no_identificada": "It was not possible to tell which law the reference belongs to. Check that the brief names the law.",
+      "ambigua": "The law's name matches more than one loaded law (for example, “Código Civil”)."
+    },
+    "quote": {
+      "coincide": "The quotation matches",
+      "no_coincide": "The quotation does NOT match",
+      "coincide_version_anterior": "The quotation matches an earlier version",
+      "corta": "Quotation too short to check"
+    },
+    "inferred": "The law is not named next to the reference: it was taken from the last law mentioned. Please confirm.",
+    "reform": "Recorded amendment: {change} ({date}).",
+    "inBrief": "Reference {n} in the brief",
+    "openSource": "Open source"
+  },
+  "settings": {
+    "title": "Settings",
+    "close": "Close",
+    "session": "Session"
   }
 }

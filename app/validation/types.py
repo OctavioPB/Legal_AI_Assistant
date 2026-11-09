@@ -63,6 +63,9 @@ class Verdict(BaseModel):
     prose_refusal: bool  # reads as a refusal but without the block: a format violation
     uncovered: tuple[str, ...]  # legal-looking sentences with neither a cite nor an allowed tag
     bad_quotes: tuple[str, ...]  # quoted statute text not found in the cited fragment
+    # the closest EXACT passage of the cited fragment for each bad quote (found by code, from the
+    # source, never from the model): what the regeneration feedback shows; "" when none is close
+    quote_fixes: tuple[str, ...] = ()
     analysis_share: float  # share of sentences carried only by [análisis propio] (monitoring)
     grounded: bool
 

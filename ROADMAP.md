@@ -12,7 +12,10 @@ que nada entra si degrada los dos gates duros (citation precision = 1.00, leakag
 
 ## Horizonte 1 — Post-demo inmediato (0–6 meses): profundizar el flujo diario
 
-**R1.1 · Monitoreo de reformas (DOF + gacetas estatales) con alertas por dossier.**
+**R1.1 · Monitoreo de reformas (DOF + gacetas estatales) con alertas por dossier.** *(Núcleo hecho 2026-11-08,
+WS9.T04/ADR-017: vigilante de las URL oficiales de diputados.gob.mx + bandeja local, linaje por unidad citable y
+alertas por conversación/fuente/reporte. Falta: DOF diario y gacetas estatales como fuentes, notificación fuera de
+la app.)*
 Pipeline programado que detecta publicaciones nuevas, las ingesta y —clave— cruza los
 `cite_id` reformados contra los dossiers activos de cada tenant: *"El art. 76 LFT citado en
 tu expediente X fue reformado el 14-06; la versión que citaste ya no está vigente"*. Es la
@@ -27,7 +30,8 @@ generativo — pero cada plazo se muestra con su `[cite:]` al artículo procesal
 son la causa #1 de responsabilidad profesional; una calculadora citable es defendible ante
 el cliente y el colegio.
 
-**R1.3 · Verificador de citas de documentos externos.**
+**R1.3 · Verificador de citas de documentos externos.** *(Hecho para leyes 2026-11-08, WS9.T02/ADR-019;
+jurisprudencia y tesis pendientes de corpus.)*
 Subir el escrito de la contraparte (o el propio antes de presentarlo) y validar cada cita
 normativa/jurisprudencial contra el corpus: existe, está vigente, dice lo que se le atribuye.
 Es el pipeline de validación actual (WS5) apuntado hacia adentro de un PDF ajeno — reuso casi
@@ -39,7 +43,9 @@ Demanda laboral, contestación, amparo indirecto: esqueletos por persona/jurisdi
 Dossier Builder puebla el capítulo de derecho con citas verificadas y el abogado redacta
 hechos. Estrictamente asistivo: el sistema nunca "presenta", solo pre-llena con trazabilidad.
 
-**R1.5 · Colaboración por asunto (matter-level).**
+**R1.5 · Colaboración por asunto (matter-level).** *(Primer paso hecho 2026-11-08, WS9.T03/ADR-018: asuntos
+con miembros bajo RLS, notas y fuentes guardadas. Faltan papeles socio/asociado/pasante, comentarios sobre
+fragmentos y versiones del dossier.)*
 Permisos por expediente dentro del tenant (socio/asociado/pasante), comentarios sobre
 fragmentos citados, historial de versiones del dossier. Habilitado por: `dossiers` +
 `audit_log` existentes; requiere sub-scoping de RLS por matter (política adicional, no

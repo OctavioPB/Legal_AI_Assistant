@@ -188,6 +188,140 @@ def seed_overlapping_tenants(
             title="Expediente 0001",
             articles=CLIENT_FILE_ARTICLES,
         )
+        seed_product_rows(app_engine, tenant)
+        seed_lineage(
+            app_engine, tenant, "Expediente 0001", "CF-EXP-0001-ART47", "CF-EXP-0001-ART48"
+        )
+    seed_lineage(
+        ingestor_engine, PUBLIC_CORPUS_TENANT_ID, "Ley Federal del Trabajo",
+        "MX-FED-LFT-ART47-v2025.06", "MX-FED-LFT-ART47-v2026.01",
+    )  # fmt: skip
+
+
+def seed_conversation(app_engine: Engine, tenant: uuid.UUID) -> uuid.UUID:
+    """A user with one case and one message: client content in every tenant (ADR-016)."""
+    return seed_product_rows(app_engine, tenant)[1]
+
+
+# The user `seed_product_rows` created per tenant: the anchor the visibility checks need (ADR-018).
+SEEDED_USERS: dict[uuid.UUID, uuid.UUID] = {}
+
+
+def seed_product_rows(app_engine: Engine, tenant: uuid.UUID) -> tuple[uuid.UUID, uuid.UUID]:
+    """Client content in every product table: a case with a message, a matter with a member, a note
+    and a saved source, a matter-linked conversation and a verification report (ADR-016/018/019).
+    Returns (user_id, case conversation id)."""
+    with tenant_transaction(app_engine, tenant) as conn:
+        user = conn.execute(
+            text(
+                "INSERT INTO users (tenant_id, email, display_name) "
+                "VALUES (:t, 'seed@firm.mx', 'Seed') RETURNING id"
+            ),
+            {"t": tenant},
+        ).scalar_one()
+    SEEDED_USERS[tenant] = user
+    with tenant_transaction(app_engine, tenant, user_id=user) as conn:
+        conv = conn.execute(
+            text(
+                "INSERT INTO conversations (tenant_id, user_id, kind, title, language, "
+                "jurisdiction_id, persona, case_side, case_facts, case_claim) "
+                "VALUES (:t, :u, 'case', 'Despido de la trabajadora X', 'es', "
+                "(SELECT id FROM jurisdictions WHERE country = 'MX' AND level = 'federal'), "
+                "'labor', 'actor', 'Hechos confidenciales del cliente', 'Reinstalación') "
+                "RETURNING id"
+            ),
+            {"t": tenant, "u": user},
+        ).scalar_one()
+        conn.execute(
+            text(
+                "INSERT INTO messages (tenant_id, conversation_id, seq, role, action, content) "
+                "VALUES (:t, :c, 1, 'user', 'attack', 'Argumento privilegiado')"
+            ),
+            {"t": tenant, "c": conv},
+        )
+        matter = uuid.uuid4()  # no RETURNING: the row becomes visible once its member row exists
+        conn.execute(
+            text(
+                "INSERT INTO matters (id, tenant_id, created_by, title) "
+                "VALUES (:id, :t, :u, 'Pérez vs. ACME')"
+            ),
+            {"id": matter, "t": tenant, "u": user},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO matter_members (tenant_id, matter_id, user_id, role) "
+                "VALUES (:t, :m, :u, 'owner')"
+            ),
+            {"t": tenant, "m": matter, "u": user},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO matter_notes (tenant_id, matter_id, author_id, body) "
+                "VALUES (:t, :m, :u, 'Nota privilegiada')"
+            ),
+            {"t": tenant, "m": matter, "u": user},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO matter_sources (tenant_id, matter_id, cite_id, added_by) "
+                "VALUES (:t, :m, 'CF-EXP-0001-ART47', :u)"
+            ),
+            {"t": tenant, "m": matter, "u": user},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO conversations (tenant_id, user_id, matter_id, kind, title, language, "
+                "jurisdiction_id, persona) VALUES (:t, :u, :m, 'chat', 'Consulta del asunto', 'es', "
+                "(SELECT id FROM jurisdictions WHERE country = 'MX' AND level = 'federal'), "
+                "'labor')"
+            ),
+            {"t": tenant, "u": user, "m": matter},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO verification_reports (tenant_id, user_id, matter_id, title, "
+                "source_kind, summary, items) VALUES (:t, :u, :m, 'Demanda', 'text', "
+                "'{}'::jsonb, '[]'::jsonb)"
+            ),
+            {"t": tenant, "u": user, "m": matter},
+        )
+    return user, uuid.UUID(str(conv))
+
+
+def seed_lineage(
+    engine: Engine, tenant: uuid.UUID, title: str, old_cite: str, new_cite: str
+) -> None:
+    """A reform record for the document titled `title` (ADR-017): change, lineage row, source check.
+    The public corpus goes through the ingestor engine, a firm's client file through the app role."""
+    public = tenant == PUBLIC_CORPUS_TENANT_ID
+    with tenant_transaction(engine, tenant, allow_public=public) as conn:
+        doc = conn.execute(
+            text("SELECT id FROM documents WHERE tenant_id = :t AND title = :title"),
+            {"t": tenant, "title": title},
+        ).scalar_one()
+        change = uuid.uuid4()
+        conn.execute(
+            text(
+                "INSERT INTO corpus_changes (id, tenant_id, official_id, old_document_id, "
+                "new_document_id, source_uri, counts) VALUES (:id, :t, 'DOC', :d, :d, 'file://x', "
+                "'{}'::jsonb)"
+            ),
+            {"id": change, "t": tenant, "d": doc},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO cite_lineage (tenant_id, change_id, old_cite_id, new_cite_id, change, "
+                "citation_string) VALUES (:t, :c, :o, :n, 'amended', 'art. 47')"
+            ),
+            {"t": tenant, "c": change, "o": old_cite, "n": new_cite},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO source_checks (tenant_id, official_id, source, outcome) "
+                "VALUES (:t, 'DOC', 'file://x', 'unchanged')"
+            ),
+            {"t": tenant},
+        )
 
 
 def search_like_retrieval(conn: Connection, query: str, k: int = 50) -> list[dict[str, object]]:
@@ -219,8 +353,10 @@ def search_like_retrieval(conn: Connection, query: str, k: int = 50) -> list[dic
     return [dict(r) for r in (*semantic, *lexical)]
 
 
-def visible_tenants(engine: Engine, tenant_id: uuid.UUID, table: str) -> set[uuid.UUID]:
-    with tenant_transaction(engine, tenant_id) as conn:
+def visible_tenants(
+    engine: Engine, tenant_id: uuid.UUID, table: str, user_id: uuid.UUID | None = None
+) -> set[uuid.UUID]:
+    with tenant_transaction(engine, tenant_id, user_id=user_id) as conn:
         # table names here are the test registry's constants, never user input
         rows = conn.execute(text(f"SELECT DISTINCT tenant_id FROM {table}")).scalars().all()
     return set(rows)
