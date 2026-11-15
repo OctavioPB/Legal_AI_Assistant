@@ -308,6 +308,25 @@ Mismo marco que §8 (barra, tokens, tipografía, tono); ninguna herramienta usa 
 - El visor de fuentes (§3.5) muestra, si aplica, "Esta disposición cambió después de citarse (…)" en
   `--accent-ink` con la versión vigente en mono.
 
+### 9.6 Modelo de una conversación (ADR-024, 2026-11-09)
+- Al crear (Conversar, Investigación, Argumentar): `fieldset` "Modelo" con una tarjeta-radio por modelo USABLE
+  (configurado en el servidor y permitido por el despacho); se oculta si solo hay uno. Cada tarjeta: nombre,
+  insignia de ubicación ("En este equipo" verde §3; "Externo · Anthropic" en `--accent-ink`), "predeterminado"
+  si aplica, una línea de para qué sirve y la línea de medición: "Medido (fecha, N casos): respondió X de las
+  preguntas con fuente · rechazó Y de las que no la tienen · citas válidas · segundos típicos (casos aún sin
+  revisión de abogado)" o "Sin medir". No se muestra recall de recuperación (es igual para todos los modelos).
+  Nunca "recomendado" ni estrellas: la medición habla. Tarjeta elegida: borde `--primary`, fondo `--primary-soft`.
+- Un modelo externo muestra, ANTES de enviar nada, un aviso con borde izquierdo 3 px `--accent`: qué sale del
+  equipo (pregunta, historial, fragmentos; en Argumentar también hechos y argumentos) y a quién. La nota de
+  privacidad del caso cambia a su versión "externo"; nunca se dice "no sale de este equipo" si sale.
+- Conversación abierta: chip "Modelo: …" junto al ámbito (fijo, como jurisdicción y perfil); el externo, en
+  `--accent-ink` con "· externo".
+- Ajustes › "Modelos externos": casilla "Permitir que el despacho use Claude (Anthropic)" con su explicación;
+  solo la cambia un administrador (los demás la ven deshabilitada con "Solo un administrador…"); si el servidor
+  no tiene clave, se dice que Claude no está disponible aunque se permita.
+- Errores en palabras: "El despacho no permite modelos externos…", "Ese modelo no está configurado…", "El
+  proveedor del modelo externo rechazó la solicitud…".
+
 ## 10. Estilo OPB (v2, 2026-11-08): cómo se aplica
 
 Referencia de estructura: Library-RAG (misma familia de producto). Todo vive en la sección 4 de `globals.css`.

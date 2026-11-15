@@ -54,6 +54,11 @@ plugins = []
 module = ["pgvector.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+# ADR-024: the Claude profile's SDK is installed only by a firm that enables it (`uv add anthropic`).
+module = ["anthropic", "anthropic.*"]
+ignore_missing_imports = true
+
 [tool.ruff.lint.per-file-ignores]
 # SQL strings and test tables read better unwrapped.
 "app/db/migrations/versions/*.py" = ["E501"]
@@ -65,6 +70,7 @@ ignore_missing_imports = true
 "tests/test_conversations.py" = ["F811"]  # pytest fixtures imported by name
 "tests/test_lawyer_features.py" = ["F811"]  # pytest fixtures imported by name
 "tests/test_explicit_reference.py" = ["F811"]  # pytest fixtures imported by name
+"tests/test_model_profiles.py" = ["F811", "RUF028", "RUF059", "E501"]  # fixtures by name; table-style dicts
 "app/doctor.py" = ["E501"]
 "evals/probes/make_probes.py" = ["E501"]
 "evals/run.py" = ["E501", "RUF028"]  # report lines read better unwrapped

@@ -80,6 +80,9 @@
     "error": {
       "rate_limited": "Demasiadas consultas seguidas. Espere unos segundos e intente de nuevo.",
       "llm_unavailable": "El servicio de modelos no está disponible por ahora. Intente de nuevo en unos minutos.",
+      "model_not_allowed": "El despacho no permite modelos externos. Un administrador puede activarlos en Ajustes; mientras tanto, inicie una conversación con un modelo local.",
+      "model_unavailable": "Ese modelo no está configurado en este servidor. Inicie una conversación con otro modelo.",
+      "model_declined": "El proveedor del modelo externo rechazó la solicitud. No se generó respuesta.",
       "session": "Su sesión terminó. Inicie sesión de nuevo.",
       "generic": "No fue posible completar la consulta. Intente de nuevo."
     }
@@ -225,6 +228,7 @@
       "claim": "Pretensión o teoría del caso",
       "claimPlaceholder": "Lo que se pide o se sostiene (opcional)…",
       "privacyNote": "Los hechos se guardan solo para su usuario, dentro del despacho, y nunca salen de este equipo.",
+      "privacyNoteRemote": "Los hechos se guardan solo para su usuario, dentro del despacho. Con un modelo externo, los hechos y cada argumento se envían a ese proveedor para generar la respuesta.",
       "create": "Crear caso",
       "cardTitle": "Caso",
       "roundsLabel": "Rondas",
@@ -257,6 +261,29 @@
       "done": "Listo",
       "personaHelp": "El perfil orienta el vocabulario y el orden de las fuentes; no amplía ni restringe la jurisdicción.",
       "historicalHelp": "Actívelo solo si necesita saber qué decía una norma antes de una reforma."
+    },
+    "model": {
+      "label": "Modelo",
+      "help": "Se fija al iniciar y queda registrado en la bitácora. Todos los modelos pasan por la misma verificación de citas.",
+      "name": {
+        "gemma": "Gemma 4 · 26B",
+        "qwen": "Qwen 3 · 4B",
+        "claude": "Claude Opus 5.5"
+      },
+      "summary": {
+        "gemma": "Más preciso de los locales; más lento.",
+        "qwen": "Más rápido; en la evaluación rechazó muchas preguntas que sí tenían fuente.",
+        "claude": "Modelo de Anthropic, en la nube."
+      },
+      "local": "En este equipo",
+      "remote": "Externo · Anthropic",
+      "default": "predeterminado",
+      "measured": "Medido ({date}, {cases} casos): respondió {answered} de las preguntas con fuente · rechazó {refusal} de las que no la tienen · citas válidas {precision} · {seconds} s típicos",
+      "notReviewed": "casos aún sin revisión de abogado",
+      "unmeasured": "Sin medir: aún no se ha corrido la evaluación con este modelo.",
+      "remoteWarning": "Con este modelo, su pregunta, el historial de la conversación y los fragmentos de ley recuperados se envían a Anthropic para generar cada respuesta. No lo use si el despacho no lo ha autorizado para el asunto.",
+      "fixed": "Modelo: {name}",
+      "fixedRemote": "externo"
     }
   },
   "home": {
@@ -525,6 +552,12 @@
   "settings": {
     "title": "Ajustes",
     "close": "Cerrar",
-    "session": "Sesión"
+    "session": "Sesión",
+    "models": "Modelos externos",
+    "allowRemote": "Permitir que el despacho use Claude (Anthropic)",
+    "allowRemoteHelp": "Al activarlo, quien inicie una conversación con Claude envía a Anthropic sus preguntas, el historial y los fragmentos recuperados. Gemma y Qwen siguen en este equipo. Al desactivarlo, las conversaciones con Claude ya no pueden continuar.",
+    "remoteNotConfigured": "Este servidor no tiene una clave de Anthropic configurada: Claude no está disponible aunque se permita.",
+    "adminOnly": "Solo un administrador del despacho puede cambiarlo.",
+    "saved": "Guardado."
   }
 }

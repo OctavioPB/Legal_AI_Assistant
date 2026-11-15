@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useId, useState } from "react";
-import { SIDES, type Conversation, type Message, type Side } from "@/lib/api";
+import { SIDES, type Conversation, type Message, type ModelKey, type Side } from "@/lib/api";
 import { closingKind, conversationSources, splitClosingList, TITLE_MAX } from "@/lib/conversation";
 import { resolve } from "@/lib/jurisdiction";
 import { useCatalogs, useConversation } from "@/lib/useWorkbench";
@@ -13,6 +13,7 @@ import { Announcer, AssistantMessage, BusyElsewhere, Composer, ConversationBar, 
 import { DEFAULT_SCOPE, loadScope, ScopePicker, ScopeSummary, type Scope } from "./Scope";
 import { Workbench } from "./Workbench";
 import { MatterPicker, useInitialMatter, useMatters } from "./MatterPicker";
+import { isRemote, ModelPicker, useModels } from "./ModelPicker";
 
 const CASE_MAX = 8000;
 
@@ -75,6 +76,7 @@ function NewCase({
   scope,
   onScope,
   picker,
+  remote,
   onCreate,
 }: {
   rows: Parameters<typeof ScopePicker>[0]["rows"];
@@ -82,6 +84,7 @@ function NewCase({
   scope: Scope;
   onScope: (s: Scope) => void;
   picker: React.ReactNode;
+  remote: boolean; // ADR-024: the chosen model is external, so the facts leave the machine
   onCreate: (title: string, side: Side, facts: string, claim: string) => Promise<void>;
 }) {
   const t = useTranslations("workbench.case");
@@ -142,7 +145,7 @@ function NewCase({
       </div>
       <ScopePicker rows={rows} personas={personas} value={scope} onChange={onScope} />
       {picker}
-      <p className="small muted">{t("privacyNote")}</p>
+      <p className="small muted">{t(remote ? "privacyNoteRemote" : "privacyNote")}</p>
       <button type="submit" className="button" disabled={busy || !title.trim() || !facts.trim() || !resolve(rows, scope.selection)}>
         {t("create")}
       </button>
@@ -161,6 +164,8 @@ export function ArgumentarView() {
   const [scope, setScope] = useState<Scope>(DEFAULT_SCOPE);
   const matters = useMatters();
   const [matter, setMatter] = useInitialMatter();
+  const models = useModels();
+  const [model, setModel] = useState<ModelKey | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [seed, setSeed] = useState<Seed>();
   // Opening a conversation from the history moves the focus to its title (keyboard and screen
@@ -185,7 +190,13 @@ export function ArgumentarView() {
       {catalogs && !w.conversation && (
         <>
           <NewCase
-            picker={<MatterPicker matters={matters} value={matter} onChange={setMatter} />}
+            picker={
+              <>
+                <MatterPicker matters={matters} value={matter} onChange={setMatter} />
+                <ModelPicker info={models} value={model} onChange={setModel} />
+              </>
+            }
+            remote={isRemote(models, model)}
             rows={catalogs.rows}
             personas={catalogs.personas}
             scope={scope}
@@ -197,6 +208,7 @@ export function ArgumentarView() {
                 kind: "case", title, jurisdiction_id: j.id, persona: scope.persona,
                 language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, matter_id: matter,
                 case: { side, facts, claim },
+                ...(model ? { model_profile: model } : {}),
               });
             }}
           />

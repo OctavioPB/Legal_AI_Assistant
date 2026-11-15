@@ -64,6 +64,8 @@ uv run pytest tests/test_tenant_isolation.py       # cross-tenant leak test (mus
 uv run pytest tests/test_jurisdiction_predicate.py # property tests for the hard pre-filter
 
 uv run python -m evals.run --suite golden [--tag x] [--retrieval-only] [--preflight-only]   # golden suite (required for prompt PRs); --compare A B; evals.review_sheet --run <id>
+uv run python -m evals.run --suite golden --model-profile qwen|gemma|claude   # ADR-024: measure a profile; copy the headline numbers to config/model_measurements.yaml
+# Claude profile (ADR-024, remote, opt-in): ANTHROPIC_API_KEY in .env + `uv add anthropic` + firm admin enables it in Ajustes
 uv run python -m app.ingestion.seed [--only LFT]   # embed + load the demo corpus (needs `ollama pull bge-m3`; ~9 min for all)
 uv run python -m app.orchestration.pins [--check]  # (re)pin the local models from the Ollama runtime / detect drift
 uv run python -m app.demo                          # demo firm + user (random password shown once -> .demo-credentials)

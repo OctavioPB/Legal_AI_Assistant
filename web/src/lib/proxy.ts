@@ -69,6 +69,9 @@ export const ALLOWED: Route[] = [
   r("GET", "reforms"),
   r("GET", "reforms/alerts"),
   r("GET", `reforms/${UUID_RE}`),
+  // ADR-024: model profiles and the firm's opt-in for remote models (the API checks the admin role)
+  r("GET", "models"),
+  r("POST", "models/policy"),
 ];
 
 /** Only the parameters the route declares reach the API, each validated; anything else is dropped. */

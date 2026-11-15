@@ -155,7 +155,45 @@ export interface Conversation {
   message_count: number;
   matter_id: string | null;
   mine: boolean;
+  model_profile: ModelKey;
 }
+
+// ---- model profiles (ADR-024) ---------------------------------------------------------------
+export type ModelKey = "gemma" | "qwen" | "claude";
+
+export interface Measurement {
+  run: string;
+  measured_on: string;
+  cases: number;
+  reviewed_by_lawyer: boolean;
+  recall_at_8: number;
+  citation_precision: number;
+  jurisdiction_leakage: number;
+  refusal_accuracy: number;
+  false_refusal: number;
+  total_p50_s: number;
+}
+
+export interface ModelOption {
+  key: ModelKey;
+  locality: "local" | "remote";
+  model_id: string | null;
+  available: boolean;
+  unavailable_reason: string | null;
+  allowed: boolean;
+  default: boolean;
+  measurement: Measurement | null;
+}
+
+export interface ModelsInfo {
+  options: ModelOption[];
+  allow_remote: boolean;
+  can_manage: boolean;
+}
+
+export const getModels = () => json<ModelsInfo>("models");
+export const setRemotePolicy = async (allow: boolean) =>
+  (await (await send("models/policy", "POST", { allow_remote: allow })).json()) as ModelsInfo;
 
 export interface Message {
   seq: number;
@@ -178,6 +216,7 @@ export interface NewConversation {
   include_historical: boolean;
   case?: CaseBrief;
   matter_id?: string | null;
+  model_profile?: ModelKey;
 }
 
 async function send(path: string, method: "POST" | "PATCH" | "DELETE", body?: unknown): Promise<Response> {

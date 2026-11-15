@@ -285,6 +285,13 @@ def seed_product_rows(app_engine: Engine, tenant: uuid.UUID) -> tuple[uuid.UUID,
             ),
             {"t": tenant, "u": user, "m": matter},
         )
+        conn.execute(  # ADR-024: the firm's model policy (tenant-private)
+            text(
+                "INSERT INTO tenant_model_policy (tenant_id, updated_by) VALUES (:t, :u) "
+                "ON CONFLICT (tenant_id) DO NOTHING"
+            ),
+            {"t": tenant, "u": user},
+        )
     return user, uuid.UUID(str(conv))
 
 

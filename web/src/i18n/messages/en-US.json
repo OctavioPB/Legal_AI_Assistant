@@ -80,6 +80,9 @@
     "error": {
       "rate_limited": "Too many requests in a row. Wait a few seconds and try again.",
       "llm_unavailable": "The model service is unavailable right now. Please try again in a few minutes.",
+      "model_not_allowed": "The firm does not allow external models. An administrator can enable them in Settings; meanwhile, start a conversation with a local model.",
+      "model_unavailable": "That model is not configured on this server. Start a conversation with another model.",
+      "model_declined": "The external model provider declined the request. No answer was generated.",
       "session": "Your session ended. Please sign in again.",
       "generic": "The request could not be completed. Please try again."
     }
@@ -225,6 +228,7 @@
       "claim": "Claim or theory of the case",
       "claimPlaceholder": "What is requested or argued (optional)…",
       "privacyNote": "The facts are stored for your user only, inside the firm, and never leave this machine.",
+      "privacyNoteRemote": "The facts are stored for your user only, inside the firm. With an external model, the facts and every argument are sent to that provider to generate the answer.",
       "create": "Create case",
       "cardTitle": "Case",
       "roundsLabel": "Rounds",
@@ -257,6 +261,29 @@
       "done": "Done",
       "personaHelp": "The profile guides vocabulary and the order of sources; it neither widens nor narrows the jurisdiction.",
       "historicalHelp": "Turn it on only if you need what a law said before an amendment."
+    },
+    "model": {
+      "label": "Model",
+      "help": "Fixed when the conversation starts and recorded in the audit log. Every model goes through the same citation checks.",
+      "name": {
+        "gemma": "Gemma 4 · 26B",
+        "qwen": "Qwen 3 · 4B",
+        "claude": "Claude Opus 5.5"
+      },
+      "summary": {
+        "gemma": "The most accurate local model; slower.",
+        "qwen": "Faster; in the evaluation it refused many questions that did have a source.",
+        "claude": "Anthropic's model, in the cloud."
+      },
+      "local": "On this machine",
+      "remote": "External · Anthropic",
+      "default": "default",
+      "measured": "Measured ({date}, {cases} cases): answered {answered} of the questions with a source · refused {refusal} of those without one · valid citations {precision} · {seconds} s typical",
+      "notReviewed": "cases not yet reviewed by a lawyer",
+      "unmeasured": "Not measured: the evaluation has not been run with this model yet.",
+      "remoteWarning": "With this model, your question, the conversation history and the retrieved law fragments are sent to Anthropic to generate every answer. Do not use it unless the firm has authorized it for the matter.",
+      "fixed": "Model: {name}",
+      "fixedRemote": "external"
     }
   },
   "home": {
@@ -525,6 +552,12 @@
   "settings": {
     "title": "Settings",
     "close": "Close",
-    "session": "Session"
+    "session": "Session",
+    "models": "External models",
+    "allowRemote": "Allow the firm to use Claude (Anthropic)",
+    "allowRemoteHelp": "When on, whoever starts a conversation with Claude sends their questions, the history and the retrieved fragments to Anthropic. Gemma and Qwen stay on this machine. When turned off, conversations with Claude can no longer continue.",
+    "remoteNotConfigured": "This server has no Anthropic key configured: Claude is unavailable even if allowed.",
+    "adminOnly": "Only a firm administrator can change this.",
+    "saved": "Saved."
   }
 }

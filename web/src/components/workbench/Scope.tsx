@@ -127,6 +127,10 @@ export function ScopeSummary({ conversation, rows, personas }: { conversation: C
       <span className="scope-chip">{chain}</span>
       <span className="scope-chip">{personaLabel(t, t.has, personas, conversation.persona, locale)}</span>
       {conversation.include_historical && <span className="scope-chip">{tw("historical")}</span>}
+      <span className={conversation.model_profile === "claude" ? "scope-chip scope-chip-remote" : "scope-chip"}>
+        {tw("model.fixed", { name: tw(`model.name.${conversation.model_profile ?? "gemma"}`) })}
+        {conversation.model_profile === "claude" && ` · ${tw("model.fixedRemote")}`}
+      </span>
       <span className="muted small">{tw("scopeFixed")}</span>
     </p>
   );

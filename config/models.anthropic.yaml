@@ -1,0 +1,48 @@
+# Remote model profile `claude` (ADR-024). Pinned from the provider's documentation, not from memory:
+# https://platform.claude.com/docs/en/about-claude/models/overview.md (read 2026-11-09):
+#   Claude Opus 5.5 - Claude API ID `claude-opus-5-5` (a dateless id that is itself a pinned snapshot),
+#   1M-token context window, 128K max output, adaptive thinking always on, default effort `medium`.
+# Every alias resolves to the same model; there are no fallbacks: a remote failure is never answered by a
+# different model (local or remote) in the middle of a conversation. max_answer_tokens is the ANSWER cap;
+# the client adds `anthropic_thinking_headroom_tokens` because thinking counts toward max_tokens.
+aliases:
+  drafting-primary:
+    alias: drafting-primary
+    model_id: claude-opus-5-5
+    verified_on: '2026-11-09'
+    source_url: https://platform.claude.com/docs/en/about-claude/models/overview.md
+    context_window: 1000000
+    max_answer_tokens: 4096
+    fallbacks: []
+  drafting-heavy:
+    alias: drafting-heavy
+    model_id: claude-opus-5-5
+    verified_on: '2026-11-09'
+    source_url: https://platform.claude.com/docs/en/about-claude/models/overview.md
+    context_window: 1000000
+    max_answer_tokens: 6000
+    fallbacks: []
+  adversarial-primary:
+    alias: adversarial-primary
+    model_id: claude-opus-5-5
+    verified_on: '2026-11-09'
+    source_url: https://platform.claude.com/docs/en/about-claude/models/overview.md
+    context_window: 1000000
+    max_answer_tokens: 4096
+    fallbacks: []
+  cheap-utility:
+    alias: cheap-utility
+    model_id: claude-opus-5-5
+    verified_on: '2026-11-09'
+    source_url: https://platform.claude.com/docs/en/about-claude/models/overview.md
+    context_window: 1000000
+    max_answer_tokens: 512
+    fallbacks: []
+  fallback-general:
+    alias: fallback-general
+    model_id: claude-opus-5-5
+    verified_on: '2026-11-09'
+    source_url: https://platform.claude.com/docs/en/about-claude/models/overview.md
+    context_window: 1000000
+    max_answer_tokens: 4096
+    fallbacks: []

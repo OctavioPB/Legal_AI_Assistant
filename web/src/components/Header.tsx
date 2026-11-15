@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { LanguageToggle } from "./LanguageToggle";
+import { ModelPolicy } from "./ModelPolicy";
 import type { Theme } from "@/lib/theme";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -18,6 +19,7 @@ export function Header({ initialTheme }: { initialTheme: Theme }) {
   const path = usePathname() ?? "/";
   const signedIn = !path.startsWith("/login");
   const dialog = useRef<HTMLDialogElement>(null);
+  const [opened, setOpened] = useState(false); // load the model policy only once the panel opens
   async function logout() {
     await fetch("/api/session", { method: "DELETE" });
     window.location.assign("/login");
@@ -40,7 +42,7 @@ export function Header({ initialTheme }: { initialTheme: Theme }) {
             ))}
           </nav>
         )}
-        <button type="button" className="settings-open" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>
+        <button type="button" className="settings-open" aria-haspopup="dialog" onClick={() => { setOpened(true); dialog.current?.showModal(); }}>
           {t("nav.settings")}
         </button>
       </header>
@@ -59,6 +61,7 @@ export function Header({ initialTheme }: { initialTheme: Theme }) {
           <h3 id="settings-theme">{t("nav.theme")}</h3>
           <ThemeToggle initialTheme={initialTheme} />
         </section>
+        {signedIn && opened && <ModelPolicy />}
         {signedIn && (
           <section className="settings-group" aria-labelledby="settings-session">
             <h3 id="settings-session">{t("settings.session")}</h3>

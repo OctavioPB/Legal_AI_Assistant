@@ -88,6 +88,20 @@ es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
   - Log: `.run\watch-AAAAMMDD.log`. `doctor` avisa si el vigilante no corre hace 3 días, si una fuente está
     bloqueada o si τ se calibró antes de la última reforma.
 
+## Elegir el modelo (ADR-024)
+Al crear una conversación, investigación o caso aparece "Modelo" con los modelos que puede usar el despacho; queda
+fijo para esa conversación y se ve como chip junto al ámbito. Cada modelo muestra su medición en la evaluación
+golden o "Sin medir".
+- **Gemma 4 · 26B** (predeterminado) y **Qwen 3 · 4B**: en este equipo; no se instala nada.
+- **Claude Opus 5.5** (externo, opcional). La pregunta, el historial, los hechos del caso y los fragmentos
+  recuperados se envían a Anthropic. Para habilitarlo:
+  1. Poner `ANTHROPIC_API_KEY=...` en `.env` (nunca en el repositorio).
+  2. `uv add anthropic` (descarga el SDK oficial; la demo local no lo necesita).
+  3. Reiniciar la API; un administrador del despacho activa Ajustes › "Modelos externos".
+  Al desactivarlo, las conversaciones con Claude ya no pueden continuar.
+- Medir un modelo: `uv run python -m evals.run --suite golden --model-profile qwen` (con Claude cuesta dinero:
+  25 casos) y copiar los números del reporte a `config/model_measurements.yaml`.
+
 ## Cuenta para presentar
 Separada de `demo` (que usan las pruebas E2E), con nombres presentables y una contraseña fácil de teclear
 en vivo (`palabra-palabra-palabra-1234`, aleatoria):

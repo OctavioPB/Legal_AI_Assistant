@@ -26,6 +26,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import Connection, text
 
 from app.api.deps import PrincipalDep, StateDep
+from app.api.models import check_profile
 from app.api.routes import log, stream_error_code
 from app.chat.service import (
     MAX_QUERY_CHARS,
@@ -38,6 +39,7 @@ from app.chat.service import (
 )
 from app.corpus.lineage import carry_forward
 from app.db.session import tenant_transaction
+from app.orchestration.profiles import ProfileKey
 from app.prompts.composer import Persona, Workflow
 from app.rag.context import UnknownJurisdictionError, load_session_context
 
@@ -74,6 +76,7 @@ class ConversationIn(BaseModel):
     include_historical: bool = False
     case: CaseIn | None = None
     matter_id: uuid.UUID | None = None
+    model_profile: ProfileKey | None = None  # ADR-024; None = the server's local default
 
     @model_validator(mode="after")
     def _case_only_for_cases(self) -> ConversationIn:
@@ -113,6 +116,7 @@ class ConversationOut(BaseModel):
     message_count: int = 0
     matter_id: uuid.UUID | None = None
     mine: bool = True
+    model_profile: str = "gemma"
 
 
 class MessageOut(BaseModel):
@@ -135,7 +139,7 @@ class ConversationDetail(BaseModel):
 _CONV_COLS = (
     "c.id, c.kind, c.title, c.language, c.jurisdiction_id, c.persona, c.include_historical, "
     "c.case_side, c.case_facts, c.case_claim, c.created_at, c.updated_at, c.matter_id, "
-    "c.user_id = app_user_id() AS mine"
+    "c.user_id = app_user_id() AS mine, c.model_profile"
 )
 
 
@@ -150,6 +154,7 @@ def _conv(row: Any, count: int = 0) -> ConversationOut:
         jurisdiction_id=row.jurisdiction_id, persona=row.persona,
         include_historical=row.include_historical, case=case, created_at=row.created_at,
         updated_at=row.updated_at, message_count=count, matter_id=row.matter_id, mine=row.mine,
+        model_profile=row.model_profile,
     )  # fmt: skip
 
 
@@ -241,6 +246,8 @@ def list_conversations(
 def create_conversation(body: ConversationIn, p: PrincipalDep, st: StateDep) -> ConversationOut:
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
         check_matter(conn, body.matter_id)
+        profile = body.model_profile or st.settings.model_profile_default
+        check_profile(conn, st.chat.profiles, profile)  # ADR-024: catalog, server, firm opt-in
         try:  # the catalog decides: an unknown id never becomes a conversation
             load_session_context(conn, p.tenant_id, body.jurisdiction_id, language=body.language)
         except UnknownJurisdictionError:
@@ -252,8 +259,9 @@ def create_conversation(body: ConversationIn, p: PrincipalDep, st: StateDep) -> 
             text(
                 "INSERT INTO conversations AS c (tenant_id, user_id, kind, title, language, "
                 "jurisdiction_id, persona, include_historical, case_side, case_facts, case_claim, "
-                "matter_id) "
-                "VALUES (:t, :u, :k, :title, :lang, :j, :persona, :h, :side, :facts, :claim, :m) "
+                "matter_id, model_profile) "
+                "VALUES (:t, :u, :k, :title, :lang, :j, :persona, :h, :side, :facts, :claim, :m, "
+                ":profile) "
                 f"RETURNING {_CONV_COLS}"
             ),
             {
@@ -269,6 +277,7 @@ def create_conversation(body: ConversationIn, p: PrincipalDep, st: StateDep) -> 
                 "facts": c.facts if c else None,
                 "claim": c.claim if c else None,
                 "m": body.matter_id,
+                "profile": profile,
             },
         ).one()
     return _conv(row)
@@ -394,6 +403,9 @@ def post_message(
             raise HTTPException(
                 status.HTTP_422_UNPROCESSABLE_CONTENT, f"action {body.action!r} not allowed here"
             )
+        # ADR-024: the conversation's model, still servable and still allowed by the firm
+        check_profile(conn, st.chat.profiles, row.model_profile)
+    deps = st.chat.for_profile(row.model_profile)
     events: queue.Queue[tuple[str, Any] | None] = queue.Queue()
 
     def work() -> None:
@@ -408,7 +420,7 @@ def post_message(
                     conn, p.tenant_id, row.jurisdiction_id, language=row.language,
                     include_historical=row.include_historical,
                 )  # fmt: skip
-                result = answer_query(conn, ctx, req, st.chat, lambda s: events.put(("stage", s)))
+                result = answer_query(conn, ctx, req, deps, lambda s: events.put(("stage", s)))
                 seq = (msgs[-1].seq if msgs else 0) + 1
                 _store_turn(conn, p, conv_id, body, result, seq)
                 stored = _messages(conn, conv_id)[-2:]

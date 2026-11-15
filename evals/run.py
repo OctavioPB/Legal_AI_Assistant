@@ -240,6 +240,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--retrieval-only", action="store_true", help="no model calls (deterministic)")
     ap.add_argument("--preflight-only", action="store_true")
     ap.add_argument("--compare", nargs=2, metavar=("RUN_A", "RUN_B"))
+    ap.add_argument("--model-profile", choices=["gemma", "qwen", "claude"],
+                    help="ADR-024: answer with this profile (default: the server default)")  # fmt: skip
     a = ap.parse_args(argv)
 
     if a.compare:
@@ -254,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.case:
         cases = [c for c in cases if c.id in a.case]
     state, engine = build_deps()
-    deps = state.chat
+    deps = state.chat.for_profile(a.model_profile) if a.model_profile else state.chat
     admin = create_engine(state.settings.superuser_url())
     try:
         with admin.connect() as conn:
@@ -297,6 +299,7 @@ def main(argv: list[str] | None = None) -> int:
     report = {
         "run_id": run_id, "ts": ts, "tag": a.tag, "commit": commit, "dirty": dirty,
         "suite": a.file.name, "mode": "retrieval-only" if a.retrieval_only else "full",
+        "model_profile": getattr(deps, "model_profile", None),
         "languages": sorted({c.session.language for c in cases}), "config": config,
         "n_cases": len(results),
         "n_by_category": {cat: sum(r.category == cat for r in results) for cat in {r.category for r in results}},

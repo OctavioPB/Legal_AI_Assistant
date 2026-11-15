@@ -43,6 +43,7 @@ TENANT_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "matter_notes": ("tenant_id", ("private", "matter_child")),
     "matter_sources": ("tenant_id", ("private", "matter_child")),
     "verification_reports": ("tenant_id", ("private", "personal")),
+    "tenant_model_policy": ("tenant_id", ("private",)),
     "audit_log": ("tenant_id", ("append_only",)),
     "tenants": ("id", ("tenants",)),
 }
@@ -128,6 +129,8 @@ def test_raw_sql_sees_only_own_and_public_rows(
         # tenant-private tables: strictly own rows, never public
         for table in ("users", "sessions", "dossiers", "audit_log"):
             assert helpers.visible_tenants(app_engine, me, table) <= {me}
+        # the firm's model policy (ADR-024): both firms have one, each sees exactly its own
+        assert helpers.visible_tenants(app_engine, me, "tenant_model_policy") == {me}
         # client content (ADR-016/018/019): both tenants have rows, each sees exactly its own, and
         # only with the user anchor; without it (same tenant!) nothing at all
         user = helpers.SEEDED_USERS[me]

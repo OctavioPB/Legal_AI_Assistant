@@ -1,0 +1,28 @@
+# ADR-024: what the UI shows next to each model profile. A profile with an entry is "measured" (golden run
+# id + headline numbers copied from that run's report.json); without one it is "not measured". The golden set
+# is still 25 ai-draft cases (no lawyer review yet): these numbers do NOT pass any release gate, they only let
+# a lawyer compare profiles on the same set. One case moves a rate by 4-5 points: differences of 1-2 cases are noise.
+profiles:
+  gemma:
+    run: golden-20261109T084417Z-after-quote-fixes
+    measured_on: '2026-11-09'
+    cases: 25
+    reviewed_by_lawyer: false
+    recall_at_8: 1.0
+    citation_precision: 1.0
+    jurisdiction_leakage: 0.0
+    refusal_accuracy: 1.0
+    false_refusal: 0.05
+    total_p50_s: 35.5
+  qwen:
+    run: golden-20261109T170221Z-profile-qwen
+    measured_on: '2026-11-09'
+    cases: 25
+    reviewed_by_lawyer: false
+    recall_at_8: 1.0          # retrieval: identical to gemma (same pipeline); not a model metric
+    citation_precision: 1.0   # of the 3 answers it gave
+    jurisdiction_leakage: 0.0
+    refusal_accuracy: 1.0
+    false_refusal: 0.85       # 17 of 20 answerable cases refused (16 by the validator, regeneration rate 0.72)
+    total_p50_s: 18.7
+  claude: null

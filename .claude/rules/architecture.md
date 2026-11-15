@@ -269,6 +269,37 @@ below are the original one-liners and are Accepted.
   text of 123-B-XIII (no "capacitación"); 0 cases worse; false refusal 3/20 -> 2/20 (gd2-006 is not under an
   apartado: model variance, noise); recall, leakage and refusal accuracy unchanged. The harness gained
   `must_not_contain` (a narrow alarm on known confusions, not a faithfulness metric).
+- ADR-024 (Accepted 2026-11-09, chosen by the product owner): The model is chosen per conversation from a closed
+  catalog of profiles; the remote one is a firm opt-in. Amends ADR-014 for the `claude` profile ONLY.
+  Context: the product owner asked to switch between Qwen, Gemma and Claude. Options considered for each axis:
+  scope (per conversation / per user / per firm), remote access (forbidden / firm opt-in / free choice),
+  default (measured before it becomes a default / by preference). Decision: (a) profiles `gemma` (default, local),
+  `qwen` (local, every alias on the small model, no fallbacks) and `claude` (remote, `claude-opus-5-5` pinned from
+  platform.claude.com/docs/en/about-claude/models/overview.md read 2026-11-09, all aliases, NO fallbacks: a
+  failure or a provider decline never hands the conversation to another model); (b) `conversations.model_profile`
+  is fixed at creation like jurisdiction and persona, recorded in the trace session and in every audit verdict;
+  (c) `claude` is served only when `ANTHROPIC_API_KEY` is in `.env` (never the repo) AND the SDK is installed by
+  whoever enables it (`uv add anthropic`; the local demo has no new dependency), and usable by a firm only after
+  its admin opts in (`tenant_model_policy`, tenant-private RLS, in the isolation registry and the erase order;
+  `tenants` stays provisioner-only); the opt-in is checked at creation AND before every message (withdrawing it
+  stops remote conversations); (d) the same prompts, validator, refusal gate and citation rules apply to every
+  profile (the system verifies the model, invariant 6); sampling parameters are not sent to Claude (not accepted),
+  depth is `anthropic_effort`, and thinking headroom is added to the answer cap because thinking counts toward
+  max_tokens; (e) the UI labels each profile "Medido" with the golden run that backs it
+  (`config/model_measurements.yaml`, copied from the run report) or "Sin medir", and shows what leaves the machine
+  before a remote conversation starts; the default changes only with a measurement. Consequences: with `claude`
+  the question, history, case facts and retrieved fragments go to Anthropic (the query path is no longer local for
+  that conversation; ADR-014 still holds for gemma/qwen and for retrieval, embeddings and the validator); a
+  remote run of the golden suite costs money and needs the key, so `claude` stays "Sin medir" until then.
+  `evals.run --model-profile` records the profile and its resolved ids. Measured (golden_v2, 25 ai-draft cases,
+  same retrieval, so recall@8 1.00 and leakage 0 for both): gemma `golden-20261109T084417Z-after-quote-fixes`
+  false refusal 1/20, refusal accuracy 5/5, p50 35 s; qwen `golden-20261109T170221Z-profile-qwen` false refusal
+  17/20 (16 rejected by the validator, regeneration rate 0.72; the 3 answers had valid citations), refusal
+  accuracy 5/5, p50 19 s. Qwen is safe (it refuses, it does not invent) but rarely useful for drafting; gemma
+  stays the default. Pending: the Claude golden run; lawyer
+  review of the golden set before any profile becomes the default; per-firm data-processing terms with Anthropic
+  (legal, not code).
+
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

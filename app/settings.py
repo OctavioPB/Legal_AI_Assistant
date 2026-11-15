@@ -6,7 +6,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal, Self
 
-from pydantic import model_validator
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
 
@@ -42,6 +42,16 @@ class Settings(BaseSettings):
         20_480  # per-call context for the chat model (context budget + answer + prompt)
     )
     llm_timeout_s: float = 600.0
+    # --- model profiles (ADR-024): chosen per conversation, fixed at creation ------------------
+    model_profile_default: Literal["gemma", "qwen", "claude"] = "gemma"
+    # Remote profile: usable only with a key here (from .env, never the repo) AND the firm's
+    # explicit opt-in (tenant_model_policy). Without the key the profile is listed as unavailable.
+    anthropic_api_key: SecretStr | None = None
+    anthropic_effort: Literal["low", "medium", "high"] = "medium"
+    # Claude Opus 5.5 always thinks and thinking counts toward max_tokens: the answer cap of the
+    # alias is raised by this headroom so reasoning cannot eat the answer.
+    anthropic_thinking_headroom_tokens: int = 8_000
+    anthropic_timeout_s: float = 300.0
     # --- chunking (rag.md); stored with every chunk, changing them = new generation (ADR-006) ---
     chunk_min_tokens: int = 80
     chunk_max_tokens: int = 800

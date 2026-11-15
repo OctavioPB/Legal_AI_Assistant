@@ -728,6 +728,64 @@ main {
   font-size: 0.875rem;
   background: var(--surface);
 }
+/* Model profile (Brand.md 9.6, ADR-024): a radio card per model; an external model is marked in
+   gold ink and its warning is shown before anything is sent. */
+.scope-chip-remote {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+.model-picker {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-3) 0 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.model-picker legend {
+  font-weight: 600;
+  padding: 0 var(--space-2);
+}
+.model-option {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+.model-option-on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--on-primary-soft);
+}
+.model-option input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+.model-option-body {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.model-option-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.model-warning {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--accent);
+  color: var(--accent-ink);
+  background: var(--surface);
+}
 .conversation-bar {
   display: flex;
   flex-wrap: wrap;

@@ -11,6 +11,8 @@ import { Announcer, AssistantMessage, BusyElsewhere, Composer, ConversationBar, 
 import { DEFAULT_SCOPE, loadScope, ScopePicker, ScopeSummary, type Scope } from "./Scope";
 import { Workbench } from "./Workbench";
 import { MatterPicker, useInitialMatter, useMatters } from "./MatterPicker";
+import { ModelPicker, useModels } from "./ModelPicker";
+import type { ModelKey } from "@/lib/api";
 
 /** Conversar (ADR-016): short answers, follow-ups that keep the conversation's sources. */
 export function ConversarView() {
@@ -22,6 +24,8 @@ export function ConversarView() {
   const [scope, setScope] = useState<Scope>(DEFAULT_SCOPE);
   const matters = useMatters();
   const [matter, setMatter] = useInitialMatter();
+  const models = useModels();
+  const [model, setModel] = useState<ModelKey | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [seed, setSeed] = useState<Seed>();
   // Opening a conversation from the history moves the focus to its title (keyboard and screen
@@ -56,6 +60,7 @@ export function ConversarView() {
               <p>{t("welcomeBody")}</p>
               <ScopePicker rows={catalogs.rows} personas={catalogs.personas} value={scope} onChange={setScope} />
               <MatterPicker matters={matters} value={matter} onChange={setMatter} />
+              <ModelPicker info={models} value={model} onChange={setModel} />
               <Examples items={[t("ex1"), t("ex2"), t("ex3")]} onPick={(text) => setSeed({ text, n: Date.now() })} />
             </section>
           )}
@@ -91,6 +96,7 @@ export function ConversarView() {
                   : {
                       kind: "chat", title: titleFrom(text), jurisdiction_id: j.id, persona: scope.persona,
                       language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, matter_id: matter,
+                      ...(model ? { model_profile: model } : {}),
                     },
               );
             }}

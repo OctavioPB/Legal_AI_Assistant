@@ -39,6 +39,13 @@ def stream_error_code(exc: Exception) -> str:
         return "llm_unavailable"
     if isinstance(exc, UnpinnedAliasError):
         return "alias_unpinned"
+    from app.orchestration.anthropic_client import ModelDeclinedError
+    from app.orchestration.profiles import ProfileUnavailableError
+
+    if isinstance(exc, ModelDeclinedError):
+        return "model_declined"
+    if isinstance(exc, ProfileUnavailableError):
+        return "model_unavailable"
     return "internal"
 
 

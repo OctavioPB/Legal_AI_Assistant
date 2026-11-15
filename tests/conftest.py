@@ -106,7 +106,7 @@ def clean_data(admin_engine: Engine) -> Iterator[None]:
             text(
                 "TRUNCATE cite_lineage, corpus_changes, source_checks, chunks, doc_nodes, documents, "
                 "matter_sources, matter_notes, verification_reports, messages, conversations, "
-                "matter_members, matters, dossiers, sessions, users, audit_log "
+                "matter_members, matters, dossiers, tenant_model_policy, sessions, users, audit_log "
                 "RESTART IDENTITY"
             )
         )
