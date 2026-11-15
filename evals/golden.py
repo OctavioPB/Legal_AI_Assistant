@@ -16,7 +16,7 @@ import json
 import statistics
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -295,10 +295,10 @@ def case_ok(r: CaseResult) -> bool:
     return r.gate_refused if r.expected == "refuse" else r.gold_rank is not None
 
 
-def compare(before: dict[str, object], after: dict[str, object]) -> dict[str, object]:
+def compare(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
     """Per-category deltas, flipped cases, and the noise rule (eval-runner skill, WS5.T06)."""
-    b_cases = {c["id"]: CaseResult.model_validate(c) for c in before["cases"]}  # type: ignore[union-attr,index]
-    a_cases = {c["id"]: CaseResult.model_validate(c) for c in after["cases"]}  # type: ignore[union-attr,index]
+    b_cases = {c["id"]: CaseResult.model_validate(c) for c in before["cases"]}
+    a_cases = {c["id"]: CaseResult.model_validate(c) for c in after["cases"]}
     common = sorted(b_cases.keys() & a_cases.keys())
     flips = [
         {"id": i, "category": a_cases[i].category, "before": case_ok(b_cases[i]), "after": case_ok(a_cases[i])}
@@ -321,7 +321,7 @@ def compare(before: dict[str, object], after: dict[str, object]) -> dict[str, ob
             vb, va = mb.get(k), ma.get(k)
             if vb is None or va is None:
                 continue
-            d = round(float(va) - float(vb), 4)  # type: ignore[arg-type]
+            d = round(float(va) - float(vb), 4)
             row[k] = {"before": vb, "after": va, "delta": d}
         deltas[cat] = row
     worse = [f for f in flips if f["before"] and not f["after"]]
@@ -335,8 +335,8 @@ def compare(before: dict[str, object], after: dict[str, object]) -> dict[str, ob
     }  # fmt: skip
 
 
-def read_run(path: Path) -> dict[str, object]:
-    data: dict[str, object] = json.loads(path.read_text(encoding="utf-8"))
+def read_run(path: Path) -> dict[str, Any]:
+    data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     return data
 
 

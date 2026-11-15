@@ -15,7 +15,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, cast
 
 from app.prompts.composer import Composer, SessionPrompt
 
@@ -50,7 +50,7 @@ def session_for(case: dict[str, Any], lang: str | None = None) -> SessionPrompt:
     return SessionPrompt(
         workflow=s["workflow"],
         persona=s["persona"],
-        language=lang or s["language"],
+        language=cast(Literal["es-MX", "en-US"], lang or s["language"]),
         jurisdiction_display=jurisdiction_label(s["jurisdiction"]),
     )
 

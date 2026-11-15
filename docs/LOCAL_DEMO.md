@@ -84,7 +84,7 @@ es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
   no se insiste.
   - Al iniciar la demo se revisa en segundo plano si la última revisión tiene más de 20 h.
   - Revisión diaria (03:00, o al encender el equipo): `dev-up.ps1 -ScheduleReforms`; quitarla:
-    `-UnscheduleReforms`. A mano: `uv run python -m app.ingestion.watch` (`--dry-run` no escribe nada).
+    `-UnscheduleReforms`. A mano: `dev-up.ps1 -WatchReforms -IfStaleHours 0` (`-DryRun` no escribe nada).
   - Log: `.run\watch-AAAAMMDD.log`. `doctor` avisa si el vigilante no corre hace 3 días, si una fuente está
     bloqueada o si τ se calibró antes de la última reforma.
 

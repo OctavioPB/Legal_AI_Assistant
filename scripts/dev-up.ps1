@@ -14,8 +14,12 @@
   6. Web: npm ci y build si hace falta.
   7. Lanza API (:8000) y web (:3100) en segundo plano, espera a que respondan y abre el navegador.
   8. Reformas (ADR-017): si la última revisión de las fuentes oficiales tiene más de 20 h, la lanza en
-     segundo plano (scripts\watch-reforms.ps1). Con -ScheduleReforms queda además una tarea diaria
-     de Windows (03:00, solo este usuario, sin permisos de administrador).
+     segundo plano (este mismo script con -WatchReforms). Con -ScheduleReforms queda además una tarea
+     diaria de Windows (03:00, solo este usuario, sin permisos de administrador).
+
+  -WatchReforms: revisa las fuentes oficiales y carga las reformas. Única pieza que usa la red, y solo
+  hacia las URL oficiales de app/ingestion/corpus.py. Si Docker u Ollama no están disponibles, lo
+  anota y termina sin error (se reintenta en la siguiente ejecución). Log: .run\watch-AAAAMMDD.log
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File scripts\dev-up.ps1            # preparar y lanzar (pregunta antes de descargar)
@@ -25,6 +29,7 @@
   powershell -ExecutionPolicy Bypass -File scripts\dev-up.ps1 -Stop -All # además Docker y Ollama
   powershell -ExecutionPolicy Bypass -File scripts\dev-up.ps1 -ScheduleReforms    # revisión diaria de reformas
   powershell -ExecutionPolicy Bypass -File scripts\dev-up.ps1 -UnscheduleReforms  # quitarla
+  powershell -ExecutionPolicy Bypass -File scripts\dev-up.ps1 -WatchReforms [-IfStaleHours 0] [-DryRun]  # revisar ahora
 #>
 [CmdletBinding()]
 param(
@@ -39,6 +44,9 @@ param(
     [switch]$ScheduleReforms,   # registra la revisión diaria de reformas (tarea de Windows del usuario)
     [switch]$UnscheduleReforms, # quita esa tarea
     [switch]$NoReformCheck,     # no lanza la revisión de reformas al arrancar
+    [switch]$WatchReforms,      # solo revisa las fuentes oficiales y carga reformas (tarea diaria / arranque)
+    [double]$IfStaleHours = 20, # con -WatchReforms: solo si la última revisión es más vieja (0 = siempre)
+    [switch]$DryRun,            # con -WatchReforms: solo comparar; no escribe nada
     [int]$ApiPort = 8000,
     [int]$WebPort = 3100
 )
@@ -58,7 +66,7 @@ $OllamaUrl = "http://127.0.0.1:11434"
 $Models = @("bge-m3", "gemma4:26b-a4b-it-qat", "qwen3:4b-instruct-2507-q4_K_M")
 $InfraPorts = @{ 5432 = "Postgres"; 6379 = "Redis"; 11434 = "Ollama" }
 $ReformTask = "LegalAI-RevisarReformas"
-$WatchScript = Join-Path $Root "scripts\watch-reforms.ps1"
+$Self = $PSCommandPath   # -WatchReforms re-invokes this same script (tarea diaria y arranque)
 
 # ── utilidades ────────────────────────────────────────────────────────────────────────────────
 function Write-Step([string]$msg) { Write-Host ""; Write-Host "==> $msg" -ForegroundColor Cyan }
@@ -196,10 +204,44 @@ function Assert-LoopbackOnly([int]$port, [string]$what) {
 # ── reformas (ADR-017) ────────────────────────────────────────────────────────────────────────
 function Test-ReformTask { return [bool](Get-ScheduledTask -TaskName $ReformTask -ErrorAction SilentlyContinue) }
 
+function Invoke-ReformWatch {
+    # Nunca falla: un problema se anota en el log y la revisión se reintenta en la siguiente ejecución.
+    New-Item -ItemType Directory -Force $RunDir | Out-Null
+    $log = Join-Path $RunDir ("watch-{0:yyyyMMdd}.log" -f (Get-Date))
+    function Log([string]$msg) { "{0:yyyy-MM-dd HH:mm:ss}  {1}" -f (Get-Date), $msg | Add-Content -Path $log -Encoding UTF8 }
+    Set-Location $Root
+    Log "inicio (IfStaleHours=$IfStaleHours DryRun=$DryRun)"
+    if (-not (Test-Command docker)) { Log "Docker no está instalado: se omite"; return }
+    # cmd /c: docker y uv escriben progreso en stderr, que PowerShell 5.1 convertiría en errores
+    cmd /c "docker compose up -d postgres >nul 2>&1"
+    if ($LASTEXITCODE -ne 0) { Log "Docker no responde (¿Docker Desktop cerrado?): se omite"; return }
+    $up = Test-Http "$OllamaUrl/api/version"
+    if (-not $up -and (Test-Command ollama)) {
+        Start-Process -FilePath (Get-Command ollama).Source -ArgumentList "serve" -WindowStyle Hidden | Out-Null
+        for ($i = 0; $i -lt 30 -and -not $up; $i++) { Start-Sleep -Seconds 2; $up = Test-Http "$OllamaUrl/api/version" }
+    }
+    if (-not $up) { Log "Ollama no responde (el embedder es necesario para cargar una reforma): se omite"; return }
+    $cmdline = "uv run python -m app.ingestion.watch"
+    if ($IfStaleHours -gt 0) { $cmdline += " --if-stale $IfStaleHours" }
+    if ($DryRun) { $cmdline += " --dry-run" }
+    $env:PYTHONIOENCODING = "utf-8"
+    cmd /c "$cmdline >> `"$log`" 2>&1"
+    Log "fin (código $LASTEXITCODE)"
+}
+
+function Update-ReformTask {
+    # Una tarea registrada antes de unir los scripts apunta a scripts\watch-reforms.ps1 (ya no existe).
+    $t = Get-ScheduledTask -TaskName $ReformTask -ErrorAction SilentlyContinue
+    if ($t -and -not (@($t.Actions) | Where-Object { $_.Arguments -match "-WatchReforms" })) {
+        Register-ReformTask -Quiet
+    }
+}
+
 function Register-ReformTask {
-    Write-Step "Revisión diaria de reformas"
+    param([switch]$Quiet)
+    if (-not $Quiet) { Write-Step "Revisión diaria de reformas" }
     $action = New-ScheduledTaskAction -Execute "powershell.exe" `
-        -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$WatchScript`""
+        -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Self`" -WatchReforms"
     $trigger = New-ScheduledTaskTrigger -Daily -At "03:00"
     # StartWhenAvailable: si el equipo estaba apagado a las 03:00, corre al encenderse
     $opts = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
@@ -207,6 +249,7 @@ function Register-ReformTask {
         Register-ScheduledTask -TaskName $ReformTask -Action $action -Trigger $trigger -Settings $opts `
             -Description "Legal AI Assistant: revisa las fuentes oficiales y carga reformas (ADR-017)" -Force | Out-Null
     } catch { Fail "No se pudo registrar la tarea programada ($ReformTask): $($_.Exception.Message)" }
+    if ($Quiet) { Write-Ok "tarea '$ReformTask' actualizada para usar dev-up.ps1 -WatchReforms"; return }
     Write-Ok "tarea '$ReformTask' registrada: todos los días a las 03:00 (o al encender el equipo si estaba apagado)"
     Write-Ok "solo descarga de las fuentes oficiales registradas; si una la rechaza, se anota y no se insiste"
     Write-Ok "para quitarla: dev-up.ps1 -UnscheduleReforms"
@@ -265,8 +308,10 @@ function Stop-App {
     Show-Status
 }
 
+if ($WatchReforms) { Invoke-ReformWatch; exit 0 }
 if ($ScheduleReforms) { Register-ReformTask; exit 0 }
 if ($UnscheduleReforms) { Unregister-ReformTask; exit 0 }
+Update-ReformTask
 if ($Status) { Show-Status; exit 0 }
 if ($Stop) { Stop-App; exit 0 }
 
@@ -458,7 +503,7 @@ Save-Pids @{ api = $apiPid; web = $webPid; ollama = $ollamaPid; started = (Get-D
 if (-not $NoReformCheck) {
     # ADR-017: en segundo plano y solo si la última revisión es vieja; no retrasa el arranque.
     Start-Detached -Exe (Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe") -Cwd $Root `
-        -ArgList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $WatchScript, "-IfStaleHours", "20") `
+        -ArgList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Self, "-WatchReforms", "-IfStaleHours", "20") `
         -EnvVars @{ PYTHONIOENCODING = "utf-8" } `
         -Out (Join-Path $RunDir "watch.out.log") -Err (Join-Path $RunDir "watch.err.log") | Out-Null
     Write-Ok "revisión de reformas lanzada en segundo plano (log en $RunDir\watch-*.log)"

@@ -110,7 +110,7 @@ describe("statute text and model output render as text", () => {
 });
 
 describe("Brand.md conformance", () => {
-  const brand = brandTokens(read(join(WEB_ROOT, "..", "Brand.md")));
+  const brand = brandTokens(read(join(WEB_ROOT, "..", "docs", "Brand.md")));
   const css = read(join(SRC, "app", "globals.css"));
   const cssLight = cssTokens(css, ":root {");
   const cssDarkAuto = cssTokens(css, ":root:not([data-theme=\"light\"])");
