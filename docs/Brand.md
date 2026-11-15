@@ -327,6 +327,25 @@ Mismo marco que §8 (barra, tokens, tipografía, tono); ninguna herramienta usa 
 - Errores en palabras: "El despacho no permite modelos externos…", "Ese modelo no está configurado…", "El
   proveedor del modelo externo rechazó la solicitud…".
 
+### 9.7 Documentos del despacho (ADR-025, 2026-11-14)
+- Entrada en el riel, en Herramientas, después de Leyes. Página de herramienta (§9): formulario de carga
+  arriba, lista debajo.
+- Formulario: archivo, nombre (así aparece en las citas), tipo (lista cerrada), idioma, asunto (si hay) y
+  ámbito (catálogo cerrado; por omisión el último ámbito usado). Dos frases que nunca se omiten: quién lo verá
+  (todo el despacho / solo los miembros del asunto) y qué se guarda ("El archivo original no se guarda…").
+  El botón queda deshabilitado sin archivo.
+- Lista: una tarjeta por documento con nombre, insignia de estado con forma + icono + texto (◷ Procesando ·
+  ✓ Listo · N partes citables · ⌕ No se pudo procesar; tonos de §9.2, nunca solo color), tipo, asunto o
+  "Todo el despacho", fecha y quién lo subió. Un fallo dice la causa en lenguaje llano y qué hacer (p. ej.
+  PDF escaneado → OCR o Word); nunca una clave interna.
+- "Ver el texto extraído": las partes citables en orden, en la tipografía de norma (§2), con la advertencia
+  de revisarlo antes de confiar; cada nombre abre el visor. "Preguntar sobre este documento" abre Conversar
+  en su asunto. "Eliminar" (solo quien lo subió o un admin) pide confirmación en la misma tarjeta y dice
+  qué se pierde.
+- Visor (§11.4) para un documento del despacho: insignia "Documento del despacho" en lugar de
+  Vigente/No vigente y "Sección completa" en lugar de "Artículo completo".
+- Mientras algo se procesa la lista se actualiza sola y el final se anuncia (`role=status`).
+
 ## 10. Estilo OPB (v2, 2026-11-08): cómo se aplica
 
 Referencia de estructura: Library-RAG (misma familia de producto). Todo vive en la sección 4 de `globals.css`.

@@ -285,6 +285,16 @@ def seed_product_rows(app_engine: Engine, tenant: uuid.UUID) -> tuple[uuid.UUID,
             ),
             {"t": tenant, "u": user, "m": matter},
         )
+        conn.execute(  # ADR-025: an uploaded file of the matter (the row; its text is a document)
+            text(
+                "INSERT INTO client_files (tenant_id, uploaded_by, matter_id, title, kind, "
+                "language, jurisdiction_id, file_token, source_format) VALUES (:t, :u, :m, "
+                "'Contrato privilegiado', 'contrato', 'es', "
+                "(SELECT id FROM jurisdictions WHERE country = 'MX' AND level = 'federal'), "
+                "'DSEED0001', 'text')"
+            ),
+            {"t": tenant, "u": user, "m": matter},
+        )
         conn.execute(  # ADR-024: the firm's model policy (tenant-private)
             text(
                 "INSERT INTO tenant_model_policy (tenant_id, updated_by) VALUES (:t, :u) "

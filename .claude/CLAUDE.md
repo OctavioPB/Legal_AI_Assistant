@@ -73,6 +73,7 @@ uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate 
 uv run pytest -m live                              # real local models (Ollama must be running)
 uv run python -m app.ingestion.watch [--only LFT] [--dry-run] [--check-urls] [--if-stale 20]   # reform watcher (ADR-017; the ONLY job with network: official URLs of corpus.py)
 powershell -File scripts/dev-up.ps1 -ScheduleReforms | -UnscheduleReforms | -WatchReforms [-DryRun]   # daily 03:00 Windows task / run the reform check now
+# firm documents (ADR-025): uploaded from the web (/documentos) -> POST /files; no CLI. One background thread, status in `client_files`
 uv run python -m app.ingestion.cli parse|clean|chunks ...   # `ingest <pdf>` is NOT BUILT YET (WS2.T01/T06); store.ingest_document is the library entry point
 uv run ruff check --fix && uv run ruff format      # lint/format
 

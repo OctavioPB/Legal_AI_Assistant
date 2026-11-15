@@ -71,9 +71,12 @@ function SourceBody({ source }: { source: Source }) {
         <dt>{t("version")}</dt>
         <dd>
           {source.version_label ?? "—"} ·{" "}
-          <span className={source.is_current ? "badge" : "badge badge-warn"}>
-            {source.is_current ? t("current") : t("notCurrent")}
-          </span>
+          {source.is_public ? (
+            <span className={source.is_current ? "badge" : "badge badge-warn"}>{source.is_current ? t("current") : t("notCurrent")}</span>
+          ) : (
+            // ADR-025: a document of the firm is not "in force" or "repealed"; say what it is
+            <span className="badge">{t("firmDocument")}</span>
+          )}
         </dd>
         <dt>{t("identifier")}</dt>
         <dd className="cite-id">{source.cite_id}</dd>
@@ -88,12 +91,12 @@ function SourceBody({ source }: { source: Source }) {
       <p className="viewer-actions">
         <SaveToMatter citeId={source.cite_id} />
       </p>
-      <h3>{t("article")}</h3>
+      <h3>{t(source.is_public ? "article" : "section")}</h3>
       <div
         className="legal-text viewer-article"
         lang={source.cite_id.startsWith("US-") ? "en" : "es"}
         role="region"
-        aria-label={t("article")}
+        aria-label={t(source.is_public ? "article" : "section")}
         tabIndex={0}
       >
         {at >= 0 ? (

@@ -29,6 +29,10 @@
   conversation). `matter_members` stays plain `private` (a policy reading `matters` back would recurse); the API
   lists members only of visible matters. Unanchored = zero rows on these tables (isolation test). The registry
   lists every kind of a table.
+- Matter scope (ADR-025): `matter_scoped` (RESTRICTIVE, `matter_id IS NULL OR app_matter_visible(matter_id)`)
+  stacks on documents, doc_nodes, chunks and client_files. Public rows and firm-wide files have no matter;
+  a matter's file needs the user anchor AND membership. `doc_nodes.matter_id`/`chunks.matter_id` are derived
+  by trigger and `documents.matter_id` is immutable; deleting a matter cascades to its files (never SET NULL).
 - Known limit: `app.tenant_id` is a plain setting. RLS defends against application bugs and
   missing filters, not against arbitrary SQL executed AS `legalai_app` (e.g. SQL injection could
   call `set_config`). Mitigation today: parameterized queries only, no raw SQL from request data.

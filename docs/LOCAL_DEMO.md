@@ -68,7 +68,7 @@ no lo uses fuera de tu equipo. La cookie sigue siendo `httpOnly` y `SameSite=Str
 La jurisdicción, el perfil y el idioma se fijan al iniciar cada conversación o caso. El historial (barra izquierda)
 es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
 
-## Herramientas para abogados (ADR-017/018/019)
+## Herramientas para abogados (ADR-017/018/019/025)
 - **Leyes** (`/leyes`): navegador de cada ley cargada por títulos, capítulos y artículos; "Ir al artículo" por
   número; partes citables (copiar cita, guardar en asunto) y comparación con versiones anteriores. Sin modelo.
 - **Verificar** (`/verificar`): pegue o suba un escrito (PDF con texto) y revise cada artículo citado: si existe,
@@ -76,6 +76,18 @@ es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
   resultados). Las leyes no cargadas se reportan como tales, nunca se adivinan.
 - **Asuntos** (`/asuntos`): carpeta por asunto con conversaciones, investigaciones, casos, verificaciones, fuentes
   guardadas y notas; solo la ven su responsable y los colegas que agregue (aislamiento en la base, ADR-018).
+- **Documentos** (`/documentos`): suba un contrato, un escrito, una resolución o una norma que no esté cargada
+  (PDF con texto, Word `.docx` o texto plano, hasta 25 MB). Queda citable en las conversaciones igual que la ley;
+  la cita nombra la sección del documento («Contrato», CUARTA.- PENA CONVENCIONAL).
+  - **Quién lo ve.** Sin asunto: todo el despacho. Dentro de un asunto: solo sus miembros, y solo se usa en las
+    conversaciones de ese asunto (aislamiento en la base, ADR-025). Borrar el asunto borra sus documentos.
+  - **Qué se guarda.** El archivo original no; solo el texto extraído. "Ver el texto extraído" muestra lo que
+    leyó el sistema, parte por parte: revíselo, porque lo que falte ahí el asistente tampoco lo ve.
+  - **Ámbito.** Se archiva bajo un ámbito del catálogo: un documento marcado como de Nuevo León no aparece en una
+    conversación federal ni de otro estado.
+  - Un documento corto queda listo en segundos; un PDF largo, en minutos. La lista se actualiza sola. Un PDF
+    escaneado (solo imágenes) no se puede leer: pase antes un OCR o suba el Word.
+  - Lo elimina quien lo subió o un administrador; las conversaciones que lo citaron conservan el nombre de la cita.
 - **Reformas** (`/reformas`): el vigilante revisa las fuentes oficiales (diputados.gob.mx para LFT, CPEUM, CCF,
   CPF); si una ley cambió, carga la nueva versión sin borrar la anterior y avisa qué conversaciones, fuentes
   guardadas o verificaciones citan disposiciones reformadas. Las fuentes estatales/municipales y el código de
@@ -136,8 +148,11 @@ cd web && npm run e2e:full             # navegador real + API + modelos locales 
 - τ está calibrado con conjuntos de prueba redactados por IA y **sin revisión de un abogado**; ningún τ
   cumple a la vez falsos rechazos ≤ 5 % y rechazo correcto ≥ 95 % con el coseno de bge-m3.
 - Una cita verificada prueba procedencia, no fidelidad (una cita correcta con un resumen invertido pasa).
-- La ingesta de documentos del despacho (subir PDFs) no está construida; el corpus es público y se siembra
-  por línea de comandos.
+- Documentos del despacho: sin OCR (un PDF escaneado falla), sin notas al pie de `.docx`, y la lectura de
+  contratos y sentencias es por forma (cláusulas, encabezados, párrafos) y **sin revisión de un abogado**. τ se
+  calibró con texto de leyes, no con contratos. Si la app se cierra a media carga, el documento queda
+  "interrumpido" y hay que subirlo otra vez.
+- El corpus público se siembra por línea de comandos; no hay jurisprudencia ni tesis cargadas.
 - API y web no corren en contenedores: las lanza `scripts/dev-up.ps1` (o a mano, como arriba).
 - `-H 127.0.0.1` es obligatorio al lanzar la web a mano: sin él, `next start` escucha en todas las interfaces
   y la app queda visible en la red local.

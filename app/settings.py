@@ -93,6 +93,11 @@ class Settings(BaseSettings):
     context_citable_units: bool = True
     # ADR-023: a unit inside an apartado expands to that apartado, not to the whole article
     context_unit_apartado: bool = True
+    # ADR-025: the firm's own documents (client files)
+    client_file_max_bytes: int = 25 * 1024 * 1024
+    client_file_max_chars: int = 3_000_000  # extracted text (about 1 000 pages)
+    client_file_stale_minutes: int = 60  # a job "processing" for longer was interrupted
+    client_file_min_articles: int = 3  # fewer articles than this: not a statute, generic grammar
     validator_quote_min_words: int = 5  # a quoted run shorter than this is not checked
     validator_coverage_min_words: int = 6  # shorter units (headings, labels) need no citation
 

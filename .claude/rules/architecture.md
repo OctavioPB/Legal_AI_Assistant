@@ -8,6 +8,8 @@
 - `app/validation/` — citation parser, existence/coverage checks, regeneration loop.
 - `app/ingestion/` — Docling wrapper, legal normalizer grammars, chunker, embedder (Celery tasks only).
 - `app/db/` — SQLAlchemy models, RLS session middleware, migrations (alembic).
+- `app/api/files.py` + `app/ingestion/extract.py` + `normalizer_generic.py` — the firm's own documents
+  (ADR-025): upload, text extraction in memory, one background thread, status in `client_files`.
 - `app/corpus/` — reading the corpus without a model: reform lineage (`lineage.py`, ADR-017) and the brief
   verifier's grammar (`verify.py`, ADR-019). `app/ingestion/watch.py` + `reform.py`: the reform watcher, the only
   network-using component (official URLs of `corpus.py`).
@@ -300,6 +302,47 @@ below are the original one-liners and are Accepted.
   review of the golden set before any profile becomes the default; per-firm data-processing terms with Anthropic
   (legal, not code).
 
+- ADR-025 (Proposed, implemented 2026-11-14 under the product owner's instruction "desarrolla los módulos
+  faltantes"; the choices below await confirmation): The firm's own documents (client files), scoped to a matter.
+  Context: the demo's exit criterion includes "upload de expediente" (WS6.T07, WS2.T01) and nothing let a lawyer
+  work on their own contract, brief or ruling; the schema already reserved `doc_type='client_file'` and the `CF-`
+  namespace (ADR-010). Options and choices: (1) processing: Celery worker (WS2.T01 as planned) vs ONE in-process
+  background thread with the status in a table. Chosen: the thread (`WorkerJobs`), because the demo is one machine
+  and parsing/embedding are CPU-bound; a job interrupted by a restart is reported as such after
+  `client_file_stale_minutes`, nothing half-written exists (one transaction per document). Celery stays the path
+  for a multi-process deployment. (2) what is kept: the ORIGINAL file is never stored (read in memory; a PDF goes
+  through a temporary file deleted in `finally`, like ADR-019); the extracted text is stored in doc_nodes/chunks,
+  which is what a citation needs. Consequence: no page deep-link for firm documents, only the text. (3) visibility:
+  firm-wide only vs per matter. Chosen: optional `documents.matter_id`; `doc_nodes.matter_id`/`chunks.matter_id`
+  derived by trigger and immutable; a RESTRICTIVE template `matter_scoped` (`matter_id IS NULL OR
+  app_matter_visible(matter_id)`) on documents, doc_nodes, chunks and client_files, so a file of a matter is
+  invisible to a colleague outside it and to any transaction without the user anchor (ADR-018). Deleting a matter
+  CASCADES to its files: SET NULL would publish a privileged file to the whole firm. (4) retrieval scope: RLS
+  alone would let a lawyer who belongs to two matters get client A's contract in client B's conversation.
+  Chosen: `SessionContext.matter_id` and one more clause in `build_jurisdiction_predicate()` (the only place scope
+  is decided): chunks without a matter, or of the conversation's matter; never another matter's. The hard
+  jurisdiction rule is unchanged: a file is filed under a catalog jurisdiction and stacks like any other source.
+  (5) grammar: statutes keep their grammars; any other document uses `normalizer_generic` (sections opened by
+  clause openers or heading lines, typed `articulo` so they are the context unit; paragraphs typed `parrafo`;
+  loose text grouped into "Parte n"; no schema change, no meaning inferred). A file declared as a law uses the
+  statute grammar only if that grammar finds >= `client_file_min_articles` articles. Citations of a generic
+  document name its own sections ("«Contrato», CUARTA.- PENA CONVENCIONAL, párr. 2"), never "art.".
+  (6) generation: the same embedder, revision, chunker version and thresholds as the live corpus; the guard of
+  `ingest_document` now also reads the PUBLIC live set, so a firm file can never be written in another generation
+  than the corpus it is searched with (invariant 5). `CHUNKER_VERSION` is not bumped: no existing chunk changes
+  (the `plain` citation style and the generic grammar only apply to new client files). (7) deletion: the uploader
+  or a firm admin deletes a file with its text and vectors (a client's document must be erasable; invariant 3 is
+  about reforms of the public corpus). A conversation that cited it keeps the citation's name; the source is 404.
+  (8) formats: PDF with a text layer (Docling, OCR off), .docx (standard library, body paragraphs only; DTD and
+  oversized XML refused), plain text; recognised by content, 25 MB, sent through the gateway as
+  `application/octet-stream` (not a CORS-simple type). Scanned PDFs fail with `no_text`. Evidence: 12 tests in
+  `tests/test_client_files.py` (RLS floor for a colleague, another firm and an unanchored transaction; retrieval
+  scope for a member of two matters; cascade; generation mismatch; audit rows without title or text); real stack
+  (bge-m3, seeded corpus): a .docx contract ready in 7 s, its clause first at 0.753 inside the matter, a refusal
+  outside it. Retrieval of the public corpus is unchanged by construction (every existing chunk has no matter):
+  `golden-20261114T210010Z-after-matter-scope` vs `golden-20261109T064012Z-retrieval-C` (retrieval-only, 25 ai-draft cases): recall@8 1.00 -> 1.00, leakage 0 -> 0, 0 cases flipped. tau was calibrated on statute text; scores of contract prose were not part of the probe sets.
+  Pending: owner confirmation of (1), (3) and (7); lawyer review of the generic grammar on real contracts and
+  rulings; probe sets with firm documents; OCR; moving a file between matters; footnotes of .docx files.
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

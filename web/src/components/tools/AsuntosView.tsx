@@ -255,6 +255,9 @@ function MatterPanel({ id, onBack, onChanged }: { id: string; onBack: () => void
             <Link className="button button-quiet" href={`/verificar?matter=${id}`}>
               {t("verifyIn")}
             </Link>
+            <Link className="button button-quiet" href={`/documentos?matter=${id}`}>
+              {t("filesIn")}
+            </Link>
           </p>
         )}
         {convs.length === 0 ? (

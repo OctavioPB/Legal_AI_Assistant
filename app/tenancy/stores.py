@@ -37,6 +37,7 @@ POSTGRES_ERASE_ORDER: tuple[str, ...] = (
     "cite_lineage",
     "corpus_changes",
     "source_checks",
+    "client_files",
     "chunks",
     "doc_nodes",
     "documents",

@@ -15,7 +15,8 @@ from fastapi import FastAPI
 from sqlalchemy import create_engine
 
 from app.api.conversations import router as conversations_router
-from app.api.deps import AppState
+from app.api.deps import AppState, WorkerJobs
+from app.api.files import router as files_router
 from app.api.laws import router as laws_router
 from app.api.matters import router as matters_router
 from app.api.models import register_model_errors
@@ -152,7 +153,7 @@ def build_state(settings: Settings) -> AppState:
         RateLimiter(settings.rate_user_per_s, settings.rate_user_burst),
     )
     engine = create_engine(settings.app_url(), pool_size=8, pool_pre_ping=True)
-    return AppState(settings=settings, engine=engine, chat=chat, limits=limits)
+    return AppState(settings=settings, engine=engine, chat=chat, limits=limits, jobs=WorkerJobs())
 
 
 def create_app(state: AppState | None = None) -> FastAPI:
@@ -162,13 +163,16 @@ def create_app(state: AppState | None = None) -> FastAPI:
         check_configuration(st.settings)
         app.state.legal = st
         yield
+        if isinstance(st.jobs, WorkerJobs):
+            st.jobs.shutdown()
         st.engine.dispose()
 
     app = FastAPI(title="Legal AI Assistant", version="0.1.0", lifespan=lifespan,
                   docs_url=None, redoc_url=None, openapi_url=None)  # fmt: skip
     app.include_router(router)
     app.include_router(conversations_router)
-    for r in (matters_router, laws_router, verify_router, reforms_router, models_router):
+    for r in (matters_router, laws_router, verify_router, reforms_router, models_router,
+              files_router):  # fmt: skip
         app.include_router(r)
     register_errors(app)
     register_model_errors(app)

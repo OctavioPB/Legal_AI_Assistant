@@ -73,6 +73,9 @@ class DocMeta(Frozen):
     version_label: str  # 2025.06
     language: Literal["es", "en"] = "es"
     client_file: str | None = None  # set => cite ids use the CF- namespace
+    # "plain" (ADR-025): a document that is not a statute is cited by its own section names
+    # ("«Contrato», Cláusula tercera, párr. 2"), never as "art." / "fracc."
+    citation_style: Literal["legal", "plain"] = "legal"
 
     @model_validator(mode="after")
     def _tokens(self) -> DocMeta:

@@ -19,7 +19,8 @@
     "home": "Inicio",
     "work": "Trabajo",
     "tools": "Herramientas",
-    "reformas": "Reformas"
+    "reformas": "Reformas",
+    "documentos": "Documentos"
   },
   "lang": {
     "es-MX": "Español",
@@ -152,7 +153,9 @@
     "notCurrent": "No vigente",
     "current": "Vigente",
     "identifier": "Identificador",
-    "reformed": "Esta disposición cambió después de citarse ({change}, {date}). Versión vigente:"
+    "reformed": "Esta disposición cambió después de citarse ({change}, {date}). Versión vigente:",
+    "firmDocument": "Documento del despacho",
+    "section": "Sección completa"
   },
   "footer": {
     "disclaimer": "Herramienta de investigación. No sustituye el criterio profesional del abogado."
@@ -362,7 +365,7 @@
     "loading": "Cargando…",
     "close": "Cerrar asunto",
     "reopen": "Reabrir asunto",
-    "confirmDelete": "¿Eliminar el asunto? Sus conversaciones no se borran: vuelven a ser privadas de su autor.",
+    "confirmDelete": "¿Eliminar el asunto? Sus conversaciones no se borran: vuelven a ser privadas de su autor. Los documentos subidos al asunto SÍ se eliminan.",
     "delete": "Eliminar",
     "cancel": "Cancelar",
     "work": "Trabajo del asunto",
@@ -403,7 +406,8 @@
       "cancel": "Cancelar",
       "error": "No se pudo guardar.",
       "saved": "Guardada en el asunto."
-    }
+    },
+    "filesIn": "Documentos del asunto"
   },
   "laws": {
     "title": "Leyes",
@@ -559,5 +563,75 @@
     "remoteNotConfigured": "Este servidor no tiene una clave de Anthropic configurada: Claude no está disponible aunque se permita.",
     "adminOnly": "Solo un administrador del despacho puede cambiarlo.",
     "saved": "Guardado."
+  },
+  "files": {
+    "title": "Documentos del despacho",
+    "intro": "Suba contratos, escritos, resoluciones o una norma que no esté cargada. El asistente podrá citarlos en sus conversaciones, igual que cita la ley.",
+    "uploadTitle": "Subir un documento",
+    "file": "Archivo",
+    "fileHelp": "PDF con texto, Word (.docx) o texto plano. Máximo 25 MB. Un PDF escaneado (solo imágenes) no se puede leer.",
+    "docTitle": "Nombre del documento",
+    "docTitlePlaceholder": "Contrato de prestación de servicios 2026",
+    "docTitleHelp": "Así aparecerá en las citas. Si lo deja vacío se usa el nombre del archivo.",
+    "kind": "Tipo de documento",
+    "kinds": {
+      "contrato": "Contrato o convenio",
+      "escrito": "Escrito (demanda, contestación, promoción)",
+      "resolucion": "Resolución (sentencia, acuerdo, laudo)",
+      "norma": "Ley, reglamento o norma no cargada",
+      "otro": "Otro documento"
+    },
+    "language": "Idioma del documento",
+    "languages": {
+      "es": "Español",
+      "en": "Inglés"
+    },
+    "where": "Ámbito del documento",
+    "allStates": "Todo el país",
+    "whereHelpAll": "Aparecerá en las conversaciones de cualquier ámbito de este país.",
+    "whereHelpNarrow": "Aparecerá solo en las conversaciones de este ámbito. Una conversación federal o de otro estado no lo verá.",
+    "visibleFirm": "Sin asunto: lo podrá consultar todo el despacho.",
+    "visibleMatter": "Dentro del asunto: solo lo verán los miembros del asunto, y solo se usará en las conversaciones de ese asunto.",
+    "privacy": "El archivo original no se guarda. Se lee en este equipo, se conserva únicamente su texto y nadie fuera de su despacho puede verlo.",
+    "upload": "Subir y procesar",
+    "uploading": "Subiendo…",
+    "uploadedAnnounce": "«{title}» se recibió y se está procesando.",
+    "doneAnnounce": "Terminó el procesamiento de los documentos.",
+    "listTitle": "Documentos cargados",
+    "loading": "Cargando…",
+    "empty": "Todavía no hay documentos. Suba el primero con el formulario de arriba.",
+    "firmWide": "Todo el despacho",
+    "aMatter": "Un asunto",
+    "by": "subido por {name}",
+    "status": {
+      "processing": "Procesando",
+      "ready": "Listo · {count, plural, =1 {# parte citable} other {# partes citables}}",
+      "failed": "No se pudo procesar"
+    },
+    "processingHelp": "Puede seguir trabajando; esta lista se actualiza sola. Un PDF largo tarda unos minutos.",
+    "failed": {
+      "no_text": "No se encontró texto. Si es un PDF escaneado, conviértalo antes a PDF con texto (OCR) o suba el archivo de Word.",
+      "unreadable": "El archivo está dañado o protegido con contraseña y no se pudo abrir.",
+      "too_long": "El documento es demasiado largo. Divídalo en partes y súbalas por separado.",
+      "embedder_unavailable": "El motor de búsqueda local no respondió. Compruebe que la aplicación esté iniciada y súbalo de nuevo.",
+      "generation_mismatch": "El índice de búsqueda cambió de versión y este documento no puede mezclarse con él. Avise a quien administra el sistema.",
+      "interrupted": "El procesamiento se interrumpió (la aplicación se cerró). Elimínelo y súbalo de nuevo.",
+      "internal": "Ocurrió un error al procesarlo. Elimínelo e inténtelo de nuevo."
+    },
+    "showText": "Ver el texto extraído",
+    "hideText": "Ocultar el texto",
+    "textHelp": "Este es el texto tal como lo leyó el sistema, parte por parte. Revíselo antes de confiar en él: si falta algo aquí, el asistente tampoco lo verá.",
+    "noUnits": "No hay texto que mostrar.",
+    "ask": "Preguntar sobre este documento",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "confirmDelete": "¿Eliminar el documento? Se borra su texto; las conversaciones que lo citaron conservan el nombre de la cita, pero ya no podrán abrirla.",
+    "errors": {
+      "tooLarge": "El archivo pesa más de 25 MB.",
+      "unsupported": "Ese tipo de archivo no se puede leer. Use PDF, Word (.docx) o texto plano.",
+      "busy": "Hay demasiadas solicitudes. Espere un momento e inténtelo de nuevo.",
+      "matter": "El asunto ya no está disponible. Elija otro o súbalo sin asunto.",
+      "generic": "No se pudo subir el documento. Inténtelo de nuevo."
+    }
   }
 }

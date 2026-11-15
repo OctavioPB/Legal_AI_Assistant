@@ -418,7 +418,7 @@ def post_message(
                 req = req.model_copy(update={"carry": carry_forward(conn, req.carry)})
                 ctx = load_session_context(
                     conn, p.tenant_id, row.jurisdiction_id, language=row.language,
-                    include_historical=row.include_historical,
+                    include_historical=row.include_historical, matter_id=row.matter_id,
                 )  # fmt: skip
                 result = answer_query(conn, ctx, req, deps, lambda s: events.put(("stage", s)))
                 seq = (msgs[-1].seq if msgs else 0) + 1

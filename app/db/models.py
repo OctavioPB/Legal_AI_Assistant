@@ -98,6 +98,8 @@ class Document(Base):
     version_label: Mapped[str | None] = mapped_column(Text)
     source_uri: Mapped[str] = mapped_column(Text)
     checksum_sha256: Mapped[str] = mapped_column(Text)
+    # ADR-025: a client file of a matter (doc_nodes/chunks derive theirs by trigger)
+    matter_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     ingested_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

@@ -9,7 +9,14 @@ from pathlib import Path
 from typing import Literal
 
 TemplateKind = Literal[
-    "corpus", "private", "append_only", "personal", "matter_root", "matter_child", "message"
+    "corpus",
+    "private",
+    "append_only",
+    "personal",
+    "matter_root",
+    "matter_child",
+    "message",
+    "matter_scoped",
 ]
 
 _TEMPLATES_FILE = Path(__file__).with_name("rls_templates.sql")

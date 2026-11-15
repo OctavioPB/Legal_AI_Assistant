@@ -27,9 +27,10 @@ from tests import helpers
 # table -> (column holding the tenant, policy template kinds). A table may stack a RESTRICTIVE kind on
 # top of its base kind (ADR-018: the user anchor).
 TENANT_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
-    "documents": ("tenant_id", ("corpus",)),
-    "doc_nodes": ("tenant_id", ("corpus",)),
-    "chunks": ("tenant_id", ("corpus",)),
+    "documents": ("tenant_id", ("corpus", "matter_scoped")),
+    "doc_nodes": ("tenant_id", ("corpus", "matter_scoped")),
+    "chunks": ("tenant_id", ("corpus", "matter_scoped")),
+    "client_files": ("tenant_id", ("private", "matter_scoped")),
     "corpus_changes": ("tenant_id", ("corpus",)),
     "cite_lineage": ("tenant_id", ("corpus",)),
     "source_checks": ("tenant_id", ("corpus",)),
@@ -48,7 +49,10 @@ TENANT_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "tenants": ("id", ("tenants",)),
 }
 # Tables invisible without the user anchor (ADR-018).
-USER_SCOPED = [t for t, (_, kinds) in TENANT_TABLES.items() if len(kinds) > 1]
+# `matter_scoped` (ADR-025) only bites on rows that belong to a matter, so it is checked apart.
+USER_SCOPED = [
+    t for t, (_, kinds) in TENANT_TABLES.items() if len(kinds) > 1 and "matter_scoped" not in kinds
+]
 # Global, non-tenant data: read-only catalogs and alembic bookkeeping.
 GLOBAL_TABLES = {"jurisdictions", "personas", "alembic_version"}
 CORPUS_TABLES = [t for t, (_, kinds) in TENANT_TABLES.items() if "corpus" in kinds]
@@ -140,6 +144,9 @@ def test_raw_sql_sees_only_own_and_public_rows(
             assert helpers.visible_tenants(app_engine, me, table) == set(), (
                 f"{table} visible without app.user_id"
             )
+        # ADR-025: an uploaded file of a matter: its own firm with the user anchor, nobody without
+        assert helpers.visible_tenants(app_engine, me, "client_files", user) == {me}
+        assert helpers.visible_tenants(app_engine, me, "client_files") == set()
         with tenant_transaction(app_engine, me) as conn:
             visible = conn.execute(text("SELECT id FROM tenants")).scalars().all()
         assert visible == [me], "a tenant must see only its own tenants row"
@@ -311,15 +318,19 @@ def test_composite_foreign_keys_block_cross_tenant_references(
         b_doc = conn.execute(
             text("SELECT id FROM documents WHERE tenant_id = :t"), {"t": tenant_b}
         ).scalar_one()
-    with pytest.raises(DBAPIError, match="doc_nodes_document_fk"):
+    insert = text(
+        "INSERT INTO doc_nodes (document_id, tenant_id, node_type, label, ordinal, path, "
+        "full_text) VALUES (:d, :t, 'articulo', 'x', 0, 'x', 'x')"
+    )
+    # two independent defences. As the app role the document is not even visible, so the trigger
+    # that derives the node's matter (ADR-025) stops the insert first ...
+    with pytest.raises(DBAPIError, match="not visible"):
         with tenant_transaction(app_engine, tenant_a) as conn:
-            conn.execute(
-                text(
-                    "INSERT INTO doc_nodes (document_id, tenant_id, node_type, label, ordinal, path, full_text) "
-                    "VALUES (:d, :t, 'articulo', 'x', 0, 'x', 'x')"
-                ),
-                {"d": b_doc, "t": tenant_a},
-            )
+            conn.execute(insert, {"d": b_doc, "t": tenant_a})
+    # ... and with RLS out of the way (superuser) the composite foreign key still refuses it
+    with pytest.raises(DBAPIError, match="doc_nodes_document_fk"):
+        with admin_engine.begin() as conn:
+            conn.execute(insert, {"d": b_doc, "t": tenant_a})
 
 
 def test_session_tenant_must_be_a_real_user_tenant() -> None:

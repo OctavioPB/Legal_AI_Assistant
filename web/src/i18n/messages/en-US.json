@@ -19,7 +19,8 @@
     "home": "Home",
     "work": "Work",
     "tools": "Tools",
-    "reformas": "Amendments"
+    "reformas": "Amendments",
+    "documentos": "Documents"
   },
   "lang": {
     "es-MX": "Español",
@@ -152,7 +153,9 @@
     "notCurrent": "Not in force",
     "current": "In force",
     "identifier": "Identifier",
-    "reformed": "This provision changed after it was cited ({change}, {date}). Current version:"
+    "reformed": "This provision changed after it was cited ({change}, {date}). Current version:",
+    "firmDocument": "Firm document",
+    "section": "Full section"
   },
   "footer": {
     "disclaimer": "Research tool. It does not replace a lawyer's professional judgment."
@@ -362,7 +365,7 @@
     "loading": "Loading…",
     "close": "Close matter",
     "reopen": "Reopen matter",
-    "confirmDelete": "Delete the matter? Its conversations are not deleted: they become private to their authors again.",
+    "confirmDelete": "Delete the matter? Its conversations are not deleted: they become private to their authors again. The documents uploaded to the matter ARE deleted.",
     "delete": "Delete",
     "cancel": "Cancel",
     "work": "Work on this matter",
@@ -403,7 +406,8 @@
       "cancel": "Cancel",
       "error": "It could not be saved.",
       "saved": "Saved to the matter."
-    }
+    },
+    "filesIn": "Documents of the matter"
   },
   "laws": {
     "title": "Laws",
@@ -559,5 +563,75 @@
     "remoteNotConfigured": "This server has no Anthropic key configured: Claude is unavailable even if allowed.",
     "adminOnly": "Only a firm administrator can change this.",
     "saved": "Saved."
+  },
+  "files": {
+    "title": "Firm documents",
+    "intro": "Upload contracts, briefs, rulings or a law that is not loaded. The assistant can cite them in your conversations, the same way it cites the law.",
+    "uploadTitle": "Upload a document",
+    "file": "File",
+    "fileHelp": "PDF with text, Word (.docx) or plain text. 25 MB at most. A scanned PDF (images only) cannot be read.",
+    "docTitle": "Document name",
+    "docTitlePlaceholder": "Services agreement 2026",
+    "docTitleHelp": "This is how it will appear in citations. Left empty, the file name is used.",
+    "kind": "Document type",
+    "kinds": {
+      "contrato": "Contract or agreement",
+      "escrito": "Brief (complaint, answer, motion)",
+      "resolucion": "Ruling (judgment, order, award)",
+      "norma": "Law, regulation or rule not loaded",
+      "otro": "Other document"
+    },
+    "language": "Document language",
+    "languages": {
+      "es": "Spanish",
+      "en": "English"
+    },
+    "where": "Scope of the document",
+    "allStates": "The whole country",
+    "whereHelpAll": "It will appear in conversations of any scope in this country.",
+    "whereHelpNarrow": "It will appear only in conversations of this scope. A federal conversation or one of another state will not see it.",
+    "visibleFirm": "No matter: the whole firm can consult it.",
+    "visibleMatter": "Inside the matter: only its members will see it, and it will be used only in the conversations of that matter.",
+    "privacy": "The original file is not stored. It is read on this computer, only its text is kept, and nobody outside your firm can see it.",
+    "upload": "Upload and process",
+    "uploading": "Uploading…",
+    "uploadedAnnounce": "“{title}” was received and is being processed.",
+    "doneAnnounce": "The documents have finished processing.",
+    "listTitle": "Uploaded documents",
+    "loading": "Loading…",
+    "empty": "There are no documents yet. Upload the first one with the form above.",
+    "firmWide": "Whole firm",
+    "aMatter": "A matter",
+    "by": "uploaded by {name}",
+    "status": {
+      "processing": "Processing",
+      "ready": "Ready · {count, plural, =1 {# citable part} other {# citable parts}}",
+      "failed": "Could not be processed"
+    },
+    "processingHelp": "You can keep working; this list updates itself. A long PDF takes a few minutes.",
+    "failed": {
+      "no_text": "No text was found. If it is a scanned PDF, convert it to a PDF with text (OCR) first, or upload the Word file.",
+      "unreadable": "The file is damaged or password-protected and could not be opened.",
+      "too_long": "The document is too long. Split it and upload the parts separately.",
+      "embedder_unavailable": "The local search engine did not respond. Check that the application is running and upload it again.",
+      "generation_mismatch": "The search index changed version and this document cannot be mixed with it. Tell whoever administers the system.",
+      "interrupted": "Processing was interrupted (the application was closed). Delete it and upload it again.",
+      "internal": "An error occurred while processing it. Delete it and try again."
+    },
+    "showText": "View the extracted text",
+    "hideText": "Hide the text",
+    "textHelp": "This is the text as the system read it, part by part. Check it before relying on it: if something is missing here, the assistant will not see it either.",
+    "noUnits": "There is no text to show.",
+    "ask": "Ask about this document",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete the document? Its text is erased; conversations that cited it keep the name of the citation but can no longer open it.",
+    "errors": {
+      "tooLarge": "The file is larger than 25 MB.",
+      "unsupported": "That kind of file cannot be read. Use PDF, Word (.docx) or plain text.",
+      "busy": "Too many requests. Wait a moment and try again.",
+      "matter": "The matter is no longer available. Choose another or upload it without a matter.",
+      "generic": "The document could not be uploaded. Try again."
+    }
   }
 }

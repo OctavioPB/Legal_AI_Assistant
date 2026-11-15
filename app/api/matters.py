@@ -310,8 +310,9 @@ def update_matter(
 
 @router.delete("/{matter_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_matter(matter_id: uuid.UUID, p: PrincipalDep, st: StateDep) -> Response:
-    """Deletes the matter, its notes, saved sources and memberships. Conversations and reports are
-    NOT deleted: they go back to being private to their authors."""
+    """Deletes the matter, its notes, saved sources, memberships and its uploaded files (ADR-025:
+    a matter's file must never fall back to the whole firm). Conversations and reports are NOT
+    deleted: they go back to being private to their authors."""
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
         _matter(conn, matter_id, owner=True)
         conn.execute(text("DELETE FROM matters WHERE id = :id"), {"id": matter_id})

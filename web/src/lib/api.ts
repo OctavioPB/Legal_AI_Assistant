@@ -483,6 +483,60 @@ export const deleteReport = async (id: string) => {
   await send(`verify/reports/${encodeURIComponent(id)}`, "DELETE");
 };
 
+// ---- firm documents (ADR-025) ------------------------------------------------------------------
+export const FILE_KINDS = ["contrato", "escrito", "resolucion", "norma", "otro"] as const;
+export type FileKind = (typeof FILE_KINDS)[number];
+export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+
+export interface ClientFile {
+  id: string;
+  title: string;
+  kind: FileKind;
+  language: "es" | "en";
+  jurisdiction_id: number;
+  matter_id: string | null;
+  status: "processing" | "ready" | "failed";
+  error_key: string | null;
+  pages: number | null;
+  chunk_count: number | null;
+  source_format: "pdf" | "docx" | "text";
+  created_at: string;
+  mine: boolean;
+  uploaded_by_name: string;
+  can_delete: boolean;
+}
+
+export interface FileUnit {
+  cite_id: string;
+  citation_string: string;
+  text: string;
+}
+
+export interface NewFile {
+  title: string;
+  kind: FileKind;
+  language: "es" | "en";
+  jurisdiction_id: number;
+  matter_id: string | null;
+}
+
+export const listFiles = () => json<ClientFile[]>("files");
+export const getFileText = (id: string) => json<FileUnit[]>(`files/${encodeURIComponent(id)}/text`);
+export const deleteFile = async (id: string) => {
+  await send(`files/${encodeURIComponent(id)}`, "DELETE");
+};
+/** The bytes go as `application/octet-stream`: the API recognises the format by content. */
+export async function uploadFile(meta: NewFile, file: Blob): Promise<ClientFile> {
+  const q = new URLSearchParams({ title: meta.title, kind: meta.kind, language: meta.language, jurisdiction_id: String(meta.jurisdiction_id) });
+  if (meta.matter_id) q.set("matter_id", meta.matter_id);
+  const res = await fetch(`/api/v1/files?${q.toString()}`, { method: "POST", headers: { "content-type": "application/octet-stream" }, body: file });
+  if (!res.ok) {
+    const err: { code?: string } = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, err.code ?? "error");
+  }
+  return (await res.json()) as ClientFile;
+}
+
 // ---- 6. reforms (ADR-017) ----------------------------------------------------------------------
 export interface Alert {
   where: "conversation" | "matter_source" | "report";

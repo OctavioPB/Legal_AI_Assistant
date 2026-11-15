@@ -9,8 +9,15 @@ export interface Route {
   pattern: RegExp;
   stream?: boolean;
   query?: Record<string, Param>; // the query parameters forwarded (only where the API reads them)
-  body?: "json" | "pdf"; // request body type (default json); a PDF has its own size cap
+  body?: BodyKind; // request body type (default json); binary bodies have their own size cap
 }
+
+export type BodyKind = "json" | "pdf" | "file";
+export const BODY_TYPE: Record<BodyKind, string> = {
+  json: "application/json",
+  pdf: "application/pdf",
+  file: "application/octet-stream", // ADR-025: a PDF, .docx or text file; the API reads the content
+};
 
 const UUID_RE = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 const LAW = "[A-Za-z0-9_]{1,64}";
@@ -24,6 +31,7 @@ const text =
   (max: number): Param =>
   (v) =>
     v ? v.slice(0, max) : null;
+const digits: Param = (v) => (/^[1-9][0-9]{0,8}$/.test(v) ? v : null);
 const ltree: Param = (v) => (/^[a-z0-9_]+(\.[a-z0-9_]+){0,15}$/.test(v) && v.length <= 300 ? v : null);
 
 const r = (method: Route["method"], path: string, extra: Partial<Route> = {}): Route => ({
@@ -69,6 +77,21 @@ export const ALLOWED: Route[] = [
   r("GET", "reforms"),
   r("GET", "reforms/alerts"),
   r("GET", `reforms/${UUID_RE}`),
+  // ADR-025: the firm's own documents
+  r("GET", "files", { query: { matter: uuid } }),
+  r("POST", "files", {
+    body: "file",
+    query: {
+      title: text(200),
+      kind: oneOf("contrato", "escrito", "resolucion", "norma", "otro"),
+      language: oneOf("es", "en"),
+      jurisdiction_id: digits,
+      matter_id: uuid,
+    },
+  }),
+  r("GET", `files/${UUID_RE}`),
+  r("GET", `files/${UUID_RE}/text`),
+  r("DELETE", `files/${UUID_RE}`),
   // ADR-024: model profiles and the firm's opt-in for remote models (the API checks the admin role)
   r("GET", "models"),
   r("POST", "models/policy"),
@@ -92,11 +115,11 @@ export function forwardedQuery(search: string, route?: Route): string {
 
 /** CSRF guard for state-changing requests to our own route handlers. A cross-site
  *  `<form enctype="text/plain">` can smuggle a valid JSON body (login CSRF: the victim ends up in
- *  the attacker's account). Requiring a JSON (or PDF) content type forces a CORS preflight we never
+ *  the attacker's account). Requiring a JSON (or PDF / octet-stream) content type forces a CORS preflight we never
  *  grant; the Fetch-Metadata / Origin checks reject what a browser marks as cross-site. */
-export function isSameOriginJson(headers: Headers, type: "json" | "pdf" = "json"): boolean {
+export function isSameOriginJson(headers: Headers, type: BodyKind = "json"): boolean {
   const got = (headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
-  if (got !== (type === "pdf" ? "application/pdf" : "application/json")) return false;
+  if (got !== BODY_TYPE[type]) return false;
   const site = headers.get("sec-fetch-site");
   if (site && site !== "same-origin" && site !== "none") return false;
   const origin = headers.get("origin");

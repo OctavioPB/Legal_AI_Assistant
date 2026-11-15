@@ -30,6 +30,9 @@ class SessionContext(BaseModel):
     municipality: str | None = None
     language: Literal["es", "en"] = "es"
     include_historical: bool = False  # temporal queries set this explicitly (jurisdictions.md)
+    # ADR-025: the matter the conversation belongs to. The firm's files of THAT matter (and the
+    # files that belong to no matter) are searched; another matter's files never are.
+    matter_id: uuid.UUID | None = None
 
 
 def load_session_context(
@@ -39,6 +42,7 @@ def load_session_context(
     *,
     language: Literal["es", "en"] = "es",
     include_historical: bool = False,
+    matter_id: uuid.UUID | None = None,
 ) -> SessionContext:
     row = conn.execute(
         text("SELECT country, level, state_code, municipality FROM jurisdictions WHERE id = :i"),
@@ -55,4 +59,5 @@ def load_session_context(
         municipality=row.municipality,
         language=language,
         include_historical=include_historical,
+        matter_id=matter_id,
     )

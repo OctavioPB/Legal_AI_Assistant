@@ -7,6 +7,10 @@ Stacking goes UP and never sideways:
   federal   -> federal only
 always within the session's country, `is_current` unless the session asks for history, and
 navigation chunks (índices) excluded.
+
+ADR-025, same hard pre-filter: a chunk that belongs to a matter (a client file) is searched only by
+a session of THAT matter. RLS already hides other people's matters; this keeps one client's file
+out of another client's conversation even when the lawyer is a member of both.
 """
 
 from __future__ import annotations
@@ -41,4 +45,9 @@ def build_jurisdiction_predicate(ctx: SessionContext, *, alias: str = "chunks") 
     parts = [f"{a}.country = :j_country", "(" + " OR ".join(scopes) + ")", f"NOT {a}.is_navigation"]
     if not ctx.include_historical:
         parts.append(f"{a}.is_current")
+    if ctx.matter_id is None:
+        parts.append(f"{a}.matter_id IS NULL")
+    else:
+        params["j_matter"] = str(ctx.matter_id)  # a string: the predicate is logged as JSON
+        parts.append(f"({a}.matter_id IS NULL OR {a}.matter_id = CAST(:j_matter AS uuid))")
     return Predicate(" AND ".join(parts), params)

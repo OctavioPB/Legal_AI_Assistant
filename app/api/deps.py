@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Request, status
@@ -16,12 +18,34 @@ from app.orchestration.resilient import TenantUserLimits
 from app.settings import Settings
 
 
+class InlineJobs:
+    """Runs a job in the caller's thread: tests, and anything that must finish before returning."""
+
+    def submit(self, job: Callable[[], None]) -> None:
+        job()
+
+
+class WorkerJobs:
+    """ONE background thread (ADR-025): parsing and embedding a file are CPU-heavy on a local
+    machine, so uploads queue behind each other instead of starving the answers."""
+
+    def __init__(self) -> None:
+        self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="client-files")
+
+    def submit(self, job: Callable[[], None]) -> None:
+        self._pool.submit(job)
+
+    def shutdown(self) -> None:
+        self._pool.shutdown(wait=False, cancel_futures=True)
+
+
 @dataclass
 class AppState:
     settings: Settings
     engine: Engine  # the application role: DML under RLS, never DDL
     chat: ChatDeps
     limits: TenantUserLimits
+    jobs: InlineJobs | WorkerJobs = field(default_factory=InlineJobs)
 
 
 def state(request: Request) -> AppState:
