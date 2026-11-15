@@ -52,6 +52,13 @@ function SourceBody({ source }: { source: Source }) {
   const t = useTranslations("viewer");
   const tc = useTranslations("reforms.change");
   const at = source.article_text.indexOf(source.text);
+  const markRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    // Brand.md 11.4: the article opens scrolled to the cited passage (inside its own scroll box)
+    const mark = markRef.current;
+    const box = mark?.closest(".viewer-article");
+    if (mark && box instanceof HTMLElement) box.scrollTop = Math.max(0, mark.offsetTop - box.offsetTop - 24);
+  }, [source.cite_id]);
   const before = at >= 0 ? source.article_text.slice(0, at) : "";
   const after = at >= 0 ? source.article_text.slice(at + source.text.length) : "";
   return (
@@ -92,7 +99,7 @@ function SourceBody({ source }: { source: Source }) {
         {at >= 0 ? (
           <>
             {before}
-            <mark className="cited-passage" aria-label={t("citedText")}>
+            <mark ref={markRef} className="cited-passage" aria-label={t("citedText")}>
               {source.text}
             </mark>
             {after}

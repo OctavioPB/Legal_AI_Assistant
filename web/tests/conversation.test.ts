@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Message } from "../src/lib/api";
-import { closingKind, conversationSources, splitClosingList, titleFrom } from "../src/lib/conversation";
+import { plainWithNumbers } from "../src/lib/answer";
+import { closingKind, conversationSources, sourceNumbers, splitClosingList, titleFrom } from "../src/lib/conversation";
+import { DRAFT_TTL_MS, saveDraft, takeDraft } from "../src/lib/draft";
 import { forwardedQuery, match } from "../src/lib/proxy";
 
 const msg = (seq: number, role: "user" | "assistant", cites: string[] = [], status: Message["status"] = role === "assistant" ? "answered" : null): Message => ({
@@ -20,10 +22,44 @@ describe("titleFrom", () => {
   });
 });
 
-describe("conversationSources", () => {
-  it("lists each cited id once, newest answer first, ignoring refusals and user turns", () => {
+describe("conversationSources (Brand.md 11.3: one number per source in the whole conversation)", () => {
+  it("lists each cited id once, in order of first appearance, ignoring refusals and user turns", () => {
     const m = [msg(1, "user"), msg(2, "assistant", ["A", "B"]), msg(3, "user"), msg(4, "assistant", ["C"], "refused"), msg(5, "user"), msg(6, "assistant", ["B", "D"])];
-    expect(conversationSources(m).map((c) => c.cite_id)).toEqual(["B", "D", "A"]);
+    const sources = conversationSources(m);
+    expect(sources.map((c) => c.cite_id)).toEqual(["A", "B", "D"]);
+    // a later answer citing B again keeps B's number: the panel and the answers agree
+    expect([...sourceNumbers(sources)]).toEqual([["A", 1], ["B", 2], ["D", 3]]);
+  });
+});
+
+describe("plainWithNumbers (Copiar con citas)", () => {
+  it("replaces citations by their numbers, keeps unknown ids and drops bold markers", () => {
+    const n = new Map([["X-1", 1], ["X-2", 2]]);
+    const out = plainWithNumbers("**Causa** grave [cite: X-1; X-2]. Otra [cite: Z-9].", (id) => n.get(id));
+    expect(out).toBe("Causa grave [1, 2]. Otra [Z-9].");
+  });
+});
+
+describe("start-page draft (Brand.md 11.2)", () => {
+  const store = new Map<string, string>();
+  const g = globalThis as unknown as { window: { sessionStorage: Storage } };
+  g.window = {
+    sessionStorage: {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+      removeItem: (k: string) => void store.delete(k),
+    } as Storage,
+  };
+  it("is read once, only by the workspace of its kind, and only while fresh", () => {
+    const now = 1_000_000;
+    saveDraft({ kind: "chat", text: "¿art. 47?", matter: null, model: "qwen", at: now });
+    expect(takeDraft("research", now)).toBeNull(); // another workspace: dropped, never re-routed
+    expect(takeDraft("chat", now)).toBeNull();
+    saveDraft({ kind: "chat", text: "¿art. 47?", matter: null, model: "qwen", at: now });
+    expect(takeDraft("chat", now + 1000)?.model).toBe("qwen");
+    expect(takeDraft("chat", now + 1000)).toBeNull(); // already taken
+    saveDraft({ kind: "case", text: "hechos", matter: null, model: null, at: now });
+    expect(takeDraft("case", now + DRAFT_TTL_MS + 1)).toBeNull(); // stale
   });
 });
 

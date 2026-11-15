@@ -59,9 +59,9 @@ check("a wrong password shows the generic message", (await page.locator(".form-s
 await page.getByLabel("Contraseña", { exact: true }).fill(creds.password);
 await page.getByRole("button", { name: "Entrar" }).click();
 await page.waitForURL(`${BASE}/`);
-await page.locator(".home-tile").first().waitFor();
-check("login lands on the start page", (await page.locator(".home-tiles:not(.home-tools) .home-tile").count()) === 3);
-await page.locator(".home-tile", { hasText: "Conversar" }).click();
+await page.locator(".mesa").waitFor();
+check("login lands on the start page (one box, three modes)", (await page.locator(".mesa-mode").count()) === 3);
+await page.getByRole("navigation", { name: "Secciones" }).getByRole("link", { name: "Conversar" }).click();
 await page.getByRole("heading", { name: "Conversar", level: 1 }).waitFor();
 await page.getByRole("button", { name: "Cambiar" }).click(); // the scope selectors are folded by default
 const cookies = await page.context().cookies();
@@ -93,11 +93,12 @@ const refused = (await turn.locator(".refusal").count()) > 0;
 check("the query ends in an answer or a refusal, never an error", answered || refused, answered ? "answered" : refused ? "refused" : "error shown");
 check("the conversation keeps its fixed scope as read-only chips", (await page.locator(".scope-summary").innerText()).includes("Laboral"));
 if (answered) {
-  const chips = turn.locator(".chip");
-  check("the answer carries verified citation chips", (await chips.count()) >= 1, `${await chips.count()} chips`);
-  const label = await chips.first().innerText();
-  check("a chip shows the citation string, not the raw id", /art\.|Art|§/i.test(label) && !/^MX-|^US-/.test(label.trim()), label.trim().slice(0, 70));
-  check("the sources panel lists what the conversation cited", (await page.locator(".sources-panel .chip").count()) >= 1);
+  const chips = turn.locator(".cite-mark");
+  check("the answer carries numbered verified citations (Brand.md 11.3)", (await chips.count()) >= 1, `${await chips.count()} marks`);
+  const label = (await chips.first().getAttribute("aria-label")) ?? "";
+  check("a citation's name is the citation string, not the raw id", /art\.|Art|§/i.test(label) && !/MX-|US-/.test(label), label.slice(0, 70));
+  check("the answer says what the system checked", (await turn.locator(".verify-strip").innerText()).includes("comprobada"));
+  check("the sources panel lists what the conversation cited, numbered, with an excerpt", (await page.locator(".sources-panel .source-card").count()) >= 1 && (await page.locator(".sources-panel .source-num").first().innerText()) === "1");
   await axe("answer in a conversation");
   await chips.first().click();
   await page.locator("dialog.viewer[open]").waitFor();

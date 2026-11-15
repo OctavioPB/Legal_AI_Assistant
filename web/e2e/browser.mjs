@@ -95,15 +95,22 @@ page.on("pageerror", (e) => consoleErrors.push(String(e)));
 // ---- home, default locale ------------------------------------------------------------------
 await page.goto(`${BASE}/`);
 const welcome = () => page.locator(".welcome h2").innerText();
-check("the start page explains the three workspaces, in es-MX by default", (await page.locator(".home-tiles:not(.home-tools) .home-tile").count()) === 3 && (await page.locator("h1").innerText()).includes("hacer hoy"));
-check("the start page says how an answer is built", (await page.locator(".home-steps li").count()) === 4);
-check("the start page lists the four tools", (await page.locator(".home-tools .home-tile").count()) === 4);
+await page.locator(".mesa").waitFor();
+check("the start page is one box with three modes, in es-MX by default (Brand.md 11.2)", (await page.locator(".mesa-mode").count()) === 3 && (await page.locator("h1").innerText()).includes("resolver hoy"));
+check("the start page says it answers only from the loaded laws", (await page.locator(".home-trust").innerText()).includes("cita cada fuente"));
+check("recent work says when there is none yet", (await page.locator(".recent").innerText()).includes("trabajo reciente"));
 check("an amendment that touches the user's work raises a banner on the start page", (await page.locator(".alert-banner").innerText()).includes("1 citas"));
 check("html lang is es-MX", (await page.getAttribute("html", "lang")) === "es-MX");
-await page.locator(".home-tile", { hasText: "Conversar" }).click();
-await page.waitForURL(/\/conversar$/);
+await page.getByLabel("Argumentar un caso").check();
+check("the box relabels itself for the chosen mode", (await page.locator(".mesa-label").innerText()) === "Hechos del caso");
+await page.getByLabel("Hechos del caso").fill("La trabajadora fue despedida sin aviso escrito.");
+await page.getByRole("button", { name: "Preparar el caso →" }).click();
+await page.waitForURL(/\/argumentar$/);
+await page.locator(".case-form").waitFor();
+check("the case facts written on the start page prefill the case form (never the URL)", (await page.getByLabel("Hechos", { exact: true }).inputValue()).includes("sin aviso escrito") && !page.url().includes("aviso"));
+await page.goto(`${BASE}/conversar`);
 await page.locator(".welcome").waitFor();
-check("a start-page tile opens its workspace", (await welcome()).includes("consultar") && (await page.locator("h1").innerText()) === "Conversar");
+check("a workspace opens with its welcome", (await welcome()).includes("consultar") && (await page.locator("h1").innerText()) === "Conversar");
 check("exactly one h1 on the workspace", (await page.locator("h1").count()) === 1);
 
 // ---- minimal configuration (non-technical users) ------------------------------------------------
@@ -125,7 +132,7 @@ await page.getByLabel("Mensaje").fill("");
 
 // ---- the three workspaces (ADR-016, Brand.md 8) ----------------------------------------------
 const nav = page.getByRole("navigation", { name: "Secciones" });
-check("the top bar links the three workspaces", (await nav.getByRole("link").allInnerTexts()).join("|") === "Conversar|Investigación|Argumentar|Leyes|Verificar|Asuntos");
+check("the side rail links home, the three workspaces and the tools (Brand.md 11.1)", (await nav.getByRole("link").allInnerTexts()).join("|") === "Inicio|Conversar|Investigación|Argumentar|Leyes|Verificar|Asuntos|Reformas");
 check("the open workspace is aria-current", (await nav.getByRole("link", { name: "Conversar" }).getAttribute("aria-current")) === "page");
 check("an empty history says so", (await page.locator(".history").innerText()).includes("Aún no hay conversaciones"));
 await nav.getByRole("link", { name: "Investigación" }).click();
@@ -245,7 +252,7 @@ for (let i = 0; i < 10; i++) {
   await page.keyboard.press("Tab");
   tabStops.push(await page.evaluate(() => document.activeElement?.textContent?.trim()));
 }
-check("the settings button is reachable by keyboard from the top bar", tabStops.includes("Ajustes"), tabStops.slice(0, 9).join(" | "));
+check("the settings button is reachable by keyboard from the side rail", tabStops.includes("Ajustes"), tabStops.slice(0, 12).join(" | "));
 await page.getByRole("button", { name: "Ajustes" }).focus();
 await page.keyboard.press("Enter");
 await page.locator("dialog.settings-dialog[open]").waitFor();
@@ -292,12 +299,12 @@ await tabReachesEverything(`/asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b`, "A
 await tabReachesEverything("/reformas", "Reformas");
 await page.goto(`${BASE}/conversar`);
 
-// ---- phone width: the top bar stays small, settings behind one button (Brand.md 8.1) ----------
+// ---- phone width: the rail becomes a band that stays small, settings behind one button (11.1) --
 await page.setViewportSize({ width: 390, height: 844 });
 await page.goto(`${BASE}/conversar`);
 await page.locator(".welcome").waitFor();
-const barHeight = await page.locator(".app-header").evaluate((e) => e.getBoundingClientRect().height);
-check("on a phone the top bar is compact", barHeight < 170, `${Math.round(barHeight)}px`);
+const barHeight = await page.locator(".app-nav").evaluate((e) => e.getBoundingClientRect().height);
+check("on a phone the navigation band takes less than a third of the screen", barHeight < 844 / 3, `${Math.round(barHeight)}px`);
 check("on a phone the history starts closed", (await page.getByRole("button", { name: "Mostrar historial" }).count()) === 1);
 const settings = page.getByRole("button", { name: "Ajustes" });
 check("on a phone language and theme stay behind 'Ajustes'", !(await page.getByRole("button", { name: "English" }).isVisible()));

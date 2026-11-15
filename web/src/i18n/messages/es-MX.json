@@ -15,7 +15,11 @@
     "settings": "Ajustes",
     "leyes": "Leyes",
     "verificar": "Verificar",
-    "asuntos": "Asuntos"
+    "asuntos": "Asuntos",
+    "home": "Inicio",
+    "work": "Trabajo",
+    "tools": "Herramientas",
+    "reformas": "Reformas"
   },
   "lang": {
     "es-MX": "Español",
@@ -91,7 +95,12 @@
     "title": "Respuesta",
     "citationsTitle": "Fuentes citadas",
     "noCitations": "Esta respuesta no cita fuentes.",
-    "gap": "Sin fuentes suficientes para esta sección."
+    "gap": "Sin fuentes suficientes para esta sección.",
+    "verified": "{count, plural, =1 {# cita comprobada} other {# citas comprobadas}} contra el texto de la ley",
+    "reasoningCount": "{count, plural, =1 {# párrafo} other {# párrafos}} de análisis propio, sin respaldo normativo",
+    "copy": "Copiar con citas",
+    "copied": "Copiado al portapapeles.",
+    "copySources": "Fuentes"
   },
   "mark": {
     "strategic": {
@@ -106,7 +115,8 @@
   "cite": {
     "verified": "Cita verificada",
     "open": "Abrir fuente",
-    "unverified": "Identificador sin verificar"
+    "unverified": "Identificador sin verificar",
+    "mark": "Fuente {n}: {label}, verificada. Abrir fuente"
   },
   "refusal": {
     "title": "Fuentes insuficientes",
@@ -173,7 +183,9 @@
     },
     "sources": {
       "title": "Fuentes citadas",
-      "empty": "Las fuentes citadas aparecerán aquí. Seleccione una para leer el texto original."
+      "empty": "Las fuentes citadas aparecerán aquí. Seleccione una para leer el texto original.",
+      "open": "Abrir texto completo",
+      "loading": "Cargando extracto…"
     },
     "chat": {
       "title": "Conversar",
@@ -287,54 +299,42 @@
     }
   },
   "home": {
-    "title": "¿Qué necesita hacer <em>hoy</em>?",
-    "intro": "Asistente de investigación jurídica que responde solo con las normas cargadas y cita cada fuente. Si no encuentra fundamento, lo dice en lugar de inventarlo.",
-    "choose": "Elija cómo quiere trabajar",
-    "conversar": {
-      "title": "Conversar",
-      "text": "Haga preguntas jurídicas y continúe con preguntas de seguimiento, como en una conversación.",
-      "when": "Úselo para dudas puntuales: «¿Qué dice la ley sobre…?»",
-      "go": "Empezar a conversar →"
+    "eyebrow": "Investigación jurídica verificable",
+    "title": "¿Qué necesita <em>resolver</em> hoy?",
+    "intro": "Responde solo con las normas cargadas y cita cada fuente. Si no encuentra fundamento, lo dice en lugar de inventarlo.",
+    "modeLegend": "Qué quiere hacer",
+    "mode": {
+      "ask": "Preguntar",
+      "research": "Investigar a fondo",
+      "case": "Argumentar un caso"
     },
-    "investigacion": {
-      "title": "Investigación",
-      "text": "Plantee un problema y reciba un expediente ordenado: planteamiento, normas aplicables, análisis y fuentes.",
-      "when": "Úselo para preparar un escrito o un memorándum; se puede exportar a PDF.",
-      "go": "Iniciar una investigación →"
+    "modeHelp": {
+      "ask": "Una respuesta breve con sus fuentes; puede seguir preguntando.",
+      "research": "Un expediente ordenado (planteamiento, normas, análisis y fuentes), exportable a PDF.",
+      "case": "Describa los hechos; después pondrá a prueba sus argumentos contra la contraparte."
     },
-    "argumentar": {
-      "title": "Argumentar",
-      "text": "Describa un caso y ponga a prueba sus argumentos: el sistema actúa como la contraparte o los fortalece.",
-      "when": "Úselo para preparar una audiencia o anticipar las objeciones del otro abogado.",
-      "go": "Trabajar un caso →"
+    "input": {
+      "ask": "Su pregunta",
+      "research": "Pregunta de investigación",
+      "case": "Hechos del caso"
     },
-    "howTitle": "Cómo funciona",
-    "step1": "Escriba su pregunta. Por omisión se consulta el derecho federal de México; puede cambiar la jurisdicción con el botón «Cambiar».",
-    "step2": "Espere la respuesta: con el modelo local tarda de 1.5 a 4 minutos. La pantalla indica en qué etapa va.",
-    "step3": "Revise las fuentes: cada cita marcada con ✓ abre el texto original de la norma con el pasaje resaltado.",
-    "step4": "Si no hay fuentes suficientes, el sistema lo indica y sugiere qué hacer. No es un error: es una garantía de que no inventa.",
-    "tools": "Herramientas",
-    "leyes": {
-      "title": "Leyes",
-      "text": "Consulte el texto de cada ley por títulos, capítulos y artículos, y compare sus versiones.",
-      "go": "Abrir el navegador →"
+    "placeholder": {
+      "ask": "p. ej. ¿Cuáles son las causas de rescisión sin responsabilidad para el patrón?",
+      "research": "p. ej. ¿Qué indemnización corresponde por despido injustificado?",
+      "case": "Hechos relevantes, en orden cronológico…"
     },
-    "verificar": {
-      "title": "Verificar citas",
-      "text": "Pegue o suba un escrito y revise si cada artículo citado existe, está vigente y dice lo que se le atribuye.",
-      "go": "Verificar un escrito →"
+    "submit": {
+      "ask": "Preguntar →",
+      "research": "Investigar →",
+      "case": "Preparar el caso →"
     },
-    "asuntos": {
-      "title": "Asuntos",
-      "text": "Agrupe conversaciones, investigaciones, casos, fuentes y notas por asunto, y compártalos con sus colegas.",
-      "go": "Ver mis asuntos →"
-    },
-    "reformas": {
-      "title": "Reformas",
-      "text": "Vea qué leyes cambiaron y qué parte de su trabajo cita disposiciones reformadas.",
-      "go": "Ver reformas →"
-    },
-    "eyebrow": "Investigación jurídica verificable"
+    "recentTitle": "Continuar donde se quedó",
+    "recentEmpty": "Aquí aparecerá su trabajo reciente.",
+    "kind": {
+      "chat": "Pregunta",
+      "research": "Investigación",
+      "case": "Caso"
+    }
   },
   "matters": {
     "title": "Asuntos",

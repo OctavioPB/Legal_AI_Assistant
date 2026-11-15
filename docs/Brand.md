@@ -357,3 +357,48 @@ Referencia de estructura: Library-RAG (misma familia de producto). Todo vive en 
   una fila (etiqueta + selector).
 - Las marcas de §3 conservan forma, ícono y rótulo; solo cambian sus colores a la paleta OPB (verde verificada,
   morado razonamiento, pizarra sin respaldo).
+
+## 11. Mesa única + Estudio (v3, 2026-11-13, elegida por el product owner)
+
+Propuestas comparadas en el lienzo "Legal AI · Propuestas de UI" (A Estudio, B Expediente, C Mesa única).
+Decisión: **C para inicio y navegación, A para la vista de la respuesta**; de B, la franja de verificación y el
+pasaje resaltado en el visor. B completa queda como un futuro modo "verificar respuesta". Sustituye a §8.0
+(inicio), §8.1 (barra superior), §8.4 (panel de fuentes) y a las partes de §10 que hablan de la barra superior,
+del inicio y de las citas en línea; el resto de §8–§10 sigue vigente.
+
+### 11.1 Navegación lateral
+- Riel `--nav-bg` a la izquierda (16 rem; ≤ 64 rem pasa arriba como banda que se envuelve). Arriba el wordmark;
+  luego **Inicio**, el grupo "Trabajo" (Conversar · Investigación · Argumentar, sangrados, abren su historial) y
+  las herramientas (Leyes · Verificar · Asuntos · Reformas); al pie, "Ajustes" (diálogo de §10).
+- Cada enlace ≥ 44 px, ícono de trazo + texto; activo: fondo blanco al 12 %, peso 600, `aria-current="page"`.
+  En `/login` no hay riel: solo la banda con el wordmark y "Ajustes".
+
+### 11.2 Inicio = una sola caja
+- Héroe azul con rejilla de 48 px: etiqueta, `h1` "¿Qué necesita *resolver* hoy?" y una tarjeta blanca con:
+  modo (grupo de radios en pastillas: **Preguntar · Investigar a fondo · Argumentar un caso**), el texto (su
+  etiqueta cambia con el modo: pregunta / pregunta de investigación / hechos del caso), el ámbito en una línea con
+  "Cambiar" (§8.0), el asunto (si hay) y el modelo en su forma compacta (selector + aviso de §9.6 si es
+  externo), y el botón oro "Preguntar → / Investigar → / Preparar el caso →".
+- Enviar abre el espacio de ese modo y **ahí** corre el turno (Preguntar, Investigar) o se precarga el formulario
+  del caso con los hechos (Argumentar: falta la parte, que se elige allí). El texto viaja en `sessionStorage`,
+  una sola vez, nunca en la URL.
+- Debajo: el aviso de reformas (§9.4) y "Continuar donde se quedó": hasta 6 tarjetas del trabajo reciente de los
+  tres tipos, cada una con su rótulo (Pregunta / Investigación / Caso, borde superior azul / oro / morado),
+  título y "N mensajes · fecha".
+
+### 11.3 Respuesta (Estudio)
+- Columna de lectura centrada (≤ 46 rem); respuesta en sans 1.0625 rem, interlineado 1.75. El turno del usuario
+  sigue como burbuja a la derecha (§10).
+- **Citas en línea = números**: un botón pequeño en superíndice (`--accent-ink` sobre oro claro, nombre accesible
+  "Fuente N: {cita}, verificada") que abre el visor. El número es el de la fuente en la conversación entera
+  (orden de primera aparición), el mismo del panel. En el PDF del expediente siguen la cita y su nota (§8.5).
+- **Franja de verificación** sobre cada respuesta: "✓ N citas comprobadas contra el texto de la ley" (verde
+  verificada) y, si hay marcas de §3, "· M párrafos de análisis propio, sin respaldo normativo". Cuenta solo lo
+  que el sistema comprobó; nunca "N de M afirmaciones" (el sistema no sabe cuántas afirmaciones hay).
+- Acciones bajo la respuesta: "Copiar con citas" (texto + lista numerada de fuentes).
+- **Panel de fuentes:** tarjetas numeradas (número en oro claro, cita en `--primary` 600, extracto del texto en
+  la serif legal, máx. 4 renglones, y "Abrir texto completo"). Investigación conserva su lista por expediente.
+
+### 11.4 Visor de fuentes (de B)
+- El pasaje citado se resalta con fondo oro claro (`--accent` al 22 % sobre `--surface`) dentro del artículo completo y el visor se
+  desplaza hasta él al abrirse.

@@ -18,6 +18,20 @@ export function CitationChip({ citeId, label, onOpen }: { citeId: string; label:
   );
 }
 
+/** Brand.md 11.3: a verified citation inside the answer text, as its source number (the same number
+ *  as in the sources panel). The citation string is its accessible name and tooltip, and is printed. */
+export function CiteMark({ citeId, n, label, onOpen }: { citeId: string; n: number; label: string; onOpen: (id: string) => void }) {
+  const t = useTranslations("cite");
+  return (
+    <>
+      <button type="button" className="cite-mark" title={label} aria-label={t("mark", { n, label })} onClick={() => onOpen(citeId)}>
+        {n}
+      </button>
+      <span className="print-only"> ({label})</span>
+    </>
+  );
+}
+
 /** An id that is not in the verified list: shown as plain text, never with the chip look. */
 export function UnverifiedId({ citeId }: { citeId: string }) {
   const t = useTranslations("cite");

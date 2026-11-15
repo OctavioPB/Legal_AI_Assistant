@@ -15,7 +15,11 @@
     "settings": "Settings",
     "leyes": "Laws",
     "verificar": "Verify",
-    "asuntos": "Matters"
+    "asuntos": "Matters",
+    "home": "Home",
+    "work": "Work",
+    "tools": "Tools",
+    "reformas": "Amendments"
   },
   "lang": {
     "es-MX": "Español",
@@ -91,7 +95,12 @@
     "title": "Answer",
     "citationsTitle": "Cited sources",
     "noCitations": "This answer cites no sources.",
-    "gap": "Not enough sources for this section."
+    "gap": "Not enough sources for this section.",
+    "verified": "{count, plural, =1 {# citation checked} other {# citations checked}} against the text of the law",
+    "reasoningCount": "{count, plural, =1 {# paragraph} other {# paragraphs}} of own analysis, without normative support",
+    "copy": "Copy with citations",
+    "copied": "Copied to the clipboard.",
+    "copySources": "Sources"
   },
   "mark": {
     "strategic": {
@@ -106,7 +115,8 @@
   "cite": {
     "verified": "Verified citation",
     "open": "Open source",
-    "unverified": "Unverified identifier"
+    "unverified": "Unverified identifier",
+    "mark": "Source {n}: {label}, verified. Open source"
   },
   "refusal": {
     "title": "Insufficient sources",
@@ -173,7 +183,9 @@
     },
     "sources": {
       "title": "Cited sources",
-      "empty": "Cited sources will appear here. Select one to read the original text."
+      "empty": "Cited sources will appear here. Select one to read the original text.",
+      "open": "Open full text",
+      "loading": "Loading excerpt…"
     },
     "chat": {
       "title": "Chat",
@@ -287,54 +299,42 @@
     }
   },
   "home": {
-    "title": "What do you need to do <em>today</em>?",
-    "intro": "A legal research assistant that answers only from the loaded laws and cites every source. When it finds no basis, it says so instead of making it up.",
-    "choose": "Choose how you want to work",
-    "conversar": {
-      "title": "Chat",
-      "text": "Ask legal questions and continue with follow-up questions, as in a conversation.",
-      "when": "Use it for specific questions: “What does the law say about…?”",
-      "go": "Start a chat →"
+    "eyebrow": "Verifiable legal research",
+    "title": "What do you need to <em>solve</em> today?",
+    "intro": "It answers only from the loaded laws and cites every source. When it finds no basis, it says so instead of making it up.",
+    "modeLegend": "What you want to do",
+    "mode": {
+      "ask": "Ask",
+      "research": "Research in depth",
+      "case": "Argue a case"
     },
-    "investigacion": {
-      "title": "Research",
-      "text": "State a problem and get an organized dossier: the issue, the applicable law, analysis and sources.",
-      "when": "Use it to prepare a brief or a memo; it can be exported to PDF.",
-      "go": "Start a research →"
+    "modeHelp": {
+      "ask": "A short answer with its sources; you can keep asking.",
+      "research": "An organized dossier (issue, laws, analysis and sources), exportable to PDF.",
+      "case": "Describe the facts; then test your arguments against opposing counsel."
     },
-    "argumentar": {
-      "title": "Argue",
-      "text": "Describe a case and test your arguments: the system acts as opposing counsel or strengthens them.",
-      "when": "Use it to prepare a hearing or anticipate the other lawyer's objections.",
-      "go": "Work on a case →"
+    "input": {
+      "ask": "Your question",
+      "research": "Research question",
+      "case": "Facts of the case"
     },
-    "howTitle": "How it works",
-    "step1": "Write your question. By default it searches Mexican federal law; you can change the jurisdiction with the “Change” button.",
-    "step2": "Wait for the answer: with the local model it takes 1.5 to 4 minutes. The screen shows the current stage.",
-    "step3": "Check the sources: every citation marked with ✓ opens the original text of the law with the passage highlighted.",
-    "step4": "If there are not enough sources, the system says so and suggests what to do. It is not an error: it guarantees nothing is made up.",
-    "tools": "Tools",
-    "leyes": {
-      "title": "Laws",
-      "text": "Read each law by titles, chapters and articles, and compare its versions.",
-      "go": "Open the navigator →"
+    "placeholder": {
+      "ask": "e.g. What are the grounds for termination without liability for the employer?",
+      "research": "e.g. What severance applies to an unjustified dismissal?",
+      "case": "Relevant facts, in chronological order…"
     },
-    "verificar": {
-      "title": "Verify citations",
-      "text": "Paste or upload a brief and check that each cited article exists, is current and says what is attributed to it.",
-      "go": "Verify a brief →"
+    "submit": {
+      "ask": "Ask →",
+      "research": "Research →",
+      "case": "Prepare the case →"
     },
-    "asuntos": {
-      "title": "Matters",
-      "text": "Group chats, research, cases, sources and notes by matter, and share them with your colleagues.",
-      "go": "See my matters →"
-    },
-    "reformas": {
-      "title": "Amendments",
-      "text": "See which laws changed and which part of your work cites amended provisions.",
-      "go": "See amendments →"
-    },
-    "eyebrow": "Verifiable legal research"
+    "recentTitle": "Pick up where you left off",
+    "recentEmpty": "Your recent work will appear here.",
+    "kind": {
+      "chat": "Question",
+      "research": "Research",
+      "case": "Case"
+    }
   },
   "matters": {
     "title": "Matters",

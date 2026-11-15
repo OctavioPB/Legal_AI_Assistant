@@ -2119,3 +2119,442 @@ input[type="checkbox"] {
 .checks td:nth-child(2) {
   white-space: nowrap;
 }
+
+/* ---- 5. Brand.md v3 (section 11, 2026-11-13): side rail, single-box start page, reading view ---- */
+/* 11.1 Shell: navy side rail | content. The login page keeps the top band (no rail). */
+.app-shell {
+  flex: 1;
+  display: flex;
+  min-height: 100dvh;
+}
+.app-shell:has(> .app-header) {
+  flex-direction: column;
+}
+.app-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.app-nav {
+  flex: 0 0 15rem;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-3);
+  color: #ffffff;
+  background:
+    linear-gradient(90deg, #003366, #c8982a) top / 100% 3px no-repeat,
+    var(--nav-bg);
+}
+.app-nav .wordmark {
+  padding: 0 var(--space-2);
+  font-size: 1.25rem;
+}
+.app-nav :focus-visible {
+  outline-color: #e8c46a;
+}
+.nav-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-group {
+  margin: var(--space-4) 0 var(--space-1);
+  padding: 0 var(--space-3);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a9c1da;
+}
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-link,
+.app-nav .settings-open {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #d3e3f4;
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+.nav-link:hover,
+.app-nav .settings-open:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.nav-link[aria-current="page"] {
+  color: #ffffff;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 3px 0 0 #c8982a;
+}
+.nav-icon {
+  flex: none;
+}
+.app-nav .settings-open {
+  margin-top: auto;
+  width: 100%;
+}
+.app-header .nav-icon {
+  display: none;
+}
+@media (max-width: 64rem) {
+  /* a band: wordmark and "Ajustes" on the first row, every link on ONE scrollable row below */
+  .app-shell {
+    flex-direction: column;
+  }
+  .app-nav {
+    flex: none;
+    position: static;
+    height: auto;
+    overflow: visible;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4) var(--space-2);
+  }
+  .nav-groups {
+    order: 3;
+    flex: 1 1 100%;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .nav-list {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+  .nav-link {
+    white-space: nowrap;
+  }
+  .nav-group {
+    display: none;
+  }
+  .app-nav .settings-open {
+    margin: 0 0 0 auto;
+    width: auto;
+  }
+}
+.mesa-options .field-inline {
+  flex-wrap: wrap;
+}
+.mesa-options select {
+  max-width: 100%;
+  min-width: 0;
+}
+@media print {
+  .app-nav {
+    display: none !important;
+  }
+}
+
+/* 11.2 Start page: one box for every kind of work */
+.home {
+  max-width: none;
+  padding: 0;
+  gap: 0;
+}
+.home-hero {
+  border-radius: 0;
+  padding: 3.5rem var(--space-6) 4rem;
+}
+.home-hero-inner,
+.home-below {
+  width: 100%; /* auto margins in a flex column would shrink it to its content */
+  max-width: 54rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.home-below {
+  padding: var(--space-8) var(--space-6);
+  gap: var(--space-8);
+}
+.home-hero h1 {
+  margin: 0;
+}
+.mesa {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 18px;
+  padding: var(--space-4) var(--space-6);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.home-hero .mesa p {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+.mesa-modes {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.mesa-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.mesa-mode:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.mesa-mode-on {
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+}
+.mesa-mode input {
+  accent-color: #c8982a; /* the radio dot, not text (accent never colours text, Brand.md 1) */
+}
+.mesa-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+.mesa-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.mesa-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-3);
+}
+.mesa-options .field {
+  margin-bottom: 0;
+}
+.mesa-row {
+  display: flex;
+  justify-content: flex-end;
+}
+.button-accent {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+.home-hero .home-trust {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #d3e3f4;
+}
+.recent h2 {
+  font-size: 1.5rem;
+}
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-3);
+}
+.recent-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--primary);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+.recent-card[data-kind="research"] {
+  border-top: 3px solid var(--accent);
+}
+.recent-card[data-kind="case"] {
+  border-top: 3px solid var(--reasoning-fg);
+}
+.recent-card:hover {
+  transform: translateY(-2px);
+}
+.recent-kind {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.recent-card[data-kind="research"] .recent-kind {
+  color: var(--accent-ink);
+}
+.recent-card[data-kind="case"] .recent-kind {
+  color: var(--reasoning-fg);
+}
+.recent-title {
+  font-weight: 600;
+}
+.model-compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* 11.3 Reading view: a centred column, numbers for citations, what the system checked */
+.workbench-main {
+  max-width: 48rem;
+}
+.answer .answer-text,
+.answer li {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.cite-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35em;
+  margin: 0 1px 0 3px;
+  padding: 2px 5px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--surface));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface)); /* >= 4.5:1 for the small gold-ink number */
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: super;
+  cursor: pointer;
+}
+.cite-mark:hover {
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+}
+.verify-strip {
+  margin: 0 0 var(--space-2);
+  font-size: 0.8125rem;
+}
+.verify-ok {
+  display: inline-block;
+  padding: 2px var(--space-3);
+  border-radius: 999px;
+  background: var(--verified-bg);
+  color: var(--verified-fg);
+  font-weight: 600;
+}
+.verify-own {
+  color: var(--reasoning-fg);
+}
+.answer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+.sources-title {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-3);
+}
+.source-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.source-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.source-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+.source-num {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface)); /* >= 4.5:1 for the small gold-ink number */
+  color: var(--accent-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.source-excerpt {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.source-open {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* 11.4 Viewer: the cited passage in light gold */
+.cited-passage {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-radius: 3px;
+}

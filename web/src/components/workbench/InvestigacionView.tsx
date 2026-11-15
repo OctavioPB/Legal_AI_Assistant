@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { Message } from "@/lib/api";
 import { titleFrom } from "@/lib/conversation";
 import { resolve } from "@/lib/jurisdiction";
+import { takeDraft } from "@/lib/draft";
 import { useCatalogs, useConversation } from "@/lib/useWorkbench";
 import { AnswerView } from "../AnswerView";
 import { RefusalCard } from "../RefusalCard";
@@ -56,6 +57,22 @@ export function InvestigacionView() {
 
   useEffect(() => {
     if (catalogs) setScope(loadScope(catalogs.rows, catalogs.personas));
+  }, [catalogs]);
+
+  // Brand.md 11.2: a question written in the start page's box runs here, once.
+  useEffect(() => {
+    if (!catalogs) return;
+    const d = takeDraft("research");
+    if (!d) return;
+    const s = loadScope(catalogs.rows, catalogs.personas);
+    const j = resolve(catalogs.rows, s.selection);
+    if (!j) return;
+    void w.send(d.text, "research", {
+      kind: "research", title: titleFrom(d.text), jurisdiction_id: j.id, persona: s.persona,
+      language: locale === "en-US" ? "en" : "es", include_historical: s.historical, matter_id: d.matter,
+      ...(d.model ? { model_profile: d.model } : {}),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the catalogs arrive
   }, [catalogs]);
 
   const pairs: { q: Message; a: Message }[] = [];

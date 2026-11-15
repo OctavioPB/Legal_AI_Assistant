@@ -25,9 +25,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} data-theme={theme === "system" ? undefined : theme}>
       <body>
         <LocaleShell initialLocale={locale}>
-          <Header initialTheme={theme} />
-          <main id="main">{children}</main>
-          <Footer />
+          {/* Brand.md 11.1: side rail | content (the login page has a top band instead) */}
+          <div className="app-shell">
+            <Header initialTheme={theme} />
+            <div className="app-content">
+              <main id="main">{children}</main>
+              <Footer />
+            </div>
+          </div>
         </LocaleShell>
       </body>
     </html>
