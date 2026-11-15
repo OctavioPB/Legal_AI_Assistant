@@ -14,6 +14,28 @@
 
 ---
 
+> **Estado de la implementación (2026-11-14).** Este documento es el diseño de referencia. Lo construido
+> lo sigue en lo esencial (Postgres como perímetro, RLS, pre-filtro jurisdiccional, citas verificadas,
+> negativa como salida de primera clase) y se aparta en los puntos siguientes. Cada uno tiene su decisión
+> en el registro de ADR (`.claude/rules/architecture.md`), que manda sobre este texto cuando difieren; las
+> notas «Implementación» de cada sección dan el detalle.
+>
+> | Diseño (este documento) | Construido | Decisión |
+> |---|---|---|
+> | Embeddings y reranker de Cohere; LLM vía proveedores | Todo local en Ollama: `bge-m3` (1024 d, ventana 8192), `gemma4:26b` y `qwen3:4b`. Claude es un perfil remoto opcional, por conversación y con permiso del despacho | ADR-014, ADR-024 |
+> | Dos flujos (Dossier Builder, Adversarial) en una pantalla | Tres espacios con conversaciones guardadas: Conversar, Investigación, Argumentar | ADR-016 |
+> | Aislamiento por despacho | Además, por **asunto**: segundo ancla `app.user_id`, miembros por asunto | ADR-018 |
+> | Expedientes del despacho en S3, procesados por Celery | Documentos del despacho: el original no se guarda, solo su texto; un hilo de fondo; visibles por asunto | ADR-025 (Proposed) |
+> | Corpus fresco como riesgo operativo (§12) | Vigilante de reformas programado, con linaje por unidad citable y alertas | ADR-017 |
+> | El modelo redacta la negativa | La negativa la escribe el sistema; cobertura estricta de citas | ADR-007, ADR-015 |
+> | Contexto = artículo padre; se citan los fragmentos recuperados | Contexto = apartado cuando existe; toda unidad mostrada es citable; las referencias explícitas se resuelven, no se rankean | ADR-020, 022, 023 |
+> | — | Herramientas sin modelo: navegador de leyes, verificador de citas de escritos | ADR-019 |
+>
+> No construido de este diseño: workers Celery, almacenamiento de objetos en uso, proxy LiteLLM desplegado
+> (los alias existen; la demo llama a Ollama), Langfuse, jurisprudencia en el corpus, juez NLI.
+
+---
+
 ## 0. Tabla de Contenidos
 
 1. [Marco Conceptual](#1-marco-conceptual)
@@ -135,6 +157,13 @@ Reglas duras en la capa API:
 2. El middleware ejecuta `SET LOCAL app.tenant_id = :tenant` en cada transacción — el RLS hace el resto (Sección 4).
 3. `persona` y `language` solo seleccionan **plantillas versionadas** del Prompt Composer; jamás se interpola texto arbitrario del usuario dentro del system prompt (Sección 9).
 
+> **Implementación (`app/rag/context.py`).** El `SessionContext` construido se arma solo desde una fila del
+> catálogo (`jurisdiction_id`) y lleva además `include_historical` (consultas temporales, explícito) y
+> `matter_id` (ADR-025: el asunto de la conversación, tomado de la conversación, nunca del texto). Jurisdicción,
+> perfil, idioma, asunto y modelo (`conversations.model_profile`, ADR-024) se fijan al crear la conversación;
+> cambiarlos es una conversación nueva, nunca una inferencia (ADR-016). El ancla de cada transacción fija
+> `app.tenant_id` y `app.user_id` juntos (ADR-018).
+
 ---
 
 ## 3. Modelo de Datos: PostgreSQL + pgvector
@@ -238,6 +267,15 @@ CREATE INDEX chunks_hnsw_idx      ON chunks USING hnsw (embedding vector_cosine_
 > usa las configuraciones `legal_es`/`legal_en` (con `unaccent`) y pondera breadcrumb (A) y texto
 > (B); `UNIQUE (country, level, state_code, municipality)` es `NULLS NOT DISTINCT`; y el catálogo
 > incluye `personas` y los nombres es/en de cada jurisdicción.
+>
+> **Implementación (migraciones 0005–0009, 2026-11-07 a 2026-11-14).** `0005` acceso de usuarios;
+> `0006` `conversations` y `messages` (ADR-016); `0007` asuntos (`matters`, `matter_members`, notas y fuentes
+> guardadas, ADR-018), reportes del verificador (ADR-019) y reformas (`corpus_changes`, `cite_lineage`,
+> ADR-017); `0008` `conversations.model_profile` y `tenant_model_policy` (ADR-024); `0009` documentos del
+> despacho (ADR-025): `documents.matter_id` (inmutable; borrar el asunto borra sus documentos),
+> `doc_nodes.matter_id` y `chunks.matter_id` derivados por disparador, y la tabla `client_files` con el
+> estado de cada carga (`processing` / `ready` / `failed`). El archivo original no tiene columna ni
+> almacén: no se guarda.
 
 Notas de diseño:
 
@@ -295,6 +333,14 @@ with engine.begin() as conn:
 > políticas implementadas son **fail-closed** (sin `app.tenant_id` no se ve nada, ni el corpus
 > público), el rol de la app nunca escribe `PUBLIC_CORPUS`, y las tablas de producto (`users`,
 > `sessions`, `dossiers`, `audit_log`) son privadas del tenant, sin lectura pública (ADR-010).
+>
+> **Segundo nivel: el asunto (ADR-018, ADR-025).** El privilegio abogado-cliente también rige dentro del
+> despacho. La misma llamada `set_config` fija `app.user_id`, y sobre la política del tenant se apilan
+> políticas RESTRICTIVE: una conversación o un reporte lo ve su autor o los miembros de su asunto; un
+> documento subido a un asunto (y sus `doc_nodes` y `chunks`) solo lo ven los miembros
+> (`matter_id IS NULL OR app_matter_visible(matter_id)`). Sin ancla de usuario esas filas no existen. Las
+> políticas son plantillas en `app/db/rls_templates.sql`; la prueba de aislamiento falla si una tabla con
+> `tenant_id` no está en su registro.
 
 ### 4.3 Por qué esto es "rock-solid" (y qué lo complementa)
 
@@ -333,6 +379,21 @@ Etapas:
 5. **Upsert idempotente.** El `checksum_sha256` del PDF y el `cite_id` versionado permiten re-ingestar reformas sin duplicar: la versión anterior se marca `is_current = false`, nunca se borra (trazabilidad histórica).
 
 Todo corre en workers Celery: la ingesta jamás compite con el path de consulta.
+
+> **Implementación.** Hay tres entradas al mismo núcleo (`store.ingest_document`: una transacción por
+> documento, misma generación de embeddings que el corpus vivo o se rechaza, invariante 5):
+>
+> | Entrada | Qué carga | Cómo corre |
+> |---|---|---|
+> | Sembrado (`app.ingestion.seed`) | Corpus público de la demo | Línea de comandos |
+> | Vigilante de reformas (`app.ingestion.watch`, ADR-017) | Versiones nuevas de las leyes, desde una lista cerrada de URL oficiales y una bandeja local | Tarea programada; única pieza con red |
+> | Documentos del despacho (`POST /files`, ADR-025) | Contratos, escritos, resoluciones o normas no cargadas, de un despacho | Un hilo de fondo; estado en `client_files` |
+>
+> Los embeddings son `bge-m3` local (ADR-014), no Cohere. Celery no está construido: es la ruta para un
+> despliegue de varios procesos. En los documentos del despacho el archivo se lee en memoria (PDF con capa de
+> texto vía Docling sin OCR, `.docx`, texto plano; se reconoce por contenido, 25 MB) y **no se conserva**:
+> se guarda el texto extraído, que es lo que una cita necesita. Consecuencia: sus citas abren el texto, no
+> una página del PDF. Un PDF escaneado falla con una causa legible (`no_text`).
 
 ### 5.2 Manejo de idioma
 
@@ -383,6 +444,17 @@ Reglas del chunker:
    se marcan `is_navigation` y se excluyen en consulta (compiten con los artículos que listan).
 6. **Jurisprudencia (SCJN / case law US):** la unidad de retrieval es el *rubro + texto* de la tesis (MX) o el *holding/syllabus point* (US); el parent es la tesis/opinión completa.
 
+> **Implementación.** (a) Umbrales 80/800 tokens contados con el tokenizer real de `bge-m3` (ADR-014).
+> (b) Una unidad dentro de un «Apartado X» se expande a ese apartado, no al artículo entero: el art. 123
+> completo mezclaba los apartados A y B y produjo una paráfrasis del apartado equivocado con la cita
+> correcta (ADR-023). (c) **Documentos que no son normas** (ADR-025, `normalizer_generic.py`): un contrato o
+> una sentencia no tienen árbol jurídico, tienen cláusulas, encabezados y párrafos. Una sección (apertura de
+> cláusula como «CUARTA.-», línea de encabezado, o un grupo acotado de párrafos sueltos, «Parte n») es la
+> unidad de contexto y cada párrafo la de retrieval; un encabezado suelto viaja con el párrafo que introduce.
+> La regla mira solo la forma de la línea, no infiere significado. Sus citas nombran la sección del propio
+> documento («Contrato», CUARTA.- PENA CONVENCIONAL, párr. 2), nunca «art.». (d) La jurisprudencia no está
+> cargada: el punto 6 sigue siendo diseño.
+
 ---
 
 ## 7. Retrieval: Hard Pre-Filtering + Hybrid Search
@@ -407,6 +479,15 @@ WHERE is_current = true
 ```
 
 Semántica de la jerarquía: seleccionar un municipio **incluye** su estado y la federación (el derecho aplicable se apila hacia arriba), pero **jamás** incluye hermanos (otro estado, otro municipio). Esta regla vive en una sola función (`build_jurisdiction_predicate`) con property tests exhaustivos — es el corazón del "cero contaminación jurisdiccional".
+
+> **Implementación.** La misma función decide dos alcances más, porque es el único lugar donde se decide
+> alcance: (a) **asunto** (ADR-025): `chunks.matter_id IS NULL`, o además el asunto de la conversación.
+> El RLS por sí solo no basta: un abogado que pertenece a dos asuntos vería el contrato del cliente A en una
+> conversación del cliente B; el predicado lo impide. Un documento del despacho se archiva bajo una
+> jurisdicción del catálogo y se apila como cualquier otra fuente. (b) **Generación de embeddings activa**
+> (invariante 5). Aparte, una referencia explícita cuya ley se nombra en la consulta («artículo 123,
+> apartado B, fracción XIII de la Constitución») se resuelve a su unidad con la gramática del verificador,
+> bajo el mismo predicado, y va primero (ADR-022): recall@8 0.90 → 1.00 en la suite golden.
 
 ### 7.3 Hybrid search: dos brazos + RRF + reranker
 
@@ -457,6 +538,11 @@ Top 6–8 chunks reranked → expansión a sus artículos padre (dedupe por `nod
 Texto íntegro del artículo...
 </fragmento>
 ```
+
+> **Implementación.** Los aciertos que comparten artículo se funden en un solo `<fragmento cite_id="…"
+> also="…">`; `also` lista toda unidad citable mostrada dentro del texto expandido, no solo las recuperadas
+> (ADR-020): si el modelo leyó la fracción II, puede citarla. El conjunto citable es exactamente lo que se
+> mostró; un acierto que no cupo en el presupuesto no es citable.
 
 ### 7.5 Filtro duro vs boost suave
 
@@ -832,6 +918,14 @@ Honestidad explícita sobre lo que este diseño **no** resuelve:
   reducen, no eliminan, ese riesgo.
 - **La ventana de entrada del embedder acota la recuperación vectorial.** Texto de un chunk más
   allá de ella no se "ve"; se mide y se registra, no se supone.
+- **Documentos del despacho (ADR-025).** Un PDF escaneado no se lee (sin OCR); de un `.docx` no se leen
+  notas al pie ni encabezados; la gramática genérica es por forma y no la ha revisado un abogado con
+  contratos y sentencias reales; τ se calibró con texto de leyes, no con prosa contractual; un documento no
+  se puede mover de asunto. El procesamiento es un hilo en el proceso de la API: si se cierra a media carga,
+  el documento queda «interrumpido» y hay que subirlo otra vez.
+- **Modelos locales (ADR-014, 015, 024).** Con cobertura estricta, el modelo local rechaza por el validador
+  respuestas correctas a las que les falta una cita en una frase (falsa negativa 1/20 con gemma, 17/20 con
+  qwen, 25 casos redactados por IA): es seguro, no siempre útil. Una respuesta tarda minutos en CPU.
 - **Costo del doble paso (generación + validación + posible regeneración):** ~1.3–1.6× el costo de un RAG ingenuo. En LegalTech ese sobrecosto *es* el producto; si el presupuesto no lo tolera, este no es el dominio correcto.
 
 ---
