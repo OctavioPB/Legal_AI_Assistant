@@ -4,6 +4,7 @@ lineage. The network is a fake: sockets are disabled in the suite."""
 
 from __future__ import annotations
 
+import dataclasses
 import io
 from datetime import date
 from pathlib import Path
@@ -154,8 +155,10 @@ def test_an_inbox_file_is_used_first_and_moved_aside(
 def test_a_source_without_official_url_is_skipped_with_instructions(
     ingestor_engine: Engine, tmp_path: Path
 ) -> None:
-    [o] = watcher(ingestor_engine, FakeFetcher({}), tmp_path).run((BY_KEY["CC_NL"],))
-    assert o.outcome == "skipped" and "inbox/CC_NL.pdf" in o.detail
+    no_url = dataclasses.replace(BY_KEY["CC_NL"], source_url=None)  # every source has one now
+    f = FakeFetcher({})
+    [o] = watcher(ingestor_engine, f, tmp_path).run((no_url,))
+    assert o.outcome == "skipped" and "inbox/CC_NL.pdf" in o.detail and f.calls == []
 
 
 def test_a_run_that_died_before_its_diff_is_backfilled(

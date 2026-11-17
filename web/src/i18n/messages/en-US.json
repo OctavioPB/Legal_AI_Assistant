@@ -471,7 +471,8 @@
       "ingested": "New version loaded",
       "failed": "Check failed",
       "blocked": "The source refused the download",
-      "skipped": "No automatic download (updated by hand)"
+      "skipped": "No automatic download (updated by hand)",
+      "indexed": "Index read"
     },
     "versions": "from version {from} to {to}",
     "published": "published on {date}",
@@ -486,6 +487,30 @@
       "derogated": "Repealed",
       "removed": "Removed",
       "added": "New"
+    },
+    "discovery": {
+      "title": "Laws in official indexes",
+      "intro": "The official list of laws in force is read every day. Reading it downloads no law: a law that is not loaded is loaded only when the system administrator approves it, because the public collection is shared by every firm.",
+      "howTo": "To load a law, the administrator of this machine runs: uv run python -m app.ingestion.discover approve {ref} --domain AREA --by NAME",
+      "lastRead": "Last read: {when}",
+      "neverRead": "Not read yet.",
+      "fresh": "New since the first read",
+      "noFresh": "No new laws since the first read.",
+      "approved": "Approved",
+      "catalog": "Full catalog ({n})",
+      "filter": "Search the catalog",
+      "noMatch": "No law matches.",
+      "lastReform": "Last reform: {text}",
+      "status": {
+        "available": "Not loaded",
+        "new": "New",
+        "approved": "Approved",
+        "dismissed": "Dismissed"
+      },
+      "loaded": "Loaded",
+      "pending": "Approved; loaded at the next check",
+      "missing": "No longer listed by the index",
+      "official": "Official document"
     }
   },
   "verify": {

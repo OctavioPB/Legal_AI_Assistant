@@ -339,6 +339,25 @@ def seed_lineage(
             ),
             {"t": tenant},
         )
+        # ADR-026: an index entry and the source an operator approved from it
+        conn.execute(
+            text(
+                "INSERT INTO corpus_index_entries (tenant_id, index_id, entry_key, title, url, "
+                "status, source_key, decided_by, decided_at) VALUES (:t, 'DIP_FED', 'LDOC', "
+                "'LEY de Prueba', 'https://example.invalid/LDOC.pdf', 'approved', 'LDOC', 'x', now())"
+            ),
+            {"t": tenant},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO corpus_sources (tenant_id, key, index_id, entry_key, title, "
+                "source_url, country, level, scope, code, language, doc_type, legal_domain, "
+                "grammar, approved_by) VALUES (:t, 'LDOC', 'DIP_FED', 'LDOC', 'Ley de Prueba', "
+                "'https://example.invalid/LDOC.pdf', 'MX', 'federal', 'FED', 'LDOC', 'es', 'ley', "
+                "ARRAY['civil'], 'mx', 'x')"
+            ),
+            {"t": tenant},
+        )
 
 
 def search_like_retrieval(conn: Connection, query: str, k: int = 50) -> list[dict[str, object]]:

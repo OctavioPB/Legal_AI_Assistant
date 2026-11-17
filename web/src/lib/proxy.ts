@@ -75,6 +75,7 @@ export const ALLOWED: Route[] = [
   // feature 6 (ADR-017): reforms and alerts
   r("GET", "reforms"),
   r("GET", "reforms/alerts"),
+  r("GET", "reforms/indexes"), // ADR-026: read only (approval is an operator's command)
   r("GET", `reforms/${UUID_RE}`),
   // ADR-025: the firm's own documents
   r("GET", "files", { query: { matter: uuid } }),

@@ -3,7 +3,17 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { getReformDetail, getReforms, listAlerts, type Alert, type LineageRow, type ReformOverview } from "@/lib/api";
+import {
+  getDiscovery,
+  getReformDetail,
+  getReforms,
+  listAlerts,
+  type Alert,
+  type Discovery,
+  type IndexEntry,
+  type LineageRow,
+  type ReformOverview,
+} from "@/lib/api";
 import { useDateTime } from "@/lib/format";
 import { SourceViewer } from "../SourceViewer";
 
@@ -111,8 +121,99 @@ export function ReformasView() {
           </table>
         )}
       </section>
+      <DiscoverySection />
       <SourceViewer citeId={viewing} onClose={() => setViewing(null)} />
     </div>
+  );
+}
+
+const fold = (s: string) =>
+  s
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+
+/** ADR-026: what the official indexes list. Read only: approving a law writes the public corpus,
+ *  shared by every firm, so it is an operator's command, never a button here. */
+function DiscoverySection() {
+  const t = useTranslations("reforms.discovery");
+  const when = useDateTime();
+  const [data, setData] = useState<Discovery | null>(null);
+  const [query, setQuery] = useState("");
+  const [showCatalog, setShowCatalog] = useState(false);
+  useEffect(() => {
+    getDiscovery()
+      .then(setData)
+      .catch(() => setData(null));
+  }, []);
+  if (!data) return null;
+  const fresh = data.entries.filter((e) => e.status === "new");
+  const approved = data.entries.filter((e) => e.status === "approved");
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  const catalog = data.entries.filter((e) => words.every((w) => fold(e.title).includes(w)));
+  return (
+    <section aria-labelledby="reform-indexes">
+      <h2 id="reform-indexes">{t("title")}</h2>
+      <p className="small muted">{t("intro")}</p>
+      {data.indexes.map((i) => (
+        <p key={i.index_id} className="small">
+          <strong>{i.title}</strong> · {i.checked_at ? t("lastRead", { when: when(i.checked_at) }) : t("neverRead")}
+        </p>
+      ))}
+      <h3>{t("fresh")}</h3>
+      {fresh.length === 0 ? <p className="small muted">{t("noFresh")}</p> : <EntryList entries={fresh} />}
+      {approved.length > 0 && (
+        <>
+          <h3>{t("approved")}</h3>
+          <EntryList entries={approved} />
+        </>
+      )}
+      {data.entries.length > 0 && (
+        <>
+          <button type="button" className="button button-quiet" aria-expanded={showCatalog} onClick={() => setShowCatalog(!showCatalog)}>
+            {t("catalog", { n: data.entries.length })}
+          </button>
+          {showCatalog && (
+            <>
+              <div className="field">
+                <label htmlFor="index-filter">{t("filter")}</label>
+                <input id="index-filter" type="search" value={query} maxLength={100} onChange={(e) => setQuery(e.target.value)} />
+              </div>
+              {catalog.length === 0 ? <p className="small muted">{t("noMatch")}</p> : <EntryList entries={catalog.slice(0, 400)} />}
+            </>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+function EntryList({ entries }: { entries: IndexEntry[] }) {
+  const t = useTranslations("reforms.discovery");
+  return (
+    <ul className="matter-items">
+      {entries.map((e) => (
+        <li key={`${e.index_id}:${e.entry_key}`}>
+          <p>
+            <strong>{e.title}</strong>{" "}
+            <span className="badge">{e.loaded ? t("loaded") : e.status === "approved" ? t("pending") : t(`status.${e.status}`)}</span>
+            {e.missing && <span className="badge badge-warn"> {t("missing")}</span>}
+          </p>
+          <p className="small muted">
+            {e.last_reform_text ? t("lastReform", { text: e.last_reform_text }) : ""}
+            {e.note ? ` · ${e.note}` : ""} ·{" "}
+            <a href={e.url} target="_blank" rel="noreferrer noopener">
+              {t("official")}
+            </a>
+          </p>
+          {!e.loaded && (e.status === "new" || e.status === "available") && (
+            <p className="small">
+              <code>{t("howTo", { ref: `${e.index_id}:${e.entry_key}` })}</code>
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
 

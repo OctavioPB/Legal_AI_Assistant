@@ -34,6 +34,8 @@ TENANT_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "corpus_changes": ("tenant_id", ("corpus",)),
     "cite_lineage": ("tenant_id", ("corpus",)),
     "source_checks": ("tenant_id", ("corpus",)),
+    "corpus_index_entries": ("tenant_id", ("corpus",)),
+    "corpus_sources": ("tenant_id", ("corpus",)),
     "users": ("tenant_id", ("private",)),
     "sessions": ("tenant_id", ("private",)),
     "dossiers": ("tenant_id", ("private",)),

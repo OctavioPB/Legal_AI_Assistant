@@ -88,12 +88,23 @@ es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
   - Un documento corto queda listo en segundos; un PDF largo, en minutos. La lista se actualiza sola. Un PDF
     escaneado (solo imágenes) no se puede leer: pase antes un OCR o suba el Word.
   - Lo elimina quien lo subió o un administrador; las conversaciones que lo citaron conservan el nombre de la cita.
-- **Reformas** (`/reformas`): el vigilante revisa las fuentes oficiales (diputados.gob.mx para LFT, CPEUM, CCF,
-  CPF); si una ley cambió, carga la nueva versión sin borrar la anterior y avisa qué conversaciones, fuentes
-  guardadas o verificaciones citan disposiciones reformadas. Las fuentes estatales/municipales y el código de
-  California no tienen descarga oficial estable: una versión nueva se deja en `data/corpus/inbox/{CLAVE}.pdf`
-  (o `.txt`). Es la única pieza con red, y solo hacia esas URL; si una fuente rechaza la descarga, se anota y
-  no se insiste.
+- **Reformas** (`/reformas`): el vigilante revisa las fuentes oficiales de las 8 leyes cargadas
+  (diputados.gob.mx para LFT, CPEUM, CCF y CPF; hcnl.gob.mx para el Código Civil de NL; monterrey.gob.mx para los
+  dos reglamentos; el archivo oficial de leginfo para el Labor Code de California, leído por partes sin
+  descargarlo completo). Si una ley cambió, carga la nueva versión sin borrar la anterior y avisa qué
+  conversaciones, fuentes guardadas o verificaciones citan disposiciones reformadas. Una versión también puede
+  dejarse a mano en `data/corpus/inbox/{CLAVE}.pdf` (o `.txt`). Es la única pieza con red, y solo hacia esas URL;
+  si una fuente rechaza la descarga, se anota y no se insiste.
+  - **Leyes nuevas (ADR-026).** También lee a diario la lista oficial de leyes federales vigentes de Diputados y
+    muestra en `/reformas` las leyes que aparecieron desde la primera lectura y el catálogo completo. Leer la
+    lista no descarga ninguna ley. Para cargar una, quien administra el equipo la aprueba:
+    `uv run python -m app.ingestion.discover list --status new` (o `--search aguas`) y
+    `uv run python -m app.ingestion.discover approve DIP_FED:LGAg --domain environmental --by "Su nombre"`.
+    La siguiente revisión la descarga y la carga; desde entonces también se vigilan sus reformas.
+    `discover dismiss DIP_FED:CLAVE --by ...` la descarta. Materias válidas: las de `LEGAL_DOMAINS` en
+    `app/ingestion/corpus.py`. El verificador de escritos aún no reconoce por nombre las leyes aprobadas así
+    (se buscan y se citan en las conversaciones, pero "art. 5 de la Ley General de Aguas" en un escrito sale como
+    ley no identificada hasta que se agregue su nombre a la gramática).
   - Al iniciar la demo se revisa en segundo plano si la última revisión tiene más de 20 h.
   - Revisión diaria (03:00, o al encender el equipo): `dev-up.ps1 -ScheduleReforms`; quitarla:
     `-UnscheduleReforms`. A mano: `dev-up.ps1 -WatchReforms -IfStaleHours 0` (`-DryRun` no escribe nada).

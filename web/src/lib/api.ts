@@ -546,6 +546,29 @@ export interface LineageRow {
   new_cite_id: string | null;
 }
 
+/** ADR-026: what an official index lists. Read only: an operator approves a law with
+ *  `python -m app.ingestion.discover approve`, never from the web. */
+export interface IndexEntry {
+  index_id: string;
+  entry_key: string;
+  title: string;
+  url: string;
+  status: "available" | "new" | "approved" | "dismissed";
+  published_on: string | null;
+  last_reform_on: string | null;
+  last_reform_text: string | null;
+  note: string | null;
+  first_seen_at: string;
+  missing: boolean;
+  loaded: boolean;
+}
+
+export interface Discovery {
+  indexes: { index_id: string; title: string; url: string; checked_at: string | null; outcome: string | null; detail: string | null }[];
+  entries: IndexEntry[];
+}
+
 export const listAlerts = () => json<Alert[]>("reforms/alerts");
 export const getReforms = () => json<ReformOverview>("reforms");
+export const getDiscovery = () => json<Discovery>("reforms/indexes");
 export const getReformDetail = (id: string) => json<LineageRow[]>(`reforms/${encodeURIComponent(id)}`);

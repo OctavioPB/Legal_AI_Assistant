@@ -344,6 +344,39 @@ below are the original one-liners and are Accepted.
   Pending: owner confirmation of (1), (3) and (7); lawyer review of the generic grammar on real contracts and
   rulings; probe sets with firm documents; OCR; moving a file between matters; footnotes of .docx files.
 
+- ADR-026 (Proposed, 2026-11-17; options A + C chosen by the product owner, the approval channel awaits
+  confirmation): Discover laws from official indexes; give every loaded source an official route. Amends ADR-017
+  (a) for the network list. Context: the watcher only followed reforms of the 8 laws loaded, 4 of them through the
+  hand-fed inbox; nothing told a lawyer that a law exists that is not loaded. Options: (A) read official indexes
+  daily and PROPOSE, a person approves; (B) discover and load automatically; (C) only add URLs for the 4 inbox
+  sources. Decision: A + C. (1) Indexes are a closed registry too (`app/ingestion/indexes.py`, today only
+  Cámara de Diputados "Leyes Federales Vigentes", 318 entries on 2026-11-17), read with the same rules as a law
+  (https, robots.txt, one request, conditional GET, a block recorded and never evaded) and parsed by
+  deterministic code; a parse with fewer than `min_entries` rows fails (`IndexLayoutError`) instead of marking the
+  catalog gone. Reading an index downloads NO law. (2) `corpus_index_entries` (public corpus): the first read files
+  everything as `available`, a later new entry is `new`, an absent one gets `missing_since` (never deleted).
+  (3) Approval: `python -m app.ingestion.discover approve INDEX:KEY --domain ... --by ...` writes
+  `corpus_sources`; jurisdiction, scope, language and grammar come from the index's closed spec, legal domains from
+  the closed `LEGAL_DOMAINS`, the doc type from the title's first word (else `--doc-type`), the cite_id code from
+  the official file name; a clash with an existing code or URL is refused. The watcher reads the static registry
+  plus `corpus_sources` and ingests an approved law's FIRST version (no lineage), then its reforms like any other.
+  Approval is an operator command, not a button: the public corpus is shared by every firm and the API's role
+  can never write it (ADR-010 c, tested); the web shows the catalog read-only (`GET /reforms/indexes`).
+  (4) C: CC_NL (hcnl.gob.mx) and both Monterrey regulations (monterrey.gob.mx) return byte-for-byte the files in
+  SHA256SUMS; robots.txt of both hosts allows those paths. California's site answers 403 to automation, so the
+  route is its official bulk directory: the newest `pubinfo_YYYY.zip` (~1.2 GB, weekly, ETag, byte ranges) is
+  checked with a HEAD daily and, when it changed, read by HTTP ranges (central directory, the 6 MB section table,
+  the code's section texts), never downloaded whole; a cache of section texts makes a weekly update re-read only
+  the changed sections (the first run reads every section once, ~2 700 requests, capped by
+  `leginfo_max_requests`). The extraction is shared with `scripts/extract_ca_code.py`, so the text matches the seed.
+  Consequences: the watcher's network list grows by one index page and three hosts; a law approved this way is
+  searchable and citable, but the brief verifier and the explicit-reference resolver (ADR-019/022) do not know its
+  NAME until a person adds it to their grammar; tau was calibrated on the current corpus (doctor warns after the
+  next ingestion, ADR-017 e). Pending: confirm the operator-only approval (alternative: a platform-admin role in
+  the web, which needs a separate privileged service); a person reviews the terms of use of hcnl.gob.mx,
+  monterrey.gob.mx and leginfo; state and municipal indexes (Periódico Oficial de NL, Gaceta Municipal de
+  Monterrey) one at a time, each after that review.
+
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →
 hybrid search (prefiltered) → RRF → rerank → τ check → parent expansion → prompt composer →

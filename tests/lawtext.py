@@ -122,15 +122,30 @@ class FakeParser:
 class FakeFetcher:
     """url -> FetchResult (or a list served in order). Records every call; never touches a socket."""
 
-    def __init__(self, routes: dict[str, FetchResult | list[FetchResult]]) -> None:
+    def __init__(
+        self,
+        routes: dict[str, FetchResult | list[FetchResult]],
+        files: dict[str, bytes] | None = None,
+        etags: dict[str, str] | None = None,
+    ) -> None:
         self.routes = routes
+        self.files = files or {}  # url -> bytes served with HEAD (size, ETag) and byte ranges
+        self.etags = etags or {}
+        self.range_calls = 0
         self.calls: list[tuple[str, str, str | None, str | None]] = []
 
     def get(
         self, url: str, *, etag: str | None = None, last_modified: str | None = None,
-        method: str = "GET",
+        method: str = "GET", byte_range: tuple[int, int] | None = None,
     ) -> FetchResult:  # fmt: skip
         self.calls.append((method, url, etag, last_modified))
+        if byte_range is not None and url in self.files:  # a file served by ranges (leginfo)
+            self.range_calls += 1
+            data = self.files[url]
+            start, end = byte_range
+            return FetchResult(206, data[start : end + 1])
+        if method == "HEAD" and url in self.files:
+            return FetchResult(200, b"", self.etags.get(url), None, size=len(self.files[url]))
         r = self.routes.get(url, FetchResult(404, error="HTTP 404"))
         if isinstance(r, list):
             return r.pop(0) if len(r) > 1 else r[0]

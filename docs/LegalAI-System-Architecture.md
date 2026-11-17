@@ -386,7 +386,7 @@ Todo corre en workers Celery: la ingesta jamás compite con el path de consulta.
 > | Entrada | Qué carga | Cómo corre |
 > |---|---|---|
 > | Sembrado (`app.ingestion.seed`) | Corpus público de la demo | Línea de comandos |
-> | Vigilante de reformas (`app.ingestion.watch`, ADR-017) | Versiones nuevas de las leyes, desde una lista cerrada de URL oficiales y una bandeja local | Tarea programada; única pieza con red |
+> | Vigilante de reformas (`app.ingestion.watch`, ADR-017/026) | Versiones nuevas de las leyes, desde una lista cerrada de URL oficiales (las 8 fuentes; California por rangos de su archivo oficial) y una bandeja local; lee a diario el índice oficial de leyes federales y propone las que no están cargadas (`app.ingestion.discover`, aprobación del operador) | Tarea programada; única pieza con red |
 > | Documentos del despacho (`POST /files`, ADR-025) | Contratos, escritos, resoluciones o normas no cargadas, de un despacho | Un hilo de fondo; estado en `client_files` |
 >
 > Los embeddings son `bge-m3` local (ADR-014), no Cohere. Celery no está construido: es la ruta para un

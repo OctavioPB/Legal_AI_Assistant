@@ -78,6 +78,9 @@ class Settings(BaseSettings):
     reform_watch_user_agent: str = "LegalAI-ReformWatcher/1.0"
     reform_watch_max_bytes: int = 60 * 1024 * 1024
     reform_alert_days: int = 365  # a reform older than this no longer raises alerts
+    # ADR-026: California's archive is read by byte ranges; the first run reads every section of
+    # the code once (~2 700 requests for the Labor Code), later runs only the changed ones.
+    leginfo_max_requests: int = 4_000
     # Retrieval experiments (golden protocol, 2026-11-08). Off by default until measured:
     # lexical_match "any" ORs the query lexemes (websearch_to_tsquery ANDs them: a natural question
     # matched nothing); rerank_breadcrumb scores breadcrumb + text, as the chunks were embedded.

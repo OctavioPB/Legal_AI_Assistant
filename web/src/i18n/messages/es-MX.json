@@ -471,7 +471,8 @@
       "ingested": "Nueva versión cargada",
       "failed": "Error al revisar",
       "blocked": "La fuente rechazó la descarga",
-      "skipped": "Sin descarga automática (se actualiza a mano)"
+      "skipped": "Sin descarga automática (se actualiza a mano)",
+      "indexed": "Índice leído"
     },
     "versions": "de la versión {from} a la {to}",
     "published": "publicada el {date}",
@@ -486,6 +487,30 @@
       "derogated": "Derogada",
       "removed": "Eliminada",
       "added": "Nueva"
+    },
+    "discovery": {
+      "title": "Leyes en índices oficiales",
+      "intro": "Cada día se lee la lista oficial de leyes vigentes. Leerla no descarga ninguna ley: una ley que no está cargada solo se carga cuando quien administra el sistema la aprueba, porque el acervo público es el mismo para todos los despachos.",
+      "howTo": "Para cargar una ley, quien administra el equipo ejecuta: uv run python -m app.ingestion.discover approve {ref} --domain MATERIA --by NOMBRE",
+      "lastRead": "Última lectura: {when}",
+      "neverRead": "Todavía no se ha leído.",
+      "fresh": "Nuevas desde la primera lectura",
+      "noFresh": "Ninguna ley nueva desde la primera lectura.",
+      "approved": "Aprobadas",
+      "catalog": "Catálogo completo ({n})",
+      "filter": "Buscar en el catálogo",
+      "noMatch": "Ninguna ley coincide.",
+      "lastReform": "Última reforma: {text}",
+      "status": {
+        "available": "No cargada",
+        "new": "Nueva",
+        "approved": "Aprobada",
+        "dismissed": "Descartada"
+      },
+      "loaded": "Cargada",
+      "pending": "Aprobada; se carga en la siguiente revisión",
+      "missing": "Ya no aparece en el índice",
+      "official": "Documento oficial"
     }
   },
   "verify": {
