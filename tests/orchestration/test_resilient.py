@@ -147,3 +147,40 @@ def test_tenant_and_user_budgets_both_apply_and_refusal_charges_nothing() -> Non
     assert limits._tenant.retry_after("t1", cost=9) > 0.0
     with pytest.raises(ValueError):
         RateLimiter(0, 1)
+
+
+def test_concurrent_requests_never_charge_the_tenant_for_a_refused_call() -> None:
+    """Regression (audit 2026-11-17): `check` read both buckets and then charged them in separate
+    steps, so two requests racing for a user's last token could both pass the read, and the loser
+    paid the tenant's token before the user bucket refused it."""
+    import threading
+
+    class SlowRead(RateLimiter):
+        """Widens the gap between reading a bucket and charging it, so the race shows every time."""
+
+        def retry_after(self, key: str, cost: float = 1.0) -> float:
+            out = super().retry_after(key, cost)
+            time.sleep(0.005)
+            return out
+
+    clock = Clock()  # frozen: no refill while the threads run
+    limits = TenantUserLimits(SlowRead(1, 100, clock), SlowRead(1, 3, clock))
+    start = threading.Barrier(48)
+    accepted: list[int] = []
+
+    def call() -> None:
+        start.wait()
+        try:
+            limits.check("t1", "u1")
+            accepted.append(1)
+        except RateLimitExceededError:
+            pass
+
+    threads = [threading.Thread(target=call) for _ in range(48)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len(accepted) == 3  # the user's burst
+    assert limits._tenant.retry_after("t1", cost=97) == 0.0  # exactly 3 tenant tokens spent
+    assert limits._tenant.retry_after("t1", cost=98) > 0.0

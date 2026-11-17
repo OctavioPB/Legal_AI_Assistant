@@ -53,15 +53,6 @@ export interface User {
   preferred_language: string;
 }
 
-export interface ChatBody {
-  query: string;
-  jurisdiction_id: number;
-  persona: string;
-  workflow: string;
-  language: "es" | "en";
-  include_historical: boolean;
-}
-
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -109,24 +100,6 @@ export async function* readSse(res: Response): AsyncGenerator<SseEvent> {
       if (event && data !== undefined) yield { event, data: JSON.parse(data) as unknown };
     }
   }
-}
-
-export async function chatStream(body: ChatBody, onStage: (stage: string) => void): Promise<ChatResult> {
-  const res = await fetch("/api/v1/chat/stream", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err: { code?: string } = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, err.code ?? "error");
-  }
-  for await (const ev of readSse(res)) {
-    if (ev.event === "stage") onStage(String(ev.data));
-    else if (ev.event === "result") return ev.data as ChatResult;
-    else if (ev.event === "error") throw new ApiError(500, (ev.data as { code?: string }).code ?? "error");
-  }
-  throw new ApiError(502, "stream_ended");
 }
 
 // ---- conversations (ADR-016) ----------------------------------------------------------------
@@ -478,7 +451,6 @@ export async function verifyPdf(title: string, file: Blob, matterId: string | nu
   return (await res.json()) as VerifyResult;
 }
 export const listReports = () => json<Report[]>("verify/reports");
-export const getReport = (id: string) => json<Report>(`verify/reports/${encodeURIComponent(id)}`);
 export const deleteReport = async (id: string) => {
   await send(`verify/reports/${encodeURIComponent(id)}`, "DELETE");
 };

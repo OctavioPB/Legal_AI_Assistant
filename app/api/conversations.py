@@ -25,7 +25,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import Connection, text
 
-from app.api.deps import PrincipalDep, StateDep
+from app.api.deps import CodedError, PrincipalDep, StateDep
 from app.api.models import check_profile
 from app.api.routes import log, stream_error_code
 from app.chat.service import (
@@ -180,6 +180,23 @@ def check_matter(conn: Connection, matter_id: uuid.UUID | None) -> None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "matter not found")
 
 
+def _cites_files_outside(conn: Connection, conv_id: uuid.UUID, target: uuid.UUID) -> bool:
+    """True if the conversation cited a firm document that may not be read in `target` (ADR-025):
+    a unit of another matter's file, or a CF- unit the caller can no longer resolve (its file was
+    deleted, or the caller left its matter). The stored answers quote and paraphrase what they
+    cite, so moving them would show another client's document to the members of `target`."""
+    row = conn.execute(
+        text(
+            "SELECT 1 FROM messages m CROSS JOIN LATERAL jsonb_array_elements(m.citations) AS x(c) "
+            "LEFT JOIN chunks k ON k.cite_id = x.c->>'cite_id' "
+            "WHERE m.conversation_id = :id AND x.c->>'cite_id' LIKE 'CF-%' "
+            "AND (k.id IS NULL OR (k.matter_id IS NOT NULL AND k.matter_id <> :t)) LIMIT 1"
+        ),
+        {"id": conv_id, "t": target},
+    ).first()
+    return row is not None
+
+
 def _messages(conn: Connection, conv_id: uuid.UUID) -> list[MessageOut]:
     rows = conn.execute(
         text(
@@ -301,6 +318,8 @@ def rename_conversation(
         cur = _own(conn, conv_id, author=True)
         if body.move:
             check_matter(conn, body.matter_id)
+            if body.matter_id is not None and _cites_files_outside(conn, conv_id, body.matter_id):
+                raise CodedError(status.HTTP_409_CONFLICT, "cites_matter_files")
         row = conn.execute(
             text(
                 "UPDATE conversations AS c SET title = :title, matter_id = :m, updated_at = now() "

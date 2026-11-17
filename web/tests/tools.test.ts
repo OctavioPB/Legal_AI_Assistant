@@ -22,7 +22,10 @@ describe("gateway: navigator, matters, verifier, reforms", () => {
     expect(match("DELETE", ["matters", id, "members", "everyone"])).toBeNull();
     expect(match("POST", ["verify"])?.body ?? "json").toBe("json");
     expect(match("POST", ["verify", "pdf"])?.body).toBe("pdf");
-    expect(match("GET", ["verify", "reports", id])).not.toBeNull();
+    expect(match("GET", ["verify", "reports"])).not.toBeNull();
+    expect(match("DELETE", ["verify", "reports", id])).not.toBeNull();
+    // the UI lists reports and never opens one by id, so that read is not forwarded
+    expect(match("GET", ["verify", "reports", id])).toBeNull();
     expect(match("GET", ["reforms", "alerts"])).not.toBeNull();
     expect(match("GET", ["reforms", id])).not.toBeNull();
     expect(match("POST", ["reforms"])).toBeNull();

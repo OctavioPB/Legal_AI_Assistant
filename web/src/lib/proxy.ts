@@ -43,8 +43,8 @@ const r = (method: Route["method"], path: string, extra: Partial<Route> = {}): R
 export const ALLOWED: Route[] = [
   r("GET", "me"),
   r("GET", "catalog/(jurisdictions|personas)"),
-  r("POST", "chat"),
-  r("POST", "chat/stream", { stream: true }),
+  // `POST chat` and `chat/stream` (single questions outside a conversation) stay API-only: the UI
+  // asks through conversations, so the gateway does not forward them.
   r("GET", "sources/[A-Za-z0-9][A-Za-z0-9._-]{0,199}"),
   // ADR-016/018: conversations, optionally inside a matter
   r("GET", "conversations", { query: { kind: oneOf("chat", "research", "case"), q: text(200), matter: uuid } }),
@@ -71,7 +71,6 @@ export const ALLOWED: Route[] = [
   r("POST", "verify"),
   r("POST", "verify/pdf", { body: "pdf", query: { title: text(200), matter_id: uuid } }),
   r("GET", "verify/reports"),
-  r("GET", `verify/reports/${UUID_RE}`),
   r("DELETE", `verify/reports/${UUID_RE}`),
   // feature 6 (ADR-017): reforms and alerts
   r("GET", "reforms"),

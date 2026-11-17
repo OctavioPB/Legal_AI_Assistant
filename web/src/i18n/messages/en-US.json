@@ -88,6 +88,7 @@
       "model_not_allowed": "The firm does not allow external models. An administrator can enable them in Settings; meanwhile, start a conversation with a local model.",
       "model_unavailable": "That model is not configured on this server. Start a conversation with another model.",
       "model_declined": "The external model provider declined the request. No answer was generated.",
+      "cites_matter_files": "This conversation cites documents of another matter. So that people outside that matter never see them, it can only stay in its original matter or outside every matter.",
       "session": "Your session ended. Please sign in again.",
       "generic": "The request could not be completed. Please try again."
     }

@@ -84,10 +84,11 @@ class FileUnit(BaseModel):
     text: str
 
 
-def _out(row: Any, p: Principal, stale_minutes: int) -> FileOut:
+def _out(row: Any, p: Principal, st: AppState) -> FileOut:
     state, error = row.status, row.error_key
     age = (datetime.now(UTC) - row.created_at).total_seconds() / 60
-    if state == "processing" and age > stale_minutes:
+    lost = row.created_at < st.started_at  # queued before this process: the job died with it
+    if state == "processing" and (lost or age > st.settings.client_file_stale_minutes):
         state, error = "failed", "interrupted"  # the server stopped mid-job: nothing was written
     return FileOut(
         id=row.id, title=row.title, kind=row.kind, language=row.language,
@@ -119,13 +120,13 @@ def list_files(p: PrincipalDep, st: StateDep, matter: uuid.UUID | None = None) -
             ),
             {"m": matter},
         ).all()
-    return [_out(r, p, st.settings.client_file_stale_minutes) for r in rows]
+    return [_out(r, p, st) for r in rows]
 
 
 @router.get("/{file_id}", response_model=FileOut)
 def get_file(file_id: uuid.UUID, p: PrincipalDep, st: StateDep) -> FileOut:
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
-        return _out(_one(conn, file_id), p, st.settings.client_file_stale_minutes)
+        return _out(_one(conn, file_id), p, st)
 
 
 @router.get("/{file_id}/text", response_model=list[FileUnit])
@@ -168,8 +169,10 @@ async def upload_file(
             raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "file too large")
     if not data:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "empty file")
+    payload = bytes(data)  # the one immutable copy (up to 25 MB): the buffer is freed right away
+    del data
     try:
-        fmt = detect_format(bytes(data))
+        fmt = detect_format(payload)
     except UnsupportedFileError as exc:
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "unsupported file") from exc
     title = " ".join(title.split())
@@ -192,14 +195,12 @@ async def upload_file(
             {"t": p.tenant_id, "u": p.user_id, "m": matter_id, "title": title, "k": kind,
              "l": language, "j": jurisdiction_id, "tok": token, "f": fmt},
         ).scalar_one()  # fmt: skip
-    payload = bytes(data)
-    del data
     job = _Job(file_id=file_id, tenant_id=p.tenant_id, user_id=p.user_id, title=title, kind=kind,
                language=language, jurisdiction_id=jurisdiction_id, country=j.country,
                matter_id=matter_id, token=token, fmt=fmt)  # fmt: skip
     await run_in_threadpool(st.jobs.submit, lambda: process(st, job, payload))
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
-        return _out(_one(conn, file_id), p, st.settings.client_file_stale_minutes)
+        return _out(_one(conn, file_id), p, st)
 
 
 @router.delete("/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -207,7 +208,7 @@ def delete_file(file_id: uuid.UUID, p: PrincipalDep, st: StateDep) -> Response:
     """Its uploader or a firm admin. Deletes the extracted text and vectors with it."""
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
         row = _one(conn, file_id)
-        out = _out(row, p, st.settings.client_file_stale_minutes)
+        out = _out(row, p, st)
         if not out.can_delete:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "only the uploader or an admin")
         if out.status == "processing":

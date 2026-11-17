@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import uuid
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Request, status
@@ -39,6 +39,14 @@ class WorkerJobs:
         self._pool.shutdown(wait=False, cancel_futures=True)
 
 
+class CodedError(Exception):
+    """A refusal the client should translate: answered as {"detail": code, "code": code}."""
+
+    def __init__(self, status_code: int, code: str) -> None:
+        super().__init__(code)
+        self.status_code, self.code = status_code, code
+
+
 @dataclass
 class AppState:
     settings: Settings
@@ -46,6 +54,9 @@ class AppState:
     chat: ChatDeps
     limits: TenantUserLimits
     jobs: InlineJobs | WorkerJobs = field(default_factory=InlineJobs)
+    # ADR-025 runs client-file jobs in THIS process: a job still `processing` from before this
+    # moment was lost in a restart and can never finish.
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 def state(request: Request) -> AppState:
@@ -92,7 +103,3 @@ def require_admin(p: PrincipalDep) -> Principal:
     if p.role not in ("owner", "admin"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "admin role required")
     return p
-
-
-def new_request_id() -> uuid.UUID:
-    return uuid.uuid4()

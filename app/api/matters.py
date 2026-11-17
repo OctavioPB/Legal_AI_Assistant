@@ -394,8 +394,13 @@ def save_source(matter_id: uuid.UUID, body: SourceIn, p: PrincipalDep, st: State
     """Save a citable unit to the matter. Only ids that exist (and the caller can see) are saved."""
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
         _matter(conn, matter_id)
+        # ADR-025: a unit of a matter's file belongs to THAT matter. A lawyer in two matters sees
+        # both files, so without this clause client A's contract could be saved into matter B.
         if not conn.execute(
-            text("SELECT 1 FROM chunks WHERE cite_id = :c"), {"c": body.cite_id}
+            text(
+                "SELECT 1 FROM chunks WHERE cite_id = :c AND (matter_id IS NULL OR matter_id = :m)"
+            ),
+            {"c": body.cite_id, "m": matter_id},
         ).first():
             raise HTTPException(status.HTTP_404_NOT_FOUND, "source not found")
         conn.execute(

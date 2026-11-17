@@ -87,14 +87,13 @@ describe("gateway allow-list", () => {
   it("forwards only the exact routes with the exact method", () => {
     expect(match("GET", ["me"])).not.toBeNull();
     expect(match("GET", ["catalog", "jurisdictions"])).not.toBeNull();
-    expect(match("POST", ["chat"])).not.toBeNull();
-    expect(match("POST", ["chat", "stream"])?.stream).toBe(true);
+    expect(match("POST", ["conversations", "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", "messages", "stream"])?.stream).toBe(true);
     expect(match("GET", ["sources", "MX-FED-LFT-ART47-FRACX-v2025.06"])).not.toBeNull();
   });
 
   it("rejects everything else, including traversal, encoded tricks and wrong methods", () => {
     for (const [m, p] of [
-      ["GET", ["traces", "abc"]], ["GET", ["health"]], ["POST", ["auth", "login"]], ["GET", ["chat"]], ["POST", ["me"]],
+      ["GET", ["traces", "abc"]], ["GET", ["health"]], ["POST", ["auth", "login"]], ["GET", ["chat"]], ["POST", ["chat"]], ["POST", ["chat", "stream"]], ["POST", ["me"]],
       ["GET", ["sources", ".."]], ["GET", ["sources", "a/../traces"]], ["GET", ["sources", "%2e%2e"]], ["GET", ["sources", "a\\b"]],
       ["GET", ["catalog", "jurisdictions", "extra"]], ["GET", ["", "me"]], ["DELETE", ["me"]],
     ] as [string, string[]][]) {

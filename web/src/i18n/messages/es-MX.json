@@ -88,6 +88,7 @@
       "model_not_allowed": "El despacho no permite modelos externos. Un administrador puede activarlos en Ajustes; mientras tanto, inicie una conversación con un modelo local.",
       "model_unavailable": "Ese modelo no está configurado en este servidor. Inicie una conversación con otro modelo.",
       "model_declined": "El proveedor del modelo externo rechazó la solicitud. No se generó respuesta.",
+      "cites_matter_files": "Esta conversación cita documentos de otro asunto. Para no mostrarlos a quien no es miembro de ese asunto, solo puede quedar en su asunto original o fuera de todo asunto.",
       "session": "Su sesión terminó. Inicie sesión de nuevo.",
       "generic": "No fue posible completar la consulta. Intente de nuevo."
     }

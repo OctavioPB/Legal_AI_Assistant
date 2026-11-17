@@ -9,6 +9,7 @@ sizes are bounded before anything is expanded and XML with a DTD is refused.
 from __future__ import annotations
 
 import io
+import re
 import zipfile
 from typing import Literal
 from xml.etree import ElementTree
@@ -17,6 +18,7 @@ Format = Literal["pdf", "docx", "text"]
 
 DOCX_XML_MAX_BYTES = 40 * 1024 * 1024  # uncompressed word/document.xml (zip-bomb bound)
 _W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+_XML_DECL = re.compile(r"^﻿?\s*<\?xml[^>]{0,200}\?>")
 
 
 class UnsupportedFileError(ValueError):
@@ -52,10 +54,23 @@ def docx_text(data: bytes) -> str:
                 xml = f.read(DOCX_XML_MAX_BYTES + 1)
     except (zipfile.BadZipFile, KeyError) as exc:
         raise UnsupportedFileError("not a readable Word document") from exc
-    if len(xml) > DOCX_XML_MAX_BYTES or b"<!DOCTYPE" in xml or b"<!ENTITY" in xml:
-        raise UnsupportedFileError("refused: oversized or DTD-bearing XML")
+    if len(xml) > DOCX_XML_MAX_BYTES:
+        raise UnsupportedFileError("refused: oversized XML")
+    # The DTD check must look at exactly what the parser reads. Searching the raw bytes missed a
+    # document declared in UTF-16, where "<!DOCTYPE" is not those bytes. Word writes UTF-8, so the
+    # XML is decoded as strict UTF-8 here, its declaration (which could name another encoding) is
+    # dropped, and the parser is given that text.
     try:
-        root = ElementTree.fromstring(xml)
+        doc = xml.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise UnsupportedFileError("refused: Word XML that is not UTF-8") from exc
+    if "\x00" in doc:  # UTF-16/32 decodes as "UTF-8" with NULs, which XML 1.0 forbids
+        raise UnsupportedFileError("refused: Word XML that is not UTF-8")
+    doc = _XML_DECL.sub("", doc, count=1)
+    if "<!DOCTYPE" in doc.upper() or "<!ENTITY" in doc.upper():
+        raise UnsupportedFileError("refused: DTD-bearing XML")
+    try:
+        root = ElementTree.fromstring(doc)
     except ElementTree.ParseError as exc:
         raise UnsupportedFileError("not a readable Word document") from exc
     paragraphs: list[str] = []

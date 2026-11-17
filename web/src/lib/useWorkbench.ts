@@ -70,7 +70,7 @@ function writeParam(id: string | null) {
   window.history.replaceState(null, "", s ? `${window.location.pathname}?${s}` : window.location.pathname);
 }
 
-const ERROR_KEYS = ["rate_limited", "llm_unavailable", "model_not_allowed", "model_unavailable", "model_declined"] as const;
+const ERROR_KEYS = ["rate_limited", "llm_unavailable", "model_not_allowed", "model_unavailable", "model_declined", "cites_matter_files"] as const;
 export type ErrorKey = (typeof ERROR_KEYS)[number] | "generic";
 
 export function errorKey(code: string): ErrorKey {

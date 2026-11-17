@@ -11,6 +11,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 
 from app.main import build_profiles, create_app
 from app.orchestration import anthropic_client
@@ -282,3 +283,25 @@ def test_unknown_or_unavailable_profiles_are_refused(profiled) -> None:  # type:
         client.post("/conversations", json={**base, "model_profile": "gpt"}, headers=h).status_code
         == 422
     )
+
+
+def test_every_change_of_the_remote_policy_is_audited(profiled, admin_engine) -> None:  # type: ignore[no-untyped-def]
+    """Regression (audit 2026-11-17): allowing a remote model decides that client content leaves
+    the machine (ADR-024). Who did it, when, and what it changed must be in the audit log."""
+    client, *_ = profiled
+    admin = auth(client)
+    client.post("/models/policy", json={"allow_remote": True}, headers=admin)
+    client.post("/models/policy", json={"allow_remote": False}, headers=admin)
+    with admin_engine.begin() as c:
+        rows = c.execute(
+            text(
+                "SELECT a.user_id, u.email, a.filters, a.verdict FROM audit_log a "
+                "JOIN users u ON u.id = a.user_id WHERE a.event_type = 'admin' "
+                "ORDER BY a.occurred_at, a.request_id"
+            )
+        ).all()
+    assert [(r.email, r.filters["action"], r.verdict["allow_remote"]) for r in rows] == [
+        ("ana@a.mx", "model_policy", True),
+        ("ana@a.mx", "model_policy", False),
+    ]
+    assert [r.verdict["previous"] for r in rows] == [False, True]

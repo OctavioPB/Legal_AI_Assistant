@@ -7,6 +7,7 @@ whether this server can serve it, whether the firm allows it, and its golden mea
 
 from __future__ import annotations
 
+import json
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, status
@@ -123,6 +124,7 @@ def set_policy(
     """Only an owner/admin of the firm. Withdrawing the opt-in stops remote conversations at
     their next message (checked per message)."""
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
+        previous = firm_allows_remote(conn)
         conn.execute(
             text(
                 "INSERT INTO tenant_model_policy (tenant_id, allow_remote, updated_by, updated_at) "
@@ -132,4 +134,14 @@ def set_policy(
             ),
             {"t": p.tenant_id, "a": body.allow_remote, "u": p.user_id},
         )
+        # Allowing a remote model decides that client content leaves the machine (ADR-024):
+        # who changed it and from what is part of the audit trail.
+        conn.execute(
+            text(
+                "INSERT INTO audit_log (tenant_id, user_id, event_type, filters, verdict) "
+                "VALUES (:t, :u, 'admin', CAST(:f AS jsonb), CAST(:v AS jsonb))"
+            ),
+            {"t": p.tenant_id, "u": p.user_id, "f": json.dumps({"action": "model_policy"}),
+             "v": json.dumps({"allow_remote": body.allow_remote, "previous": previous})},
+        )  # fmt: skip
     return list_models(p, st)

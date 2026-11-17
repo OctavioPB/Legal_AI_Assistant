@@ -8,6 +8,7 @@ import io
 import json
 import uuid
 import zipfile
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -157,6 +158,38 @@ def test_untrusted_files_are_recognised_by_content_and_refused_when_unsafe() -> 
     bomb = docx("<w:p/>", prolog='<!DOCTYPE d [<!ENTITY a "aaaa">]>')
     with pytest.raises(UnsupportedFileError):
         docx_text(bomb)
+
+
+@pytest.mark.parametrize(
+    "encoding", ["utf-16", "utf-16-le", "utf-32", "cp037"], ids=lambda e: f"xml-in-{e}"
+)
+def test_a_dtd_is_refused_whatever_the_xml_encoding(encoding: str) -> None:
+    """Regression (audit 2026-11-17): the DTD guard searched the raw bytes for b"<!DOCTYPE", so
+    the same document declared in UTF-16 (or any encoding expat accepts) expanded its entities."""
+    w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    xml = (
+        f'<?xml version="1.0" encoding="{encoding}"?><!DOCTYPE d [<!ENTITY x "SECRETO">]>'
+        f'<w:document xmlns:w="{w}"><w:body><w:p><w:r><w:t>&x;</w:t></w:r></w:p></w:body>'
+        "</w:document>"
+    )
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("word/document.xml", xml.encode(encoding))
+    with pytest.raises(UnsupportedFileError):
+        docx_text(buf.getvalue())
+
+
+def test_a_word_document_with_a_utf8_bom_and_declaration_is_still_read() -> None:
+    w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    xml = (
+        '﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
+        f'<w:document xmlns:w="{w}"><w:body><w:p><w:r><w:t>Cláusula única</w:t></w:r></w:p>'
+        "</w:body></w:document>"
+    )
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("word/document.xml", xml.encode("utf-8"))
+    assert docx_text(buf.getvalue()) == "Cláusula única"
 
 
 # ── API over Postgres + RLS ──────────────────────────────────────────────────────────────────────
@@ -405,6 +438,79 @@ def test_bad_uploads_fail_closed_and_leave_nothing_behind(firm) -> None:  # type
         )
     # a failed row can be deleted by its uploader
     assert client.delete(f"/files/{mixed['id']}", headers=ana).status_code == 204
+
+
+def test_a_job_lost_in_a_restart_is_reported_at_once_not_after_an_hour(firm) -> None:  # type: ignore[no-untyped-def]
+    """Regression (audit 2026-11-17): one in-process worker (ADR-025) means a row still
+    `processing` from before this process started can never finish. It used to show "Processing"
+    for `client_file_stale_minutes` (60) and could not be deleted meanwhile."""
+    client, state, j, tenant_a, _ = firm
+    ana = auth(client)
+    f = upload(client, ana, CONTRACT.encode(), title="Contrato", jurisdiction_id=j["fed"]).json()
+    with tenant_transaction(state.engine, tenant_a) as c:  # as if the server died mid-job
+        c.execute(
+            text(
+                "UPDATE client_files SET status = 'processing', created_at = now() - interval '2 minutes' "
+                "WHERE id = :id"
+            ),
+            {"id": f["id"]},
+        )
+    state.started_at = datetime.now(UTC)  # the process restarted after the upload
+    got = client.get(f"/files/{f['id']}", headers=ana).json()
+    assert (got["status"], got["error_key"]) == ("failed", "interrupted")
+    assert client.delete(f"/files/{f['id']}", headers=ana).status_code == 204
+    # a job of THIS process is still processing, however long it takes
+    g = upload(client, ana, CONTRACT.encode(), title="Otro", jurisdiction_id=j["fed"]).json()
+    with tenant_transaction(state.engine, tenant_a) as c:
+        c.execute(
+            text("UPDATE client_files SET status = 'processing' WHERE id = :id"), {"id": g["id"]}
+        )
+    assert client.get(f"/files/{g['id']}", headers=ana).json()["status"] == "processing"
+
+
+def test_a_matter_file_cannot_be_carried_into_another_matter(firm) -> None:  # type: ignore[no-untyped-def]
+    """Regression (audit 2026-11-17). A lawyer in BOTH matters sees both files, so two routes
+    could carry client A's contract into matter B, where B's other members would read it:
+    moving a conversation of A that cites it to B, and saving one of its units as a source of B."""
+    client, _, j, _, _ = firm
+    ana = auth(client)
+    a, b = matter(client, ana, "Cliente A"), matter(client, ana, "Cliente B")
+    f = upload(client, ana, CONTRACT.encode(), title="Contrato A", jurisdiction_id=j["fed"],
+               matter_id=a).json()  # fmt: skip
+    units = {u["cite_id"] for u in client.get(f"/files/{f['id']}/text", headers=ana).json()}
+
+    # 1. moving a conversation that cited A's file: out of every matter, or into A, only
+    conv = conversation(client, ana, j["fed"], a)
+    result = send(client, ana, conv, QUESTION)[-1][1]["result"]
+    assert {c["cite_id"] for c in result["citations"]} & units, result
+
+    def move(cid: str, m: str | None):  # type: ignore[no-untyped-def]
+        return client.patch(
+            f"/conversations/{cid}", json={"move": True, "matter_id": m}, headers=ana
+        )
+
+    refused = move(conv, b)
+    assert refused.status_code == 409 and refused.json()["code"] == "cites_matter_files"
+    assert (
+        client.get(f"/conversations/{conv}", headers=ana).json()["conversation"]["matter_id"] == a
+    )
+    assert move(conv, None).status_code == 200  # private to its author, who was in the matter
+    assert move(conv, b).status_code == 409  # still cites A's file from outside A
+    assert move(conv, a).status_code == 200  # back home is fine
+    assert move(conversation(client, ana, j["fed"], a), b).status_code == 200  # cites nothing
+
+    # 2. saved sources: a unit of A goes to A, a firm-wide unit anywhere, never A's into B
+    firm_wide = upload(client, ana, b"Modelo del despacho. " + CONTRACT.encode(),
+                       title="Modelo del despacho", jurisdiction_id=j["fed"]).json()  # fmt: skip
+    shared = client.get(f"/files/{firm_wide['id']}/text", headers=ana).json()[0]["cite_id"]
+    unit = sorted(units)[0]
+
+    def save(m: str, cid: str):  # type: ignore[no-untyped-def]
+        return client.post(f"/matters/{m}/sources", json={"cite_id": cid}, headers=ana)
+
+    assert save(b, unit).status_code == 404
+    assert save(a, unit).status_code == 204
+    assert save(b, shared).status_code == 204
 
 
 def test_a_law_the_corpus_lacks_can_be_uploaded_and_is_cited_as_a_law(firm) -> None:  # type: ignore[no-untyped-def]
