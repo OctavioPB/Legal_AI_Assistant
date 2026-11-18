@@ -194,3 +194,9 @@ This is a research tool for lawyers. It does not replace professional judgment.
 ## Author
 
 Octavio Pérez Bravo, Data & AI Strategy Architect.
+
+## License
+
+Proprietary, all rights reserved ([LICENSE](LICENSE)). Any use of the application and any copy of the
+code, in whole or in part, needs the author's prior written approval. The software is provided as is,
+without warranty, and its output is not legal advice.
