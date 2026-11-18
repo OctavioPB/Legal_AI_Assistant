@@ -73,6 +73,7 @@ uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate 
 uv run pytest -m live                              # real local models (Ollama must be running)
 uv run python -m app.ingestion.watch [--only LFT] [--dry-run] [--check-urls] [--if-stale 20] [--no-indexes]   # reform watcher (ADR-017/026; the ONLY job with network: official URLs of corpus.py + indexes.py)
 uv run python -m evals.e2e.run_case laboral_01 --credentials .demo-credentials [--keep] && uv run python -m evals.e2e.review evals/e2e/runs/<run>.json   # end-to-end case + lawyer review packet (docs/EVALUACION-E2E.md)
+uv run --no-project --isolated python -m app.ingestion.canary [--report r.md]   # ADR-029: read-only check of every official/news source with the real readers (daily in .github/workflows/etl-canary.yml)
 uv run python -m app.news.pipeline [--dry-run]     # ADR-027: legal news feed (30 items, fixed rules, sources' own text); runs after the watcher in -WatchReforms
 uv run python -m app.ingestion.discover list [--status new] [--search aguas] | approve DIP_FED:LGAg --domain environmental --by NAME | dismiss ...   # ADR-026: laws found in official indexes; approval = operator only
 powershell -File scripts/dev-up.ps1 -ScheduleReforms | -UnscheduleReforms | -WatchReforms [-DryRun]   # daily 03:00 Windows task / run the reform check now

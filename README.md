@@ -1,6 +1,7 @@
 # Legal AI Assistant
 
 [![CI](https://github.com/OctavioPB/Legal_AI_Assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/OctavioPB/Legal_AI_Assistant/actions/workflows/ci.yml)
+[![ETL canary](https://github.com/OctavioPB/Legal_AI_Assistant/actions/workflows/etl-canary.yml/badge.svg)](https://github.com/OctavioPB/Legal_AI_Assistant/actions/workflows/etl-canary.yml)
 
 A legal research assistant for law firms in Mexico and the United States that is built so it
 cannot assert law it did not retrieve. Every legal claim in an answer carries a citation that
