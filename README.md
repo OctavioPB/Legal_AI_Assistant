@@ -18,6 +18,10 @@ case E2E-LAB-01 ([docs/EVALUACION-E2E.md](docs/EVALUACION-E2E.md)) under the Mex
 Trabajo. The interface is shown in Spanish (es-MX); English (en-US) is one click away in "Ajustes".
 Each numbered citation opens the source with the cited passage highlighted.*
 
+**Academic review.** A 22-page critical review of the project covers the business case, the engineering,
+each of the 29 decisions with its evidence, the measured results and what they do not prove:
+[Thesis.pdf](docs/Thesis.pdf) (English) · [Thesis-esp.pdf](docs/Thesis-esp.pdf) (español).
+
 ## Contents
 
 [The contract](#the-contract) · [A tour of the app](#a-tour-of-the-app) · [What is loaded](#what-is-loaded) ·
@@ -295,7 +299,7 @@ cd web && npm install && npm run build && npx next start -H 127.0.0.1 -p 3100
 ```
 
 Everything binds to `127.0.0.1`. Details and troubleshooting:
-[docs/LOCAL_DEMO.md](docs/LOCAL_DEMO.md) (Spanish).
+[docs/LOCAL_DEMO.md](docs/LOCAL_DEMO.md).
 
 **Regenerate the screenshots** with the app running and the demo account created:
 `cd web && node e2e/readme-shots.mjs ../docs/img` (it reads `.demo-credentials`, which is never committed,
@@ -321,27 +325,33 @@ browser checks on every pull request. A daily read-only canary
 
 ## Documentation
 
-| Document | Language | What it is |
-|---|---|---|
-| [docs/PITCH.md](docs/PITCH.md) | es | The problem, the solution, why it can be trusted, the engineering spec and the current state |
-| [docs/LegalAI-System-Architecture.md](docs/LegalAI-System-Architecture.md) | en | The full design blueprint: data model, multi-tenancy, retrieval, prompts, validation. Opens with where the build departs from it |
-| [.claude/rules/architecture.md](.claude/rules/architecture.md) | en | Component map and the append-only log of the 29 architecture decisions (ADR) |
-| [.claude/CLAUDE.md](.claude/CLAUDE.md) | en | The non-negotiable invariants, every command, and the per-session workflow |
-| [.claude/rules/rag.md](.claude/rules/rag.md) | en | Chunker rules, retrieval defaults, and the citation validator specification |
-| [.claude/rules/multi-tenancy.md](.claude/rules/multi-tenancy.md) | en | Row-level-security policies, roles, anchors and the tenant isolation test |
-| [.claude/rules/jurisdictions.md](.claude/rules/jurisdictions.md) | en | Jurisdiction catalog semantics and the predicate builder contract |
-| [.claude/rules/prompts.md](.claude/rules/prompts.md) | en | Prompt layers, versioning, pinning and injection rules |
-| [.claude/rules/style.md](.claude/rules/style.md) | en | Code, test and i18n conventions |
-| [docs/PLAN.md](docs/PLAN.md) | es | Workstreams and tasks from zero to demo, with a dated log of what was done |
-| [docs/EVALUACION-E2E.md](docs/EVALUACION-E2E.md) | es | The end-to-end labor case and how a lawyer reviews it |
-| [evals/e2e/README.md](evals/e2e/README.md) | es | How to run an end-to-end case and build the review packet |
-| [evals/golden/README.md](evals/golden/README.md) | en | The golden set: schema, status and commands |
-| [docs/LOCAL_DEMO.md](docs/LOCAL_DEMO.md) | es | Running the demo on one machine, with troubleshooting |
-| [docs/Brand.md](docs/Brand.md) | es | The source of truth for the interface: colour, type, components, screens |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | es | Future work in three horizons, and the anti-roadmap of what will not be built |
-| [docs/lessons-from-library-rag.md](docs/lessons-from-library-rag.md) | es | Lessons imported from the sibling project, and what was deliberately not imported |
-| [.claude/skills/](.claude/skills/) | en | Working procedures: eval runner, prompt lab, decision records, legal chunking |
-| [LICENSE](LICENSE) | en | Proprietary, all rights reserved |
+| Document | What it is |
+|---|---|
+| [docs/Thesis.pdf](docs/Thesis.pdf) | Academic review (22 pages): context, business value, engineering, the 29 decisions and their evidence, evaluation, an end-to-end case and an honest conclusion on the project's value |
+| [docs/Thesis-esp.pdf](docs/Thesis-esp.pdf) | The same review in Spanish |
+| [docs/PITCH.md](docs/PITCH.md) | The problem, the solution, why it can be trusted, the engineering spec and the current state |
+| [docs/LegalAI-System-Architecture.md](docs/LegalAI-System-Architecture.md) | The full design blueprint: data model, multi-tenancy, retrieval, prompts, validation. Opens with where the build departs from it |
+| [.claude/rules/architecture.md](.claude/rules/architecture.md) | Component map and the append-only log of the 29 architecture decisions (ADR) |
+| [.claude/CLAUDE.md](.claude/CLAUDE.md) | The non-negotiable invariants, every command, and the per-session workflow |
+| [.claude/rules/rag.md](.claude/rules/rag.md) | Chunker rules, retrieval defaults, and the citation validator specification |
+| [.claude/rules/multi-tenancy.md](.claude/rules/multi-tenancy.md) | Row-level-security policies, roles, anchors and the tenant isolation test |
+| [.claude/rules/jurisdictions.md](.claude/rules/jurisdictions.md) | Jurisdiction catalog semantics and the predicate builder contract |
+| [.claude/rules/prompts.md](.claude/rules/prompts.md) | Prompt layers, versioning, pinning and injection rules |
+| [.claude/rules/style.md](.claude/rules/style.md) | Code, test and i18n conventions |
+| [docs/PLAN.md](docs/PLAN.md) | Workstreams and tasks from zero to demo, with a dated log of what was done |
+| [docs/EVALUACION-E2E.md](docs/EVALUACION-E2E.md) | The end-to-end labor case and how a lawyer reviews it |
+| [evals/e2e/README.md](evals/e2e/README.md) | How to run an end-to-end case and build the review packet |
+| [evals/golden/README.md](evals/golden/README.md) | The golden set: schema, status and commands |
+| [docs/LOCAL_DEMO.md](docs/LOCAL_DEMO.md) | Running the demo on one machine, with troubleshooting |
+| [docs/Brand.md](docs/Brand.md) | The source of truth for the interface: colour, type, components, screens |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Future work in three horizons, and the anti-roadmap of what will not be built |
+| [docs/lessons-from-library-rag.md](docs/lessons-from-library-rag.md) | Lessons imported from the sibling project, and what was deliberately not imported |
+| [.claude/skills/](.claude/skills/) | Working procedures: eval runner, prompt lab, decision records, legal chunking |
+| [LICENSE](LICENSE) | Proprietary, all rights reserved |
+
+All documents are in English, except the Spanish edition of the review. Spanish legal terms of art (artículo, fracción, apartado, asunto, tesis), the
+labels of the interface and the text of the fictional case are kept in Spanish, because that is what the product
+and the law use.
 
 ## Repository map
 
