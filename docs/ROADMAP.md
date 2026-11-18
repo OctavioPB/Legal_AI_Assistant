@@ -44,7 +44,8 @@ Dossier Builder puebla el capítulo de derecho con citas verificadas y el abogad
 hechos. Estrictamente asistivo: el sistema nunca "presenta", solo pre-llena con trazabilidad.
 
 **R1.5 · Colaboración por asunto (matter-level).** *(Primer paso hecho 2026-11-08, WS9.T03/ADR-018: asuntos
-con miembros bajo RLS, notas y fuentes guardadas. Faltan papeles socio/asociado/pasante, comentarios sobre
+con miembros bajo RLS, notas y fuentes guardadas. 2026-11-14, ADR-025: documentos del despacho por asunto, con
+el sub-scoping de RLS por matter que este punto pedía. Faltan papeles socio/asociado/pasante, comentarios sobre
 fragmentos y versiones del dossier.)*
 Permisos por expediente dentro del tenant (socio/asociado/pasante), comentarios sobre
 fragmentos citados, historial de versiones del dossier. Habilitado por: `dossiers` +
@@ -82,6 +83,7 @@ forum shopping — la línea se documenta en Brand.md/términos de uso.
 
 **R2.4 · Búsqueda sobre audiencias y constancias (ASR).**
 Transcripción de audiencias (con consentimiento/legalidad local) → ingesta como `client_file`
+(la carga de documentos del despacho ya existe, ADR-025; falta ASR y la gramática de turnos)
 con timestamps citables. El chunker jerárquico gana una gramática nueva (turnos de habla);
 todo lo demás (RLS, citas, validador) aplica sin cambios.
 

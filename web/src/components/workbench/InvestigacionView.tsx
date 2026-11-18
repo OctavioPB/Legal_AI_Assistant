@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { Message } from "@/lib/api";
 import { titleFrom } from "@/lib/conversation";
 import { resolve } from "@/lib/jurisdiction";
+import { takeDraft } from "@/lib/draft";
 import { useCatalogs, useConversation } from "@/lib/useWorkbench";
 import { AnswerView } from "../AnswerView";
 import { RefusalCard } from "../RefusalCard";
@@ -14,6 +15,8 @@ import { Announcer, BusyElsewhere, Composer, ConversationBar, ErrorNote, Example
 import { DEFAULT_SCOPE, loadScope, ScopePicker, ScopeSummary, type Scope } from "./Scope";
 import { Workbench } from "./Workbench";
 import { MatterPicker, useInitialMatter, useMatters } from "./MatterPicker";
+import { ModelPicker, useModels } from "./ModelPicker";
+import type { ModelKey } from "@/lib/api";
 
 /** One question and its dossier (sections I-V, Brand.md 4), with its own numbered sources. */
 function Dossier({ question, answer, onOpen }: { question: string; answer: Message; onOpen: (id: string) => void }) {
@@ -41,6 +44,8 @@ export function InvestigacionView() {
   const [scope, setScope] = useState<Scope>(DEFAULT_SCOPE);
   const matters = useMatters();
   const [matter, setMatter] = useInitialMatter();
+  const models = useModels();
+  const [model, setModel] = useState<ModelKey | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [seed, setSeed] = useState<Seed>();
   // Opening a conversation from the history moves the focus to its title (keyboard and screen
@@ -52,6 +57,22 @@ export function InvestigacionView() {
 
   useEffect(() => {
     if (catalogs) setScope(loadScope(catalogs.rows, catalogs.personas));
+  }, [catalogs]);
+
+  // Brand.md 11.2: a question written in the start page's box runs here, once.
+  useEffect(() => {
+    if (!catalogs) return;
+    const d = takeDraft("research");
+    if (!d) return;
+    const s = loadScope(catalogs.rows, catalogs.personas);
+    const j = resolve(catalogs.rows, s.selection);
+    if (!j) return;
+    void w.send(d.text, "research", {
+      kind: "research", title: titleFrom(d.text), jurisdiction_id: j.id, persona: s.persona,
+      language: locale === "en-US" ? "en" : "es", include_historical: s.historical, matter_id: d.matter,
+      ...(d.model ? { model_profile: d.model } : {}),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the catalogs arrive
   }, [catalogs]);
 
   const pairs: { q: Message; a: Message }[] = [];
@@ -82,6 +103,7 @@ export function InvestigacionView() {
               <p>{t("welcomeBody")}</p>
               <ScopePicker rows={catalogs.rows} personas={catalogs.personas} value={scope} onChange={setScope} />
               <MatterPicker matters={matters} value={matter} onChange={setMatter} />
+              <ModelPicker info={models} value={model} onChange={setModel} />
               <Examples items={[t("ex1"), t("ex2")]} onPick={(text) => setSeed({ text, n: Date.now() })} />
             </section>
           )}
@@ -116,6 +138,7 @@ export function InvestigacionView() {
                     : {
                         kind: "research", title: titleFrom(text), jurisdiction_id: j.id, persona: scope.persona,
                         language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, matter_id: matter,
+                        ...(model ? { model_profile: model } : {}),
                       },
                 );
               }}

@@ -21,5 +21,8 @@
   of a conversation's scope; the verifier resolves explicit references in a brief against the whole loaded
   corpus (it answers "does this exist / is it current / is this quotation verbatim", it generates nothing).
   A law it cannot name from the closed catalog is reported as not loaded / not identified, never guessed.
+- Matter scope (ADR-025) lives in the same predicate: a chunk that belongs to a matter is searched only by a
+  session of that matter (`SessionContext.matter_id`, taken from the conversation, never from text). A firm
+  document is filed under a catalog jurisdiction and stacks like any other source.
 - Reforms (ADR-017): a new version is a new document with new versioned `cite_id`s; the old one keeps
   `is_current=false`. Lineage maps old to new per unit; only `unchanged` units are carried forward silently.

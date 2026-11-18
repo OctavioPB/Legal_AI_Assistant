@@ -37,6 +37,10 @@ POSTGRES_ERASE_ORDER: tuple[str, ...] = (
     "cite_lineage",
     "corpus_changes",
     "source_checks",
+    "news_items",
+    "corpus_sources",
+    "corpus_index_entries",
+    "client_files",
     "chunks",
     "doc_nodes",
     "documents",
@@ -48,6 +52,7 @@ POSTGRES_ERASE_ORDER: tuple[str, ...] = (
     "matter_members",
     "matters",
     "dossiers",
+    "tenant_model_policy",
     "sessions",
     "users",
 )

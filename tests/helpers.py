@@ -285,6 +285,23 @@ def seed_product_rows(app_engine: Engine, tenant: uuid.UUID) -> tuple[uuid.UUID,
             ),
             {"t": tenant, "u": user, "m": matter},
         )
+        conn.execute(  # ADR-025: an uploaded file of the matter (the row; its text is a document)
+            text(
+                "INSERT INTO client_files (tenant_id, uploaded_by, matter_id, title, kind, "
+                "language, jurisdiction_id, file_token, source_format) VALUES (:t, :u, :m, "
+                "'Contrato privilegiado', 'contrato', 'es', "
+                "(SELECT id FROM jurisdictions WHERE country = 'MX' AND level = 'federal'), "
+                "'DSEED0001', 'text')"
+            ),
+            {"t": tenant, "u": user, "m": matter},
+        )
+        conn.execute(  # ADR-024: the firm's model policy (tenant-private)
+            text(
+                "INSERT INTO tenant_model_policy (tenant_id, updated_by) VALUES (:t, :u) "
+                "ON CONFLICT (tenant_id) DO NOTHING"
+            ),
+            {"t": tenant, "u": user},
+        )
     return user, uuid.UUID(str(conv))
 
 
@@ -319,6 +336,33 @@ def seed_lineage(
             text(
                 "INSERT INTO source_checks (tenant_id, official_id, source, outcome) "
                 "VALUES (:t, 'DOC', 'file://x', 'unchanged')"
+            ),
+            {"t": tenant},
+        )
+        # ADR-026: an index entry and the source an operator approved from it
+        conn.execute(
+            text(
+                "INSERT INTO corpus_index_entries (tenant_id, index_id, entry_key, title, url, "
+                "status, source_key, decided_by, decided_at) VALUES (:t, 'DIP_FED', 'LDOC', "
+                "'LEY de Prueba', 'https://example.invalid/LDOC.pdf', 'approved', 'LDOC', 'x', now())"
+            ),
+            {"t": tenant},
+        )
+        conn.execute(
+            text(
+                "INSERT INTO corpus_sources (tenant_id, key, index_id, entry_key, title, "
+                "source_url, country, level, scope, code, language, doc_type, legal_domain, "
+                "grammar, approved_by) VALUES (:t, 'LDOC', 'DIP_FED', 'LDOC', 'Ley de Prueba', "
+                "'https://example.invalid/LDOC.pdf', 'MX', 'federal', 'FED', 'LDOC', 'es', 'ley', "
+                "ARRAY['civil'], 'mx', 'x')"
+            ),
+            {"t": tenant},
+        )
+        conn.execute(  # ADR-027: a news item
+            text(
+                "INSERT INTO news_items (tenant_id, source_id, kind, title, url, outlet, score, "
+                "official) VALUES (:t, 'scjn', 'court', 'Comunicado', "
+                "'https://example.invalid/c1', 'SCJN', 1.0, true)"
             ),
             {"t": tenant},
         )

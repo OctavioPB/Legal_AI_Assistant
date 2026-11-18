@@ -1,4 +1,4 @@
-# Legal AI Assistant — CLAUDE.md
+# Legal AI Assistant — CLAUDE.md (lives in `.claude/`; paths below are from the repo root)
 
 ## WHAT
 
@@ -64,13 +64,18 @@ uv run pytest tests/test_tenant_isolation.py       # cross-tenant leak test (mus
 uv run pytest tests/test_jurisdiction_predicate.py # property tests for the hard pre-filter
 
 uv run python -m evals.run --suite golden [--tag x] [--retrieval-only] [--preflight-only]   # golden suite (required for prompt PRs); --compare A B; evals.review_sheet --run <id>
+uv run python -m evals.run --suite golden --model-profile qwen|gemma|claude   # ADR-024: measure a profile; copy the headline numbers to config/model_measurements.yaml
+# Claude profile (ADR-024, remote, opt-in): ANTHROPIC_API_KEY in .env + `uv add anthropic` + firm admin enables it in Ajustes
 uv run python -m app.ingestion.seed [--only LFT]   # embed + load the demo corpus (needs `ollama pull bge-m3`; ~9 min for all)
 uv run python -m app.orchestration.pins [--check]  # (re)pin the local models from the Ollama runtime / detect drift
 uv run python -m app.demo                          # demo firm + user (random password shown once -> .demo-credentials)
 uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate the refusal threshold from the probe sets
 uv run pytest -m live                              # real local models (Ollama must be running)
-uv run python -m app.ingestion.watch [--only LFT] [--dry-run] [--check-urls] [--if-stale 20]   # reform watcher (ADR-017; the ONLY job with network: official URLs of corpus.py)
-powershell -File scripts/dev-up.ps1 -ScheduleReforms | -UnscheduleReforms   # daily 03:00 Windows task (scripts/watch-reforms.ps1)
+uv run python -m app.ingestion.watch [--only LFT] [--dry-run] [--check-urls] [--if-stale 20] [--no-indexes]   # reform watcher (ADR-017/026; the ONLY job with network: official URLs of corpus.py + indexes.py)
+uv run python -m app.news.pipeline [--dry-run]     # ADR-027: legal news feed (30 items, fixed rules, sources' own text); runs after the watcher in -WatchReforms
+uv run python -m app.ingestion.discover list [--status new] [--search aguas] | approve DIP_FED:LGAg --domain environmental --by NAME | dismiss ...   # ADR-026: laws found in official indexes; approval = operator only
+powershell -File scripts/dev-up.ps1 -ScheduleReforms | -UnscheduleReforms | -WatchReforms [-DryRun]   # daily 03:00 Windows task / run the reform check now
+# firm documents (ADR-025): uploaded from the web (/documentos) -> POST /files; no CLI. One background thread, status in `client_files`
 uv run python -m app.ingestion.cli parse|clean|chunks ...   # `ingest <pdf>` is NOT BUILT YET (WS2.T01/T06); store.ingest_document is the library entry point
 uv run ruff check --fix && uv run ruff format      # lint/format
 
@@ -100,14 +105,14 @@ cd web && npm run e2e:full                # Edge + real API + local models on :3
 
 ## Per-session workflow
 
-1. Read `PLAN.md`; find the first pending task (`[ ]`/`[~]`) of the active workstream.
+1. Read `docs/PLAN.md`; find the first pending task (`[ ]`/`[~]`) of the active workstream.
 2. If the task needs a decision not in the ADR log, propose it (options + cost + recommendation)
    and wait for the user's choice before implementing. Use the `decision-record` skill.
 3. Implement with tests. Run `pytest`, `ruff`, and the isolation test.
 4. If you touched prompts, chunker, embeddings, retrieval params or the router: golden eval
    BEFORE and AFTER, both numbers recorded (`eval-runner` skill). 1–2 cases of difference is noise
    — say so, do not claim an improvement.
-5. Mark the task in `PLAN.md` and add a dated line to its Log.
+5. Mark the task in `docs/PLAN.md` and add a dated line to its Log.
 6. If the code contradicts an accepted ADR, point it out; never silently fix it either way.
 
 ## Lessons carried over from Library-RAG (details: `docs/lessons-from-library-rag.md`)
@@ -166,7 +171,7 @@ Measured on a sibling local-RAG project (same zero-hallucination contract). Trea
 - `docs/lessons-from-library-rag.md` — lessons imported from the sibling project, with sources
 - `docs/LegalAI-System-Architecture.md` — full blueprint (source of truth for design)
 
-- `PLAN.md` — workstreams y tasks de 0 a demo
-- `Brand.md` — fuente de verdad de UI/Frontend (obligatoria para todo PR de UI)
-- `ROADMAP.md` — features futuros fuera de scope (con anti-roadmap)
-- `PITCH.md` — propósito de la solución + spec de ingeniería
+- `docs/PLAN.md` — workstreams y tasks de 0 a demo
+- `docs/Brand.md` — fuente de verdad de UI/Frontend (obligatoria para todo PR de UI)
+- `docs/ROADMAP.md` — features futuros fuera de scope (con anti-roadmap)
+- `docs/PITCH.md` — propósito de la solución + spec de ingeniería

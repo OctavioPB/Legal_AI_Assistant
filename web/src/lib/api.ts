@@ -53,15 +53,6 @@ export interface User {
   preferred_language: string;
 }
 
-export interface ChatBody {
-  query: string;
-  jurisdiction_id: number;
-  persona: string;
-  workflow: string;
-  language: "es" | "en";
-  include_historical: boolean;
-}
-
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -111,24 +102,6 @@ export async function* readSse(res: Response): AsyncGenerator<SseEvent> {
   }
 }
 
-export async function chatStream(body: ChatBody, onStage: (stage: string) => void): Promise<ChatResult> {
-  const res = await fetch("/api/v1/chat/stream", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err: { code?: string } = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, err.code ?? "error");
-  }
-  for await (const ev of readSse(res)) {
-    if (ev.event === "stage") onStage(String(ev.data));
-    else if (ev.event === "result") return ev.data as ChatResult;
-    else if (ev.event === "error") throw new ApiError(500, (ev.data as { code?: string }).code ?? "error");
-  }
-  throw new ApiError(502, "stream_ended");
-}
-
 // ---- conversations (ADR-016) ----------------------------------------------------------------
 export type Kind = "chat" | "research" | "case";
 export type Action = "ask" | "research" | "attack" | "strengthen";
@@ -155,7 +128,45 @@ export interface Conversation {
   message_count: number;
   matter_id: string | null;
   mine: boolean;
+  model_profile: ModelKey;
 }
+
+// ---- model profiles (ADR-024) ---------------------------------------------------------------
+export type ModelKey = "gemma" | "qwen" | "claude";
+
+export interface Measurement {
+  run: string;
+  measured_on: string;
+  cases: number;
+  reviewed_by_lawyer: boolean;
+  recall_at_8: number;
+  citation_precision: number;
+  jurisdiction_leakage: number;
+  refusal_accuracy: number;
+  false_refusal: number;
+  total_p50_s: number;
+}
+
+export interface ModelOption {
+  key: ModelKey;
+  locality: "local" | "remote";
+  model_id: string | null;
+  available: boolean;
+  unavailable_reason: string | null;
+  allowed: boolean;
+  default: boolean;
+  measurement: Measurement | null;
+}
+
+export interface ModelsInfo {
+  options: ModelOption[];
+  allow_remote: boolean;
+  can_manage: boolean;
+}
+
+export const getModels = () => json<ModelsInfo>("models");
+export const setRemotePolicy = async (allow: boolean) =>
+  (await (await send("models/policy", "POST", { allow_remote: allow })).json()) as ModelsInfo;
 
 export interface Message {
   seq: number;
@@ -178,6 +189,7 @@ export interface NewConversation {
   include_historical: boolean;
   case?: CaseBrief;
   matter_id?: string | null;
+  model_profile?: ModelKey;
 }
 
 async function send(path: string, method: "POST" | "PATCH" | "DELETE", body?: unknown): Promise<Response> {
@@ -439,10 +451,63 @@ export async function verifyPdf(title: string, file: Blob, matterId: string | nu
   return (await res.json()) as VerifyResult;
 }
 export const listReports = () => json<Report[]>("verify/reports");
-export const getReport = (id: string) => json<Report>(`verify/reports/${encodeURIComponent(id)}`);
 export const deleteReport = async (id: string) => {
   await send(`verify/reports/${encodeURIComponent(id)}`, "DELETE");
 };
+
+// ---- firm documents (ADR-025) ------------------------------------------------------------------
+export const FILE_KINDS = ["contrato", "escrito", "resolucion", "norma", "otro"] as const;
+export type FileKind = (typeof FILE_KINDS)[number];
+export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+
+export interface ClientFile {
+  id: string;
+  title: string;
+  kind: FileKind;
+  language: "es" | "en";
+  jurisdiction_id: number;
+  matter_id: string | null;
+  status: "processing" | "ready" | "failed";
+  error_key: string | null;
+  pages: number | null;
+  chunk_count: number | null;
+  source_format: "pdf" | "docx" | "text";
+  created_at: string;
+  mine: boolean;
+  uploaded_by_name: string;
+  can_delete: boolean;
+}
+
+export interface FileUnit {
+  cite_id: string;
+  citation_string: string;
+  text: string;
+}
+
+export interface NewFile {
+  title: string;
+  kind: FileKind;
+  language: "es" | "en";
+  jurisdiction_id: number;
+  matter_id: string | null;
+}
+
+export const listFiles = () => json<ClientFile[]>("files");
+export const getFileText = (id: string) => json<FileUnit[]>(`files/${encodeURIComponent(id)}/text`);
+export const deleteFile = async (id: string) => {
+  await send(`files/${encodeURIComponent(id)}`, "DELETE");
+};
+/** The bytes go as `application/octet-stream`: the API recognises the format by content. */
+export async function uploadFile(meta: NewFile, file: Blob): Promise<ClientFile> {
+  const q = new URLSearchParams({ title: meta.title, kind: meta.kind, language: meta.language, jurisdiction_id: String(meta.jurisdiction_id) });
+  if (meta.matter_id) q.set("matter_id", meta.matter_id);
+  const res = await fetch(`/api/v1/files?${q.toString()}`, { method: "POST", headers: { "content-type": "application/octet-stream" }, body: file });
+  if (!res.ok) {
+    const err: { code?: string } = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, err.code ?? "error");
+  }
+  return (await res.json()) as ClientFile;
+}
 
 // ---- 6. reforms (ADR-017) ----------------------------------------------------------------------
 export interface Alert {
@@ -481,6 +546,54 @@ export interface LineageRow {
   new_cite_id: string | null;
 }
 
+/** ADR-026: what an official index lists. Read only: an operator approves a law with
+ *  `python -m app.ingestion.discover approve`, never from the web. */
+export interface IndexEntry {
+  index_id: string;
+  entry_key: string;
+  title: string;
+  url: string;
+  status: "available" | "new" | "approved" | "dismissed";
+  published_on: string | null;
+  last_reform_on: string | null;
+  last_reform_text: string | null;
+  note: string | null;
+  first_seen_at: string;
+  missing: boolean;
+  loaded: boolean;
+}
+
+export interface Discovery {
+  indexes: { index_id: string; title: string; url: string; checked_at: string | null; outcome: string | null; detail: string | null }[];
+  entries: IndexEntry[];
+}
+
 export const listAlerts = () => json<Alert[]>("reforms/alerts");
 export const getReforms = () => json<ReformOverview>("reforms");
+export const getDiscovery = () => json<Discovery>("reforms/indexes");
 export const getReformDetail = (id: string) => json<LineageRow[]>(`reforms/${encodeURIComponent(id)}`);
+
+// ---- legal news (ADR-027) ------------------------------------------------------------------------
+/** One item of the shared feed. Title and excerpt are the source's own words (never generated). */
+export interface NewsItem {
+  id: string;
+  kind: "reform" | "new_law" | "recent_reform" | "court" | "press";
+  title: string;
+  url: string; // https:// (the source) or /reformas?c=... (inside the app)
+  outlet: string;
+  official: boolean;
+  published_at: string | null; // null: the source gives no date (first_seen_at is shown)
+  first_seen_at: string;
+  excerpt: string | null;
+  terms: string[];
+  facts: { counts?: Record<string, number>; last_reform?: string | null; note?: string | null };
+  score: number;
+}
+
+export interface NewsFeed {
+  refreshed_at: string | null;
+  items: NewsItem[];
+  sources: { source_id: string; outlet: string; official: boolean; checked_at: string | null; outcome: string | null }[];
+}
+
+export const getNews = () => json<NewsFeed>("news");

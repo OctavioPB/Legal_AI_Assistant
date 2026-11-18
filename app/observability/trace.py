@@ -9,8 +9,9 @@ Traces are tenant data (they carry prompts and statute fragments): they are tagg
 
 from __future__ import annotations
 
+import threading
 import uuid
-from collections import defaultdict
+from collections import OrderedDict
 from collections.abc import Iterable
 from datetime import datetime
 from typing import Literal, Protocol
@@ -75,24 +76,43 @@ class Tracer(Protocol):
 
 
 class InMemoryTracer:
-    """Test/dev tracer. Doubles as the erasable store for offboarding (`KeyBackend`)."""
+    """Test/dev tracer. Doubles as the erasable store for offboarding (`KeyBackend`).
 
-    def __init__(self) -> None:
-        self.traces: dict[uuid.UUID, dict[str, TraceRecord]] = defaultdict(dict)
+    Bounded: it keeps the newest `max_per_tenant` traces of each tenant (a trace carries the whole
+    prompt and context, and this store lives as long as the API process). The audit log, not this
+    store, is the durable record of every query."""
+
+    def __init__(self, max_per_tenant: int = 500) -> None:
+        if max_per_tenant < 1:
+            raise ValueError("max_per_tenant must be >= 1")
+        self._max = max_per_tenant
+        self.traces: dict[uuid.UUID, OrderedDict[str, TraceRecord]] = {}
+        self._lock = threading.Lock()  # answers are recorded from several request threads
 
     def record(self, trace: TraceRecord) -> None:
-        self.traces[trace.tenant_id][str(trace.request_id)] = trace
+        with self._lock:
+            mine = self.traces.setdefault(trace.tenant_id, OrderedDict())
+            mine[str(trace.request_id)] = trace
+            mine.move_to_end(str(trace.request_id))
+            while len(mine) > self._max:
+                mine.popitem(last=False)
 
     def get(self, tenant_id: uuid.UUID, request_id: uuid.UUID) -> TraceRecord:
-        return self.traces[tenant_id][str(request_id)]
+        with self._lock:
+            return self.traces.get(tenant_id, OrderedDict())[str(request_id)]
 
     # --- KeyBackend (WS7.T06) ---
     def list_keys(self, tenant_id: uuid.UUID) -> list[str]:
-        return list(self.traces[tenant_id])
+        with self._lock:
+            return list(self.traces.get(tenant_id, ()))
 
     def delete_keys(self, tenant_id: uuid.UUID, keys: Iterable[str]) -> None:
-        for k in list(keys):
-            self.traces[tenant_id].pop(k, None)
+        with self._lock:
+            mine = self.traces.get(tenant_id)
+            if mine is None:
+                return
+            for k in list(keys):
+                mine.pop(k, None)
 
 
 class ReplayReport(BaseModel):

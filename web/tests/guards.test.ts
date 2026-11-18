@@ -24,7 +24,7 @@ const tsx = walk(SRC, [".tsx"]);
 const sources = walk(SRC, [".ts", ".tsx", ".css"]);
 
 // Keys looked up with a computed name (t(`persona.${code}`), reason keys from the server, ...).
-const DYNAMIC_PREFIXES = ["lang.", "theme.", "workspace.persona.", "workspace.country.", "workspace.stage.", "workspace.error.", "refusal.reason.", "mark.", "login.error.", "workbench.case.side.", "nav.", "verify.status.", "verify.statusHelp.", "verify.quote.", "verify.modes.", "verify.errors.", "reforms.change.", "reforms.where.", "reforms.outcome.", "matters.role.", "home."];
+const DYNAMIC_PREFIXES = ["lang.", "theme.", "workspace.persona.", "workspace.country.", "workspace.stage.", "workspace.error.", "refusal.reason.", "mark.", "login.error.", "workbench.case.side.", "nav.", "verify.status.", "verify.statusHelp.", "verify.quote.", "verify.modes.", "verify.errors.", "reforms.change.", "reforms.where.", "reforms.outcome.", "reforms.discovery.status.", "news.kind.", "news.filter.", "news.outcome.", "matters.role.", "home.", "workbench.model.name.", "workbench.model.summary.", "files.kinds.", "files.status.", "files.failed.", "files.errors.", "files.languages."];
 
 describe("catalog parity (es-MX / en-US)", () => {
   it("has the same keys, no empty values and the same placeholders", () => {
@@ -110,7 +110,7 @@ describe("statute text and model output render as text", () => {
 });
 
 describe("Brand.md conformance", () => {
-  const brand = brandTokens(read(join(WEB_ROOT, "..", "Brand.md")));
+  const brand = brandTokens(read(join(WEB_ROOT, "..", "docs", "Brand.md")));
   const css = read(join(SRC, "app", "globals.css"));
   const cssLight = cssTokens(css, ":root {");
   const cssDarkAuto = cssTokens(css, ":root:not([data-theme=\"light\"])");

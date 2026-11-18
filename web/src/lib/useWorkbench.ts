@@ -70,8 +70,11 @@ function writeParam(id: string | null) {
   window.history.replaceState(null, "", s ? `${window.location.pathname}?${s}` : window.location.pathname);
 }
 
-export function errorKey(code: string): "rate_limited" | "llm_unavailable" | "generic" {
-  return code === "rate_limited" || code === "llm_unavailable" ? code : "generic";
+const ERROR_KEYS = ["rate_limited", "llm_unavailable", "model_not_allowed", "model_unavailable", "model_declined", "cites_matter_files"] as const;
+export type ErrorKey = (typeof ERROR_KEYS)[number] | "generic";
+
+export function errorKey(code: string): ErrorKey {
+  return (ERROR_KEYS as readonly string[]).includes(code) ? (code as ErrorKey) : "generic";
 }
 
 export function useConversation(kind: Kind) {

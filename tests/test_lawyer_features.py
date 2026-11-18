@@ -282,6 +282,37 @@ def test_alerts_point_at_what_a_reform_touched(law, app_engine) -> None:  # type
     assert ov["checks"][0]["outcome"] == "ingested"
     rows = client.get(f"/reforms/{chg['id']}", headers=ana).json()
     assert {r["change"] for r in rows} == {"amended", "added", "derogated", "removed"}
+
+
+def test_lawyers_see_what_the_official_indexes_list_read_only(
+    law, ingestor_engine, tmp_path
+) -> None:  # type: ignore[no-untyped-def]
+    """ADR-026: the catalog of an official index, which of it is loaded, and what is new. The API
+    has no route that approves: the public corpus is written only by the operator's tool."""
+    from tests.test_corpus_discovery import DIP, DIP_ROBOTS, PAGE, SMALL
+
+    client, *_ = law
+    ana = auth(client)
+    empty = client.get("/reforms/indexes", headers=ana).json()
+    assert empty["entries"] == [] and empty["indexes"][0]["checked_at"] is None
+    w = Watcher(
+        settings=WATCH_SETTINGS, engine=ingestor_engine,
+        fetcher=FakeFetcher({DIP_ROBOTS: FetchResult(404), DIP.url: ok(PAGE)}),
+        parser=FakeParser(), embedder=EMB, counter=ApproxCounter(), inbox=tmp_path / "in",
+        history=tmp_path / "h", out=io.StringIO(),
+    )  # fmt: skip
+    assert w.read_index(SMALL).outcome == "indexed"
+    got = client.get("/reforms/indexes", headers=ana).json()
+    [idx] = got["indexes"]
+    assert (idx["index_id"], idx["outcome"]) == ("DIP_FED", "indexed")
+    by_key = {e["entry_key"]: e for e in got["entries"]}
+    assert len(by_key) == 9 and by_key["LFT"]["loaded"] and not by_key["LGAg"]["loaded"]
+    assert by_key["LGAg"]["status"] == "available" and by_key["CFPC"]["note"].startswith("(Abrog")
+    checks = client.get("/reforms", headers=ana).json()["checks"]
+    assert all(not c["official_id"].startswith("index:") for c in checks), "laws only"
+    paths = client.app.openapi()["paths"]  # type: ignore[attr-defined]
+    assert set(paths["/reforms/indexes"]) == {"get"}
+    assert not any("approve" in p or "indexes/" in p or "corpus_sources" in p for p in paths)
     assert client.get(f"/reforms/{uuid.uuid4()}", headers=ana).status_code == 404
 
 

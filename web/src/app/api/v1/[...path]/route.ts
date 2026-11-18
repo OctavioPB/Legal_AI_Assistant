@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE, isExpired } from "@/lib/auth";
-import { forwardedQuery, isSameOriginJson, match } from "@/lib/proxy";
+import { BODY_TYPE, forwardedQuery, isSameOriginJson, match } from "@/lib/proxy";
 
 // Same-origin gateway to the API: adds the bearer from the httpOnly cookie, forwards only the
 // allow-listed routes, caps the body and passes SSE through untouched.
@@ -9,6 +9,7 @@ const API_URL = process.env.API_URL ?? "http://127.0.0.1:8000";
 const MAX_BODY = 48 * 1024; // a case carries facts + claim (8000 characters each, multibyte)
 const MAX_JSON_BODY = 1024 * 1024; // a brief pasted into the verifier (400 000 characters at most)
 const MAX_PDF = 15 * 1024 * 1024; // the verifier's PDF cap (the API enforces the same)
+const MAX_FILE = 25 * 1024 * 1024; // ADR-025: an uploaded document (the API enforces the same)
 const PASS_HEADERS = ["content-type", "retry-after", "cache-control"];
 
 async function forward(request: Request, ctx: { params: Promise<{ path: string[] }> }) {
@@ -26,9 +27,9 @@ async function forward(request: Request, ctx: { params: Promise<{ path: string[]
     if (!isSameOriginJson(request.headers, kind)) {
       return NextResponse.json({ detail: "forbidden" }, { status: 403 });
     }
-    if (kind === "pdf") {
+    if (kind !== "json") {
       body = await request.arrayBuffer();
-      if (body.byteLength > MAX_PDF) return NextResponse.json({ detail: "body too large" }, { status: 413 });
+      if (body.byteLength > (kind === "pdf" ? MAX_PDF : MAX_FILE)) return NextResponse.json({ detail: "body too large" }, { status: 413 });
     } else {
       body = await request.text();
       const cap = path.join("/") === "verify" ? MAX_JSON_BODY : MAX_BODY;
@@ -42,7 +43,7 @@ async function forward(request: Request, ctx: { params: Promise<{ path: string[]
       method: request.method,
       headers: {
         authorization: `Bearer ${token}`,
-        "content-type": kind === "pdf" ? "application/pdf" : "application/json",
+        "content-type": BODY_TYPE[kind],
         accept: route.stream ? "text/event-stream" : "application/json",
       },
       body: body || undefined,

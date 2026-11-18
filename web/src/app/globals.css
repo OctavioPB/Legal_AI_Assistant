@@ -191,12 +191,6 @@ p {
   text-decoration: none;
   border-bottom: 2px solid var(--accent);
 }
-.header-controls {
-  display: flex;
-  gap: var(--space-4);
-  align-items: center;
-  flex-wrap: wrap;
-}
 .segmented {
   display: inline-flex;
   border: 1px solid var(--border);
@@ -224,16 +218,6 @@ main {
   flex: 1;
   width: 100%;
   /* full width: each page frames itself (the workspaces use the whole row, login centers a card) */
-}
-.empty-state {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-6);
-}
-.empty-state p {
-  color: var(--text-muted);
-  max-width: 60ch;
 }
 .field {
   display: grid;
@@ -286,9 +270,6 @@ main {
   font-size: 0.75rem;
   letter-spacing: 0.04em;
 }
-.accent-note {
-  color: var(--accent-ink);
-}
 
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -296,7 +277,6 @@ main {
     transition: none !important;
   }
 }
-
 
 /* ---- 3b. Workspace, answer, the three marks, source viewer ------------------------------ */
 .sr-only {
@@ -306,15 +286,6 @@ main {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-.session-bar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--space-4);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  margin-bottom: var(--space-3);
 }
 .workspace {
   display: grid;
@@ -549,23 +520,6 @@ main {
   flex-wrap: wrap;
   margin-right: auto;
 }
-.page-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 var(--space-3);
-  color: var(--text);
-  text-decoration: none;
-  border-bottom: 3px solid transparent;
-}
-.page-link:hover {
-  color: var(--primary);
-}
-.page-link[aria-current="page"] {
-  color: var(--primary);
-  font-weight: 650;
-  border-bottom: 3px solid var(--accent); /* decoration only: accent never colours text */
-}
 .small {
   font-size: 0.875rem;
 }
@@ -726,6 +680,64 @@ main {
   border-radius: var(--radius);
   padding: var(--space-1) var(--space-2);
   font-size: 0.875rem;
+  background: var(--surface);
+}
+/* Model profile (Brand.md 9.6, ADR-024): a radio card per model; an external model is marked in
+   gold ink and its warning is shown before anything is sent. */
+.scope-chip-remote {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+.model-picker {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-3) 0 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.model-picker legend {
+  font-weight: 600;
+  padding: 0 var(--space-2);
+}
+.model-option {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+.model-option-on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--on-primary-soft);
+}
+.model-option input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+.model-option-body {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.model-option-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.model-warning {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--accent);
+  color: var(--accent-ink);
   background: var(--surface);
 }
 .conversation-bar {
@@ -973,52 +985,6 @@ main {
   max-width: 65ch;
   font-size: 1.125rem;
 }
-.home-tiles {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: var(--space-4);
-}
-.home-tile {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  height: 100%;
-  min-height: 44px;
-  padding: var(--space-6);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-top: 3px solid var(--primary);
-  border-radius: var(--radius);
-  color: var(--text);
-  text-decoration: none;
-}
-.home-tile:hover {
-  border-top: 3px solid var(--accent);
-}
-.home-tile-title {
-  font-size: 1.25rem;
-  font-weight: 650;
-  color: var(--primary);
-}
-.home-tile-when {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
-.home-tile-go {
-  margin-top: auto;
-  font-weight: 600;
-  color: var(--primary);
-}
-.home-steps ol {
-  padding-left: var(--space-6);
-  max-width: 70ch;
-}
-.home-steps li {
-  margin-bottom: var(--space-2);
-}
 .examples {
   margin-top: var(--space-4);
 }
@@ -1064,10 +1030,6 @@ main {
   margin-bottom: var(--space-3);
 }
 
-/* ---- 3d. Narrow screens: the top bar must not take half the phone (Brand.md 8.1) ------------ */
-.menu-toggle {
-  display: none;
-}
 @media (max-width: 40rem) {
   .app-header {
     padding: var(--space-2) var(--space-4);
@@ -1077,17 +1039,6 @@ main {
     order: 3;
     width: 100%;
     margin-right: 0;
-  }
-  .menu-toggle {
-    display: inline-flex;
-    align-items: center;
-  }
-  .header-controls[data-open="false"] {
-    display: none;
-  }
-  .header-controls {
-    order: 4;
-    width: 100%;
   }
   .home {
     padding: var(--space-6) var(--space-4);
@@ -1442,6 +1393,58 @@ main {
   }
 }
 
+/* ---- Noticias (ADR-027, Brand.md 9.8) ---------------------------------------------------------- */
+.news-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.news-filters [aria-pressed="true"] {
+  border-color: var(--accent-ink);
+  box-shadow: inset 0 -2px 0 var(--accent-ink);
+}
+.news-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.news-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--space-3) var(--space-4);
+}
+.news-item p {
+  margin: var(--space-1) 0;
+}
+.news-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.news-kind {
+  border-color: var(--border);
+  color: inherit;
+}
+.news-official {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+.news-title {
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  margin: var(--space-1) 0;
+  overflow-wrap: anywhere;
+}
+.news-excerpt {
+  overflow-wrap: anywhere;
+}
+
 /* ---- 4. Brand overrides (keep LAST): the OPB skin, Brand.md v2 ----------------------------- */
 /* Typography: Plus Jakarta Sans for UI, Fraunces 300 for titles (italic gold-ink on the key word),
    Source Serif 4 stays for statute text, JetBrains Mono for identifiers. */
@@ -1519,26 +1522,6 @@ a {
 }
 .pages {
   gap: var(--space-1);
-}
-.page-link {
-  min-height: 44px;
-  padding: 0 var(--space-3);
-  border: 0;
-  border-radius: 8px;
-  color: #d3e3f4;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-.page-link:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
-}
-.page-link[aria-current="page"] {
-  border: 0;
-  color: #ffffff;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: inset 0 -2px 0 #c8982a;
 }
 .settings-open {
   min-height: 44px;
@@ -1653,7 +1636,6 @@ a {
 /* Cards: white on the light page, soft blue line, gentle shadow */
 .welcome,
 .login-card,
-.empty-state,
 .laws-nav,
 .citable,
 .finding,
@@ -1723,64 +1705,6 @@ a {
 }
 .home h2 {
   font-size: 1.625rem;
-}
-.home-tile {
-  border: 1px solid var(--line);
-  border-top: 3px solid var(--primary);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  transition: border-color 0.15s ease, transform 0.15s ease;
-}
-.home-tile:hover {
-  border-top: 3px solid var(--accent);
-  transform: translateY(-2px);
-}
-.home-tile-title {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 1.5rem;
-  color: var(--primary);
-}
-.home-tile-go {
-  color: var(--primary);
-}
-.home-tools .home-tile {
-  border-top: 3px solid var(--line);
-}
-.home-tools .home-tile-title {
-  font-size: 1.25rem;
-}
-.home-steps ol {
-  counter-reset: step;
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: var(--space-3);
-}
-.home-steps li {
-  counter-increment: step;
-  position: relative;
-  padding: var(--space-3) var(--space-4) var(--space-3) 3.25rem;
-  border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
-.home-steps li::before {
-  content: counter(step);
-  position: absolute;
-  left: var(--space-4);
-  top: var(--space-3);
-  width: 1.5rem;
-  height: 1.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: 0.8rem;
-  font-weight: 700;
 }
 .alert-banner,
 .reform-notice {
@@ -2060,4 +1984,524 @@ input[type="checkbox"] {
 }
 .checks td:nth-child(2) {
   white-space: nowrap;
+}
+
+/* ---- 5. Brand.md v3 (section 11, 2026-11-13): side rail, single-box start page, reading view ---- */
+/* 11.1 Shell: navy side rail | content. The login page keeps the top band (no rail). */
+.app-shell {
+  flex: 1;
+  display: flex;
+  min-height: 100dvh;
+}
+.app-shell:has(> .app-header) {
+  flex-direction: column;
+}
+.app-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.app-nav {
+  flex: 0 0 15rem;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-3);
+  color: #ffffff;
+  background:
+    linear-gradient(90deg, #003366, #c8982a) top / 100% 3px no-repeat,
+    var(--nav-bg);
+}
+.app-nav .wordmark {
+  padding: 0 var(--space-2);
+  font-size: 1.25rem;
+}
+.app-nav :focus-visible {
+  outline-color: #e8c46a;
+}
+.nav-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-group {
+  margin: var(--space-4) 0 var(--space-1);
+  padding: 0 var(--space-3);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a9c1da;
+}
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-link,
+.app-nav .settings-open {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #d3e3f4;
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+.nav-link:hover,
+.app-nav .settings-open:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.nav-link[aria-current="page"] {
+  color: #ffffff;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 3px 0 0 #c8982a;
+}
+.nav-icon {
+  flex: none;
+}
+.app-nav .settings-open {
+  margin-top: auto;
+  width: 100%;
+}
+.app-header .nav-icon {
+  display: none;
+}
+@media (max-width: 64rem) {
+  /* a band: wordmark and "Ajustes" on the first row, every link on ONE scrollable row below */
+  .app-shell {
+    flex-direction: column;
+  }
+  .app-nav {
+    flex: none;
+    position: static;
+    height: auto;
+    overflow: visible;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4) var(--space-2);
+  }
+  .nav-groups {
+    order: 3;
+    flex: 1 1 100%;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .nav-list {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+  .nav-link {
+    white-space: nowrap;
+  }
+  .nav-group {
+    display: none;
+  }
+  .app-nav .settings-open {
+    margin: 0 0 0 auto;
+    width: auto;
+  }
+}
+.mesa-options .field-inline {
+  flex-wrap: wrap;
+}
+.mesa-options select {
+  max-width: 100%;
+  min-width: 0;
+}
+@media print {
+  .app-nav {
+    display: none !important;
+  }
+}
+
+/* 11.2 Start page: one box for every kind of work */
+.home {
+  max-width: none;
+  padding: 0;
+  gap: 0;
+}
+.home-hero {
+  border-radius: 0;
+  padding: 3.5rem var(--space-6) 4rem;
+}
+.home-hero-inner,
+.home-below {
+  width: 100%; /* auto margins in a flex column would shrink it to its content */
+  max-width: 54rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.home-below {
+  padding: var(--space-8) var(--space-6);
+  gap: var(--space-8);
+}
+.home-hero h1 {
+  margin: 0;
+}
+.mesa {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 18px;
+  padding: var(--space-4) var(--space-6);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.home-hero .mesa p {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+.mesa-modes {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.mesa-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.mesa-mode:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.mesa-mode-on {
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+}
+.mesa-mode input {
+  accent-color: #c8982a; /* the radio dot, not text (accent never colours text, Brand.md 1) */
+}
+.mesa-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+.mesa-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.mesa-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-3);
+}
+.mesa-options .field {
+  margin-bottom: 0;
+}
+.mesa-row {
+  display: flex;
+  justify-content: flex-end;
+}
+.button-accent {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+.home-hero .home-trust {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #d3e3f4;
+}
+.recent h2 {
+  font-size: 1.5rem;
+}
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-3);
+}
+.recent-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--primary);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+.recent-card[data-kind="research"] {
+  border-top: 3px solid var(--accent);
+}
+.recent-card[data-kind="case"] {
+  border-top: 3px solid var(--reasoning-fg);
+}
+.recent-card:hover {
+  transform: translateY(-2px);
+}
+.recent-kind {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.recent-card[data-kind="research"] .recent-kind {
+  color: var(--accent-ink);
+}
+.recent-card[data-kind="case"] .recent-kind {
+  color: var(--reasoning-fg);
+}
+.recent-title {
+  font-weight: 600;
+}
+.model-compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* 11.3 Reading view: a centred column, numbers for citations, what the system checked */
+.workbench-main {
+  max-width: 48rem;
+}
+.answer .answer-text,
+.answer li {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.cite-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35em;
+  margin: 0 1px 0 3px;
+  padding: 2px 5px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--surface));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface)); /* >= 4.5:1 for the small gold-ink number */
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: super;
+  cursor: pointer;
+}
+.cite-mark:hover {
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+}
+.verify-strip {
+  margin: 0 0 var(--space-2);
+  font-size: 0.8125rem;
+}
+.verify-ok {
+  display: inline-block;
+  padding: 2px var(--space-3);
+  border-radius: 999px;
+  background: var(--verified-bg);
+  color: var(--verified-fg);
+  font-weight: 600;
+}
+.verify-own {
+  color: var(--reasoning-fg);
+}
+.answer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+.sources-title {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-3);
+}
+.source-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.source-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.source-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+.source-num {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface)); /* >= 4.5:1 for the small gold-ink number */
+  color: var(--accent-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.source-excerpt {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.source-open {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* 11.4 Viewer: the cited passage in light gold */
+.cited-passage {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-radius: 3px;
+}
+
+/* 9.7 Firm documents (ADR-025): the upload form and the list of what the conversations can cite */
+.file-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+.file-row .field {
+  flex: 1 1 14rem;
+}
+.file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.file-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.file-item p {
+  margin: 0;
+}
+.file-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.file-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.file-text {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-3);
+}
+.file-units {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-6);
+  max-height: 28rem;
+  overflow-y: auto;
+}
+.file-unit-text {
+  font-family: var(--font-legal);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.file-form input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.file-form .controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0 var(--space-4);
+}
+.file-form .controls > p {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.file-item a.button {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.file-units .source-open {
+  text-align: left;
+  min-height: 0;
+  padding: var(--space-2) 0;
 }

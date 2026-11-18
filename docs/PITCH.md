@@ -156,12 +156,18 @@ ingenuo por el doble paso de validación — en este dominio, ese sobrecosto *es
 
 ## 5. Estado y camino
 
-- **Hoy:** blueprint completo (`docs/LegalAI-System-Architecture.md`), plan ejecutable a demo
-  funcional en 9 workstreams (`PLAN.md`), workspace de desarrollo asistido por IA configurado.
-- **Demo:** un despacho real, corpus sembrado (LFT, Código Civil NL, bando de Monterrey,
-  statute de California), ambos workflows operando con citas verificadas y suite dorada en verde.
-- **Después:** monitoreo de reformas con alertas por expediente, verificador de citas de
-  escritos externos, calculadora de términos procesales y el citator mexicano (`ROADMAP.md`).
+- **Hoy (2026-11-14):** demo funcional que corre completa en un equipo, sin enviar nada fuera
+  (`docs/LOCAL_DEMO.md`): tres espacios de trabajo (Conversar, Investigación, Argumentar) con citas
+  verificadas y negativa estructurada; navegador de leyes, verificador de citas de escritos, asuntos con
+  miembros, vigilante de reformas y **documentos del propio despacho** citables y aislados por asunto.
+  Medido sobre 25 casos redactados por IA, aún sin revisión de abogados: recall@8 1.00, fuga
+  jurisdiccional 0, negativa correcta 5/5, falsa negativa 1/20 con el modelo local. Diseño en
+  `docs/LegalAI-System-Architecture.md`, decisiones en el registro de ADR, avance en `PLAN.md`.
+- **Falta para cerrar la demo:** revisión del conjunto de evaluación por abogados (hasta entonces
+  las compuertas no cuentan), OCR para documentos escaneados y medir el perfil remoto opcional.
+- **Después:** calculadora de términos procesales, plantillas de escritos, jurisprudencia y el
+  citator mexicano, exportación del dossier (`ROADMAP.md`). El monitoreo de reformas y el
+  verificador de citas de escritos externos, antes en esta lista, ya están construidos.
 
 ---
 

@@ -12,3 +12,5 @@ Los PDFs viven en `raw/` (ignorado por git); `SHA256SUMS` fija los bytes ingerid
 | REG_ADMIN_MTY.pdf | monterrey.gob.mx/pdf/reglamentos/1/ (Reglamento de la Administración Pública Municipal) | MX-NL / Monterrey |
 
 Nota: leginfo.legislature.ca.gov y Justia devuelven 403 a descargas automáticas; no se evadió el bloqueo, se usó el volcado oficial. El .zip (1.2 GB) se borró tras extraer.
+
+ADR-026 (2026-11-17): las 8 fuentes tienen URL oficial en `app/ingestion/corpus.py`. Las de hcnl.gob.mx y monterrey.gob.mx devolvieron exactamente los bytes de `SHA256SUMS`. California se lee por rangos del `pubinfo_YYYY.zip` más reciente de downloads.leginfo.legislature.ca.gov (nunca completo); el caché de secciones vive en `raw/history/CA_LABOR_CODE.leginfo-cache.json`.

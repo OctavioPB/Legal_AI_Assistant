@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 
 from app.api.auth import AuthError, Principal, authenticate, issue_token
-from app.api.deps import AppState, PrincipalDep, StateDep, require_admin
+from app.api.deps import AppState, CodedError, PrincipalDep, StateDep, require_admin
 from app.chat.service import ChatRequest, ChatResult, answer_query
 from app.corpus.lineage import successions
 from app.db.session import tenant_transaction
@@ -39,6 +39,13 @@ def stream_error_code(exc: Exception) -> str:
         return "llm_unavailable"
     if isinstance(exc, UnpinnedAliasError):
         return "alias_unpinned"
+    from app.orchestration.anthropic_client import ModelDeclinedError
+    from app.orchestration.profiles import ProfileUnavailableError
+
+    if isinstance(exc, ModelDeclinedError):
+        return "model_declined"
+    if isinstance(exc, ProfileUnavailableError):
+        return "model_unavailable"
     return "internal"
 
 
@@ -254,6 +261,11 @@ def register_errors(app: Any) -> None:
     def unpinned(_: Request, __: Exception) -> JSONResponse:
         return JSONResponse({"detail": "model not configured", "code": "alias_unpinned"}, 503)
 
+    def coded(_: Request, exc: Exception) -> JSONResponse:
+        assert isinstance(exc, CodedError)
+        return JSONResponse({"detail": exc.code, "code": exc.code}, exc.status_code)
+
+    app.add_exception_handler(CodedError, coded)
     app.add_exception_handler(RateLimitExceededError, rate_limited)
     app.add_exception_handler(LLMUnavailableError, llm_unavailable)
     app.add_exception_handler(UnpinnedAliasError, unpinned)

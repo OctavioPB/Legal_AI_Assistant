@@ -15,7 +15,13 @@
     "settings": "Ajustes",
     "leyes": "Leyes",
     "verificar": "Verificar",
-    "asuntos": "Asuntos"
+    "asuntos": "Asuntos",
+    "home": "Inicio",
+    "work": "Trabajo",
+    "tools": "Herramientas",
+    "reformas": "Reformas",
+    "documentos": "Documentos",
+    "noticias": "Noticias"
   },
   "lang": {
     "es-MX": "Español",
@@ -80,6 +86,10 @@
     "error": {
       "rate_limited": "Demasiadas consultas seguidas. Espere unos segundos e intente de nuevo.",
       "llm_unavailable": "El servicio de modelos no está disponible por ahora. Intente de nuevo en unos minutos.",
+      "model_not_allowed": "El despacho no permite modelos externos. Un administrador puede activarlos en Ajustes; mientras tanto, inicie una conversación con un modelo local.",
+      "model_unavailable": "Ese modelo no está configurado en este servidor. Inicie una conversación con otro modelo.",
+      "model_declined": "El proveedor del modelo externo rechazó la solicitud. No se generó respuesta.",
+      "cites_matter_files": "Esta conversación cita documentos de otro asunto. Para no mostrarlos a quien no es miembro de ese asunto, solo puede quedar en su asunto original o fuera de todo asunto.",
       "session": "Su sesión terminó. Inicie sesión de nuevo.",
       "generic": "No fue posible completar la consulta. Intente de nuevo."
     }
@@ -88,7 +98,12 @@
     "title": "Respuesta",
     "citationsTitle": "Fuentes citadas",
     "noCitations": "Esta respuesta no cita fuentes.",
-    "gap": "Sin fuentes suficientes para esta sección."
+    "gap": "Sin fuentes suficientes para esta sección.",
+    "verified": "{count, plural, =1 {# cita comprobada} other {# citas comprobadas}} contra el texto de la ley",
+    "reasoningCount": "{count, plural, =1 {# párrafo} other {# párrafos}} de análisis propio, sin respaldo normativo",
+    "copy": "Copiar con citas",
+    "copied": "Copiado al portapapeles.",
+    "copySources": "Fuentes"
   },
   "mark": {
     "strategic": {
@@ -103,7 +118,8 @@
   "cite": {
     "verified": "Cita verificada",
     "open": "Abrir fuente",
-    "unverified": "Identificador sin verificar"
+    "unverified": "Identificador sin verificar",
+    "mark": "Fuente {n}: {label}, verificada. Abrir fuente"
   },
   "refusal": {
     "title": "Fuentes insuficientes",
@@ -139,7 +155,9 @@
     "notCurrent": "No vigente",
     "current": "Vigente",
     "identifier": "Identificador",
-    "reformed": "Esta disposición cambió después de citarse ({change}, {date}). Versión vigente:"
+    "reformed": "Esta disposición cambió después de citarse ({change}, {date}). Versión vigente:",
+    "firmDocument": "Documento del despacho",
+    "section": "Sección completa"
   },
   "footer": {
     "disclaimer": "Herramienta de investigación. No sustituye el criterio profesional del abogado."
@@ -170,7 +188,9 @@
     },
     "sources": {
       "title": "Fuentes citadas",
-      "empty": "Las fuentes citadas aparecerán aquí. Seleccione una para leer el texto original."
+      "empty": "Las fuentes citadas aparecerán aquí. Seleccione una para leer el texto original.",
+      "open": "Abrir texto completo",
+      "loading": "Cargando extracto…"
     },
     "chat": {
       "title": "Conversar",
@@ -225,6 +245,7 @@
       "claim": "Pretensión o teoría del caso",
       "claimPlaceholder": "Lo que se pide o se sostiene (opcional)…",
       "privacyNote": "Los hechos se guardan solo para su usuario, dentro del despacho, y nunca salen de este equipo.",
+      "privacyNoteRemote": "Los hechos se guardan solo para su usuario, dentro del despacho. Con un modelo externo, los hechos y cada argumento se envían a ese proveedor para generar la respuesta.",
       "create": "Crear caso",
       "cardTitle": "Caso",
       "roundsLabel": "Rondas",
@@ -257,57 +278,68 @@
       "done": "Listo",
       "personaHelp": "El perfil orienta el vocabulario y el orden de las fuentes; no amplía ni restringe la jurisdicción.",
       "historicalHelp": "Actívelo solo si necesita saber qué decía una norma antes de una reforma."
+    },
+    "model": {
+      "label": "Modelo",
+      "help": "Se fija al iniciar y queda registrado en la bitácora. Todos los modelos pasan por la misma verificación de citas.",
+      "name": {
+        "gemma": "Gemma 4 · 26B",
+        "qwen": "Qwen 3 · 4B",
+        "claude": "Claude Opus 5.5"
+      },
+      "summary": {
+        "gemma": "Más preciso de los locales; más lento.",
+        "qwen": "Más rápido; en la evaluación rechazó muchas preguntas que sí tenían fuente.",
+        "claude": "Modelo de Anthropic, en la nube."
+      },
+      "local": "En este equipo",
+      "remote": "Externo · Anthropic",
+      "default": "predeterminado",
+      "measured": "Medido ({date}, {cases} casos): respondió {answered} de las preguntas con fuente · rechazó {refusal} de las que no la tienen · citas válidas {precision} · {seconds} s típicos",
+      "notReviewed": "casos aún sin revisión de abogado",
+      "unmeasured": "Sin medir: aún no se ha corrido la evaluación con este modelo.",
+      "remoteWarning": "Con este modelo, su pregunta, el historial de la conversación y los fragmentos de ley recuperados se envían a Anthropic para generar cada respuesta. No lo use si el despacho no lo ha autorizado para el asunto.",
+      "fixed": "Modelo: {name}",
+      "fixedRemote": "externo"
     }
   },
   "home": {
-    "title": "¿Qué necesita hacer <em>hoy</em>?",
-    "intro": "Asistente de investigación jurídica que responde solo con las normas cargadas y cita cada fuente. Si no encuentra fundamento, lo dice en lugar de inventarlo.",
-    "choose": "Elija cómo quiere trabajar",
-    "conversar": {
-      "title": "Conversar",
-      "text": "Haga preguntas jurídicas y continúe con preguntas de seguimiento, como en una conversación.",
-      "when": "Úselo para dudas puntuales: «¿Qué dice la ley sobre…?»",
-      "go": "Empezar a conversar →"
+    "eyebrow": "Investigación jurídica verificable",
+    "title": "¿Qué necesita <em>resolver</em> hoy?",
+    "intro": "Responde solo con las normas cargadas y cita cada fuente. Si no encuentra fundamento, lo dice en lugar de inventarlo.",
+    "modeLegend": "Qué quiere hacer",
+    "mode": {
+      "ask": "Preguntar",
+      "research": "Investigar a fondo",
+      "case": "Argumentar un caso"
     },
-    "investigacion": {
-      "title": "Investigación",
-      "text": "Plantee un problema y reciba un expediente ordenado: planteamiento, normas aplicables, análisis y fuentes.",
-      "when": "Úselo para preparar un escrito o un memorándum; se puede exportar a PDF.",
-      "go": "Iniciar una investigación →"
+    "modeHelp": {
+      "ask": "Una respuesta breve con sus fuentes; puede seguir preguntando.",
+      "research": "Un expediente ordenado (planteamiento, normas, análisis y fuentes), exportable a PDF.",
+      "case": "Describa los hechos; después pondrá a prueba sus argumentos contra la contraparte."
     },
-    "argumentar": {
-      "title": "Argumentar",
-      "text": "Describa un caso y ponga a prueba sus argumentos: el sistema actúa como la contraparte o los fortalece.",
-      "when": "Úselo para preparar una audiencia o anticipar las objeciones del otro abogado.",
-      "go": "Trabajar un caso →"
+    "input": {
+      "ask": "Su pregunta",
+      "research": "Pregunta de investigación",
+      "case": "Hechos del caso"
     },
-    "howTitle": "Cómo funciona",
-    "step1": "Escriba su pregunta. Por omisión se consulta el derecho federal de México; puede cambiar la jurisdicción con el botón «Cambiar».",
-    "step2": "Espere la respuesta: con el modelo local tarda de 1.5 a 4 minutos. La pantalla indica en qué etapa va.",
-    "step3": "Revise las fuentes: cada cita marcada con ✓ abre el texto original de la norma con el pasaje resaltado.",
-    "step4": "Si no hay fuentes suficientes, el sistema lo indica y sugiere qué hacer. No es un error: es una garantía de que no inventa.",
-    "tools": "Herramientas",
-    "leyes": {
-      "title": "Leyes",
-      "text": "Consulte el texto de cada ley por títulos, capítulos y artículos, y compare sus versiones.",
-      "go": "Abrir el navegador →"
+    "placeholder": {
+      "ask": "p. ej. ¿Cuáles son las causas de rescisión sin responsabilidad para el patrón?",
+      "research": "p. ej. ¿Qué indemnización corresponde por despido injustificado?",
+      "case": "Hechos relevantes, en orden cronológico…"
     },
-    "verificar": {
-      "title": "Verificar citas",
-      "text": "Pegue o suba un escrito y revise si cada artículo citado existe, está vigente y dice lo que se le atribuye.",
-      "go": "Verificar un escrito →"
+    "submit": {
+      "ask": "Preguntar →",
+      "research": "Investigar →",
+      "case": "Preparar el caso →"
     },
-    "asuntos": {
-      "title": "Asuntos",
-      "text": "Agrupe conversaciones, investigaciones, casos, fuentes y notas por asunto, y compártalos con sus colegas.",
-      "go": "Ver mis asuntos →"
-    },
-    "reformas": {
-      "title": "Reformas",
-      "text": "Vea qué leyes cambiaron y qué parte de su trabajo cita disposiciones reformadas.",
-      "go": "Ver reformas →"
-    },
-    "eyebrow": "Investigación jurídica verificable"
+    "recentTitle": "Continuar donde se quedó",
+    "recentEmpty": "Aquí aparecerá su trabajo reciente.",
+    "kind": {
+      "chat": "Pregunta",
+      "research": "Investigación",
+      "case": "Caso"
+    }
   },
   "matters": {
     "title": "Asuntos",
@@ -335,7 +367,7 @@
     "loading": "Cargando…",
     "close": "Cerrar asunto",
     "reopen": "Reabrir asunto",
-    "confirmDelete": "¿Eliminar el asunto? Sus conversaciones no se borran: vuelven a ser privadas de su autor.",
+    "confirmDelete": "¿Eliminar el asunto? Sus conversaciones no se borran: vuelven a ser privadas de su autor. Los documentos subidos al asunto SÍ se eliminan.",
     "delete": "Eliminar",
     "cancel": "Cancelar",
     "work": "Trabajo del asunto",
@@ -376,7 +408,8 @@
       "cancel": "Cancelar",
       "error": "No se pudo guardar.",
       "saved": "Guardada en el asunto."
-    }
+    },
+    "filesIn": "Documentos del asunto"
   },
   "laws": {
     "title": "Leyes",
@@ -439,7 +472,8 @@
       "ingested": "Nueva versión cargada",
       "failed": "Error al revisar",
       "blocked": "La fuente rechazó la descarga",
-      "skipped": "Sin descarga automática (se actualiza a mano)"
+      "skipped": "Sin descarga automática (se actualiza a mano)",
+      "indexed": "Índice leído"
     },
     "versions": "de la versión {from} a la {to}",
     "published": "publicada el {date}",
@@ -454,6 +488,30 @@
       "derogated": "Derogada",
       "removed": "Eliminada",
       "added": "Nueva"
+    },
+    "discovery": {
+      "title": "Leyes en índices oficiales",
+      "intro": "Cada día se lee la lista oficial de leyes vigentes. Leerla no descarga ninguna ley: una ley que no está cargada solo se carga cuando quien administra el sistema la aprueba, porque el acervo público es el mismo para todos los despachos.",
+      "howTo": "Para cargar una ley, quien administra el equipo ejecuta: uv run python -m app.ingestion.discover approve {ref} --domain MATERIA --by NOMBRE",
+      "lastRead": "Última lectura: {when}",
+      "neverRead": "Todavía no se ha leído.",
+      "fresh": "Nuevas desde la primera lectura",
+      "noFresh": "Ninguna ley nueva desde la primera lectura.",
+      "approved": "Aprobadas",
+      "catalog": "Catálogo completo ({n})",
+      "filter": "Buscar en el catálogo",
+      "noMatch": "Ninguna ley coincide.",
+      "lastReform": "Última reforma: {text}",
+      "status": {
+        "available": "No cargada",
+        "new": "Nueva",
+        "approved": "Aprobada",
+        "dismissed": "Descartada"
+      },
+      "loaded": "Cargada",
+      "pending": "Aprobada; se carga en la siguiente revisión",
+      "missing": "Ya no aparece en el índice",
+      "official": "Documento oficial"
     }
   },
   "verify": {
@@ -525,6 +583,123 @@
   "settings": {
     "title": "Ajustes",
     "close": "Cerrar",
-    "session": "Sesión"
+    "session": "Sesión",
+    "models": "Modelos externos",
+    "allowRemote": "Permitir que el despacho use Claude (Anthropic)",
+    "allowRemoteHelp": "Al activarlo, quien inicie una conversación con Claude envía a Anthropic sus preguntas, el historial y los fragmentos recuperados. Gemma y Qwen siguen en este equipo. Al desactivarlo, las conversaciones con Claude ya no pueden continuar.",
+    "remoteNotConfigured": "Este servidor no tiene una clave de Anthropic configurada: Claude no está disponible aunque se permita.",
+    "adminOnly": "Solo un administrador del despacho puede cambiarlo.",
+    "saved": "Guardado."
+  },
+  "files": {
+    "title": "Documentos del despacho",
+    "intro": "Suba contratos, escritos, resoluciones o una norma que no esté cargada. El asistente podrá citarlos en sus conversaciones, igual que cita la ley.",
+    "uploadTitle": "Subir un documento",
+    "file": "Archivo",
+    "fileHelp": "PDF con texto, Word (.docx) o texto plano. Máximo 25 MB. Un PDF escaneado (solo imágenes) no se puede leer.",
+    "docTitle": "Nombre del documento",
+    "docTitlePlaceholder": "Contrato de prestación de servicios 2026",
+    "docTitleHelp": "Así aparecerá en las citas. Si lo deja vacío se usa el nombre del archivo.",
+    "kind": "Tipo de documento",
+    "kinds": {
+      "contrato": "Contrato o convenio",
+      "escrito": "Escrito (demanda, contestación, promoción)",
+      "resolucion": "Resolución (sentencia, acuerdo, laudo)",
+      "norma": "Ley, reglamento o norma no cargada",
+      "otro": "Otro documento"
+    },
+    "language": "Idioma del documento",
+    "languages": {
+      "es": "Español",
+      "en": "Inglés"
+    },
+    "where": "Ámbito del documento",
+    "allStates": "Todo el país",
+    "whereHelpAll": "Aparecerá en las conversaciones de cualquier ámbito de este país.",
+    "whereHelpNarrow": "Aparecerá solo en las conversaciones de este ámbito. Una conversación federal o de otro estado no lo verá.",
+    "visibleFirm": "Sin asunto: lo podrá consultar todo el despacho.",
+    "visibleMatter": "Dentro del asunto: solo lo verán los miembros del asunto, y solo se usará en las conversaciones de ese asunto.",
+    "privacy": "El archivo original no se guarda. Se lee en este equipo, se conserva únicamente su texto y nadie fuera de su despacho puede verlo.",
+    "upload": "Subir y procesar",
+    "uploading": "Subiendo…",
+    "uploadedAnnounce": "«{title}» se recibió y se está procesando.",
+    "doneAnnounce": "Terminó el procesamiento de los documentos.",
+    "listTitle": "Documentos cargados",
+    "loading": "Cargando…",
+    "empty": "Todavía no hay documentos. Suba el primero con el formulario de arriba.",
+    "firmWide": "Todo el despacho",
+    "aMatter": "Un asunto",
+    "by": "subido por {name}",
+    "status": {
+      "processing": "Procesando",
+      "ready": "Listo · {count, plural, =1 {# parte citable} other {# partes citables}}",
+      "failed": "No se pudo procesar"
+    },
+    "processingHelp": "Puede seguir trabajando; esta lista se actualiza sola. Un PDF largo tarda unos minutos.",
+    "failed": {
+      "no_text": "No se encontró texto. Si es un PDF escaneado, conviértalo antes a PDF con texto (OCR) o suba el archivo de Word.",
+      "unreadable": "El archivo está dañado o protegido con contraseña y no se pudo abrir.",
+      "too_long": "El documento es demasiado largo. Divídalo en partes y súbalas por separado.",
+      "embedder_unavailable": "El motor de búsqueda local no respondió. Compruebe que la aplicación esté iniciada y súbalo de nuevo.",
+      "generation_mismatch": "El índice de búsqueda cambió de versión y este documento no puede mezclarse con él. Avise a quien administra el sistema.",
+      "interrupted": "El procesamiento se interrumpió (la aplicación se cerró). Elimínelo y súbalo de nuevo.",
+      "internal": "Ocurrió un error al procesarlo. Elimínelo e inténtelo de nuevo."
+    },
+    "showText": "Ver el texto extraído",
+    "hideText": "Ocultar el texto",
+    "textHelp": "Este es el texto tal como lo leyó el sistema, parte por parte. Revíselo antes de confiar en él: si falta algo aquí, el asistente tampoco lo verá.",
+    "noUnits": "No hay texto que mostrar.",
+    "ask": "Preguntar sobre este documento",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "confirmDelete": "¿Eliminar el documento? Se borra su texto; las conversaciones que lo citaron conservan el nombre de la cita, pero ya no podrán abrirla.",
+    "errors": {
+      "tooLarge": "El archivo pesa más de 25 MB.",
+      "unsupported": "Ese tipo de archivo no se puede leer. Use PDF, Word (.docx) o texto plano.",
+      "busy": "Hay demasiadas solicitudes. Espere un momento e inténtelo de nuevo.",
+      "matter": "El asunto ya no está disponible. Elija otro o súbalo sin asunto.",
+      "generic": "No se pudo subir el documento. Inténtelo de nuevo."
+    }
+  },
+  "news": {
+    "title": "Noticias",
+    "intro": "Cambios a la legislación, criterios de la Suprema Corte y notas de prensa sobre asuntos jurídicos. Se eligen con reglas fijas (fuente oficial primero, términos jurídicos y fecha), no con el modelo, y cada nota se muestra con las palabras de su fuente.",
+    "refreshed": "Actualizado: {when}",
+    "never": "Todavía no hay noticias. El feed se actualiza cada día junto con la revisión de reformas.",
+    "loadError": "No fue posible cargar las noticias. Intente de nuevo.",
+    "show": "Mostrar",
+    "filter": {
+      "all": "Todas",
+      "law": "Cambios a la legislación",
+      "court": "Tribunales",
+      "press": "Prensa"
+    },
+    "none": "Ninguna nota de este tipo por ahora.",
+    "kind": {
+      "reform": "Reforma cargada",
+      "new_law": "Ley nueva",
+      "recent_reform": "Reforma reciente",
+      "court": "Suprema Corte",
+      "press": "Prensa"
+    },
+    "official": "Fuente oficial",
+    "seen": "vista el {date}",
+    "why": "Por qué aparece: {terms}",
+    "lastReform": "Última reforma: {text}",
+    "openSource": "Abrir en la fuente",
+    "openInApp": "Ver qué cambió",
+    "sources": "Fuentes",
+    "sourcesHelp": "Lista cerrada de fuentes. Si una rechaza la lectura automática, se anota y no se insiste. De la prensa solo se guardan título, medio, fecha, enlace y el extracto que publica la propia fuente.",
+    "source": "Fuente",
+    "checkedAt": "Leída",
+    "result": "Resultado",
+    "notYet": "Sin leer todavía",
+    "outcome": {
+      "collected": "Leída",
+      "unchanged": "Sin cambios",
+      "blocked": "La fuente rechazó la lectura",
+      "failed": "Error al leer",
+      "skipped": "Se reintenta en la siguiente revisión"
+    }
   }
 }

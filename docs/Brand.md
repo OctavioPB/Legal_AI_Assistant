@@ -308,6 +308,59 @@ Mismo marco que §8 (barra, tokens, tipografía, tono); ninguna herramienta usa 
 - El visor de fuentes (§3.5) muestra, si aplica, "Esta disposición cambió después de citarse (…)" en
   `--accent-ink` con la versión vigente en mono.
 
+### 9.8 Noticias (ADR-027, 2026-11-17)
+- Entrada "Noticias" al final de las herramientas de la barra lateral (§11.1), con ícono de periódico.
+- Encabezado `h1` "Noticias", la explicación de cómo se eligen (reglas fijas, nunca el modelo) y "Actualizado: …".
+- Filtros como botones con `aria-pressed` (Todas · Cambios a la legislación · Tribunales · Prensa). El activo se
+  marca con borde y subrayado `--accent-ink`, nunca con `--accent` puro (§6).
+- Cada nota es una tarjeta (`--surface`, borde `--line`, `--radius`):
+  - primera línea: insignia neutra del tipo, insignia "Fuente oficial" en `--accent-ink` si aplica, medio y fecha;
+    sin fecha de la fuente se dice "vista el …", nunca se inventa una;
+  - título `h2` como enlace: el externo abre en pestaña nueva con `rel="noreferrer noopener"`, el interno
+    (`/reformas`) navega dentro de la app;
+  - el extracto de la propia fuente, como texto; los conteos de una reforma; "Por qué aparece: …" con los términos.
+- Ningún color de verificación (§3) se usa en noticias: una nota no es una cita verificada.
+- Al final, `h2` "Fuentes": tabla (fuente, leída, resultado en palabras). Una fuente que rechaza la lectura se dice
+  "La fuente rechazó la lectura" y no se insiste.
+
+### 9.6 Modelo de una conversación (ADR-024, 2026-11-09)
+- Al crear (Conversar, Investigación, Argumentar): `fieldset` "Modelo" con una tarjeta-radio por modelo USABLE
+  (configurado en el servidor y permitido por el despacho); se oculta si solo hay uno. Cada tarjeta: nombre,
+  insignia de ubicación ("En este equipo" verde §3; "Externo · Anthropic" en `--accent-ink`), "predeterminado"
+  si aplica, una línea de para qué sirve y la línea de medición: "Medido (fecha, N casos): respondió X de las
+  preguntas con fuente · rechazó Y de las que no la tienen · citas válidas · segundos típicos (casos aún sin
+  revisión de abogado)" o "Sin medir". No se muestra recall de recuperación (es igual para todos los modelos).
+  Nunca "recomendado" ni estrellas: la medición habla. Tarjeta elegida: borde `--primary`, fondo `--primary-soft`.
+- Un modelo externo muestra, ANTES de enviar nada, un aviso con borde izquierdo 3 px `--accent`: qué sale del
+  equipo (pregunta, historial, fragmentos; en Argumentar también hechos y argumentos) y a quién. La nota de
+  privacidad del caso cambia a su versión "externo"; nunca se dice "no sale de este equipo" si sale.
+- Conversación abierta: chip "Modelo: …" junto al ámbito (fijo, como jurisdicción y perfil); el externo, en
+  `--accent-ink` con "· externo".
+- Ajustes › "Modelos externos": casilla "Permitir que el despacho use Claude (Anthropic)" con su explicación;
+  solo la cambia un administrador (los demás la ven deshabilitada con "Solo un administrador…"); si el servidor
+  no tiene clave, se dice que Claude no está disponible aunque se permita.
+- Errores en palabras: "El despacho no permite modelos externos…", "Ese modelo no está configurado…", "El
+  proveedor del modelo externo rechazó la solicitud…".
+
+### 9.7 Documentos del despacho (ADR-025, 2026-11-14)
+- Entrada en el riel, en Herramientas, después de Leyes. Página de herramienta (§9): formulario de carga
+  arriba, lista debajo.
+- Formulario: archivo, nombre (así aparece en las citas), tipo (lista cerrada), idioma, asunto (si hay) y
+  ámbito (catálogo cerrado; por omisión el último ámbito usado). Dos frases que nunca se omiten: quién lo verá
+  (todo el despacho / solo los miembros del asunto) y qué se guarda ("El archivo original no se guarda…").
+  El botón queda deshabilitado sin archivo.
+- Lista: una tarjeta por documento con nombre, insignia de estado con forma + icono + texto (◷ Procesando ·
+  ✓ Listo · N partes citables · ⌕ No se pudo procesar; tonos de §9.2, nunca solo color), tipo, asunto o
+  "Todo el despacho", fecha y quién lo subió. Un fallo dice la causa en lenguaje llano y qué hacer (p. ej.
+  PDF escaneado → OCR o Word); nunca una clave interna.
+- "Ver el texto extraído": las partes citables en orden, en la tipografía de norma (§2), con la advertencia
+  de revisarlo antes de confiar; cada nombre abre el visor. "Preguntar sobre este documento" abre Conversar
+  en su asunto. "Eliminar" (solo quien lo subió o un admin) pide confirmación en la misma tarjeta y dice
+  qué se pierde.
+- Visor (§11.4) para un documento del despacho: insignia "Documento del despacho" en lugar de
+  Vigente/No vigente y "Sección completa" en lugar de "Artículo completo".
+- Mientras algo se procesa la lista se actualiza sola y el final se anuncia (`role=status`).
+
 ## 10. Estilo OPB (v2, 2026-11-08): cómo se aplica
 
 Referencia de estructura: Library-RAG (misma familia de producto). Todo vive en la sección 4 de `globals.css`.
@@ -338,3 +391,48 @@ Referencia de estructura: Library-RAG (misma familia de producto). Todo vive en 
   una fila (etiqueta + selector).
 - Las marcas de §3 conservan forma, ícono y rótulo; solo cambian sus colores a la paleta OPB (verde verificada,
   morado razonamiento, pizarra sin respaldo).
+
+## 11. Mesa única + Estudio (v3, 2026-11-13, elegida por el product owner)
+
+Propuestas comparadas en el lienzo "Legal AI · Propuestas de UI" (A Estudio, B Expediente, C Mesa única).
+Decisión: **C para inicio y navegación, A para la vista de la respuesta**; de B, la franja de verificación y el
+pasaje resaltado en el visor. B completa queda como un futuro modo "verificar respuesta". Sustituye a §8.0
+(inicio), §8.1 (barra superior), §8.4 (panel de fuentes) y a las partes de §10 que hablan de la barra superior,
+del inicio y de las citas en línea; el resto de §8–§10 sigue vigente.
+
+### 11.1 Navegación lateral
+- Riel `--nav-bg` a la izquierda (16 rem; ≤ 64 rem pasa arriba como banda que se envuelve). Arriba el wordmark;
+  luego **Inicio**, el grupo "Trabajo" (Conversar · Investigación · Argumentar, sangrados, abren su historial) y
+  las herramientas (Leyes · Verificar · Asuntos · Reformas); al pie, "Ajustes" (diálogo de §10).
+- Cada enlace ≥ 44 px, ícono de trazo + texto; activo: fondo blanco al 12 %, peso 600, `aria-current="page"`.
+  En `/login` no hay riel: solo la banda con el wordmark y "Ajustes".
+
+### 11.2 Inicio = una sola caja
+- Héroe azul con rejilla de 48 px: etiqueta, `h1` "¿Qué necesita *resolver* hoy?" y una tarjeta blanca con:
+  modo (grupo de radios en pastillas: **Preguntar · Investigar a fondo · Argumentar un caso**), el texto (su
+  etiqueta cambia con el modo: pregunta / pregunta de investigación / hechos del caso), el ámbito en una línea con
+  "Cambiar" (§8.0), el asunto (si hay) y el modelo en su forma compacta (selector + aviso de §9.6 si es
+  externo), y el botón oro "Preguntar → / Investigar → / Preparar el caso →".
+- Enviar abre el espacio de ese modo y **ahí** corre el turno (Preguntar, Investigar) o se precarga el formulario
+  del caso con los hechos (Argumentar: falta la parte, que se elige allí). El texto viaja en `sessionStorage`,
+  una sola vez, nunca en la URL.
+- Debajo: el aviso de reformas (§9.4) y "Continuar donde se quedó": hasta 6 tarjetas del trabajo reciente de los
+  tres tipos, cada una con su rótulo (Pregunta / Investigación / Caso, borde superior azul / oro / morado),
+  título y "N mensajes · fecha".
+
+### 11.3 Respuesta (Estudio)
+- Columna de lectura centrada (≤ 46 rem); respuesta en sans 1.0625 rem, interlineado 1.75. El turno del usuario
+  sigue como burbuja a la derecha (§10).
+- **Citas en línea = números**: un botón pequeño en superíndice (`--accent-ink` sobre oro claro, nombre accesible
+  "Fuente N: {cita}, verificada") que abre el visor. El número es el de la fuente en la conversación entera
+  (orden de primera aparición), el mismo del panel. En el PDF del expediente siguen la cita y su nota (§8.5).
+- **Franja de verificación** sobre cada respuesta: "✓ N citas comprobadas contra el texto de la ley" (verde
+  verificada) y, si hay marcas de §3, "· M párrafos de análisis propio, sin respaldo normativo". Cuenta solo lo
+  que el sistema comprobó; nunca "N de M afirmaciones" (el sistema no sabe cuántas afirmaciones hay).
+- Acciones bajo la respuesta: "Copiar con citas" (texto + lista numerada de fuentes).
+- **Panel de fuentes:** tarjetas numeradas (número en oro claro, cita en `--primary` 600, extracto del texto en
+  la serif legal, máx. 4 renglones, y "Abrir texto completo"). Investigación conserva su lista por expediente.
+
+### 11.4 Visor de fuentes (de B)
+- El pasaje citado se resalta con fondo oro claro (`--accent` al 22 % sobre `--surface`) dentro del artículo completo y el visor se
+  desplaza hasta él al abrirse.

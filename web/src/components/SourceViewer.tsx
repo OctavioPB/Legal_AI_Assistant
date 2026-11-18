@@ -52,6 +52,13 @@ function SourceBody({ source }: { source: Source }) {
   const t = useTranslations("viewer");
   const tc = useTranslations("reforms.change");
   const at = source.article_text.indexOf(source.text);
+  const markRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    // Brand.md 11.4: the article opens scrolled to the cited passage (inside its own scroll box)
+    const mark = markRef.current;
+    const box = mark?.closest(".viewer-article");
+    if (mark && box instanceof HTMLElement) box.scrollTop = Math.max(0, mark.offsetTop - box.offsetTop - 24);
+  }, [source.cite_id]);
   const before = at >= 0 ? source.article_text.slice(0, at) : "";
   const after = at >= 0 ? source.article_text.slice(at + source.text.length) : "";
   return (
@@ -64,9 +71,12 @@ function SourceBody({ source }: { source: Source }) {
         <dt>{t("version")}</dt>
         <dd>
           {source.version_label ?? "—"} ·{" "}
-          <span className={source.is_current ? "badge" : "badge badge-warn"}>
-            {source.is_current ? t("current") : t("notCurrent")}
-          </span>
+          {source.is_public ? (
+            <span className={source.is_current ? "badge" : "badge badge-warn"}>{source.is_current ? t("current") : t("notCurrent")}</span>
+          ) : (
+            // ADR-025: a document of the firm is not "in force" or "repealed"; say what it is
+            <span className="badge">{t("firmDocument")}</span>
+          )}
         </dd>
         <dt>{t("identifier")}</dt>
         <dd className="cite-id">{source.cite_id}</dd>
@@ -81,18 +91,18 @@ function SourceBody({ source }: { source: Source }) {
       <p className="viewer-actions">
         <SaveToMatter citeId={source.cite_id} />
       </p>
-      <h3>{t("article")}</h3>
+      <h3>{t(source.is_public ? "article" : "section")}</h3>
       <div
         className="legal-text viewer-article"
         lang={source.cite_id.startsWith("US-") ? "en" : "es"}
         role="region"
-        aria-label={t("article")}
+        aria-label={t(source.is_public ? "article" : "section")}
         tabIndex={0}
       >
         {at >= 0 ? (
           <>
             {before}
-            <mark className="cited-passage" aria-label={t("citedText")}>
+            <mark ref={markRef} className="cited-passage" aria-label={t("citedText")}>
               {source.text}
             </mark>
             {after}

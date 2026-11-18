@@ -8,6 +8,8 @@
 - `app/validation/` — citation parser, existence/coverage checks, regeneration loop.
 - `app/ingestion/` — Docling wrapper, legal normalizer grammars, chunker, embedder (Celery tasks only).
 - `app/db/` — SQLAlchemy models, RLS session middleware, migrations (alembic).
+- `app/api/files.py` + `app/ingestion/extract.py` + `normalizer_generic.py` — the firm's own documents
+  (ADR-025): upload, text extraction in memory, one background thread, status in `client_files`.
 - `app/corpus/` — reading the corpus without a model: reform lineage (`lineage.py`, ADR-017) and the brief
   verifier's grammar (`verify.py`, ADR-019). `app/ingestion/watch.py` + `reform.py`: the reform watcher, the only
   network-using component (official URLs of `corpus.py`).
@@ -269,6 +271,139 @@ below are the original one-liners and are Accepted.
   text of 123-B-XIII (no "capacitación"); 0 cases worse; false refusal 3/20 -> 2/20 (gd2-006 is not under an
   apartado: model variance, noise); recall, leakage and refusal accuracy unchanged. The harness gained
   `must_not_contain` (a narrow alarm on known confusions, not a faithfulness metric).
+- ADR-024 (Accepted 2026-11-09, chosen by the product owner): The model is chosen per conversation from a closed
+  catalog of profiles; the remote one is a firm opt-in. Amends ADR-014 for the `claude` profile ONLY.
+  Context: the product owner asked to switch between Qwen, Gemma and Claude. Options considered for each axis:
+  scope (per conversation / per user / per firm), remote access (forbidden / firm opt-in / free choice),
+  default (measured before it becomes a default / by preference). Decision: (a) profiles `gemma` (default, local),
+  `qwen` (local, every alias on the small model, no fallbacks) and `claude` (remote, `claude-opus-5-5` pinned from
+  platform.claude.com/docs/en/about-claude/models/overview.md read 2026-11-09, all aliases, NO fallbacks: a
+  failure or a provider decline never hands the conversation to another model); (b) `conversations.model_profile`
+  is fixed at creation like jurisdiction and persona, recorded in the trace session and in every audit verdict;
+  (c) `claude` is served only when `ANTHROPIC_API_KEY` is in `.env` (never the repo) AND the SDK is installed by
+  whoever enables it (`uv add anthropic`; the local demo has no new dependency), and usable by a firm only after
+  its admin opts in (`tenant_model_policy`, tenant-private RLS, in the isolation registry and the erase order;
+  `tenants` stays provisioner-only); the opt-in is checked at creation AND before every message (withdrawing it
+  stops remote conversations); (d) the same prompts, validator, refusal gate and citation rules apply to every
+  profile (the system verifies the model, invariant 6); sampling parameters are not sent to Claude (not accepted),
+  depth is `anthropic_effort`, and thinking headroom is added to the answer cap because thinking counts toward
+  max_tokens; (e) the UI labels each profile "Medido" with the golden run that backs it
+  (`config/model_measurements.yaml`, copied from the run report) or "Sin medir", and shows what leaves the machine
+  before a remote conversation starts; the default changes only with a measurement. Consequences: with `claude`
+  the question, history, case facts and retrieved fragments go to Anthropic (the query path is no longer local for
+  that conversation; ADR-014 still holds for gemma/qwen and for retrieval, embeddings and the validator); a
+  remote run of the golden suite costs money and needs the key, so `claude` stays "Sin medir" until then.
+  `evals.run --model-profile` records the profile and its resolved ids. Measured (golden_v2, 25 ai-draft cases,
+  same retrieval, so recall@8 1.00 and leakage 0 for both): gemma `golden-20261109T084417Z-after-quote-fixes`
+  false refusal 1/20, refusal accuracy 5/5, p50 35 s; qwen `golden-20261109T170221Z-profile-qwen` false refusal
+  17/20 (16 rejected by the validator, regeneration rate 0.72; the 3 answers had valid citations), refusal
+  accuracy 5/5, p50 19 s. Qwen is safe (it refuses, it does not invent) but rarely useful for drafting; gemma
+  stays the default. Pending: the Claude golden run; lawyer
+  review of the golden set before any profile becomes the default; per-firm data-processing terms with Anthropic
+  (legal, not code).
+
+- ADR-025 (Proposed, implemented 2026-11-14 under the product owner's instruction "desarrolla los módulos
+  faltantes"; the choices below await confirmation): The firm's own documents (client files), scoped to a matter.
+  Context: the demo's exit criterion includes "upload de expediente" (WS6.T07, WS2.T01) and nothing let a lawyer
+  work on their own contract, brief or ruling; the schema already reserved `doc_type='client_file'` and the `CF-`
+  namespace (ADR-010). Options and choices: (1) processing: Celery worker (WS2.T01 as planned) vs ONE in-process
+  background thread with the status in a table. Chosen: the thread (`WorkerJobs`), because the demo is one machine
+  and parsing/embedding are CPU-bound; a job interrupted by a restart is reported as such after
+  `client_file_stale_minutes`, nothing half-written exists (one transaction per document). Celery stays the path
+  for a multi-process deployment. (2) what is kept: the ORIGINAL file is never stored (read in memory; a PDF goes
+  through a temporary file deleted in `finally`, like ADR-019); the extracted text is stored in doc_nodes/chunks,
+  which is what a citation needs. Consequence: no page deep-link for firm documents, only the text. (3) visibility:
+  firm-wide only vs per matter. Chosen: optional `documents.matter_id`; `doc_nodes.matter_id`/`chunks.matter_id`
+  derived by trigger and immutable; a RESTRICTIVE template `matter_scoped` (`matter_id IS NULL OR
+  app_matter_visible(matter_id)`) on documents, doc_nodes, chunks and client_files, so a file of a matter is
+  invisible to a colleague outside it and to any transaction without the user anchor (ADR-018). Deleting a matter
+  CASCADES to its files: SET NULL would publish a privileged file to the whole firm. (4) retrieval scope: RLS
+  alone would let a lawyer who belongs to two matters get client A's contract in client B's conversation.
+  Chosen: `SessionContext.matter_id` and one more clause in `build_jurisdiction_predicate()` (the only place scope
+  is decided): chunks without a matter, or of the conversation's matter; never another matter's. The hard
+  jurisdiction rule is unchanged: a file is filed under a catalog jurisdiction and stacks like any other source.
+  (5) grammar: statutes keep their grammars; any other document uses `normalizer_generic` (sections opened by
+  clause openers or heading lines, typed `articulo` so they are the context unit; paragraphs typed `parrafo`;
+  loose text grouped into "Parte n"; no schema change, no meaning inferred). A file declared as a law uses the
+  statute grammar only if that grammar finds >= `client_file_min_articles` articles. Citations of a generic
+  document name its own sections ("«Contrato», CUARTA.- PENA CONVENCIONAL, párr. 2"), never "art.".
+  (6) generation: the same embedder, revision, chunker version and thresholds as the live corpus; the guard of
+  `ingest_document` now also reads the PUBLIC live set, so a firm file can never be written in another generation
+  than the corpus it is searched with (invariant 5). `CHUNKER_VERSION` is not bumped: no existing chunk changes
+  (the `plain` citation style and the generic grammar only apply to new client files). (7) deletion: the uploader
+  or a firm admin deletes a file with its text and vectors (a client's document must be erasable; invariant 3 is
+  about reforms of the public corpus). A conversation that cited it keeps the citation's name; the source is 404.
+  (8) formats: PDF with a text layer (Docling, OCR off), .docx (standard library, body paragraphs only; DTD and
+  oversized XML refused), plain text; recognised by content, 25 MB, sent through the gateway as
+  `application/octet-stream` (not a CORS-simple type). Scanned PDFs fail with `no_text`. Evidence: 12 tests in
+  `tests/test_client_files.py` (RLS floor for a colleague, another firm and an unanchored transaction; retrieval
+  scope for a member of two matters; cascade; generation mismatch; audit rows without title or text); real stack
+  (bge-m3, seeded corpus): a .docx contract ready in 7 s, its clause first at 0.753 inside the matter, a refusal
+  outside it. Retrieval of the public corpus is unchanged by construction (every existing chunk has no matter):
+  `golden-20261114T210010Z-after-matter-scope` vs `golden-20261109T064012Z-retrieval-C` (retrieval-only, 25 ai-draft cases): recall@8 1.00 -> 1.00, leakage 0 -> 0, 0 cases flipped. tau was calibrated on statute text; scores of contract prose were not part of the probe sets.
+  Pending: owner confirmation of (1), (3) and (7); lawyer review of the generic grammar on real contracts and
+  rulings; probe sets with firm documents; OCR; moving a file between matters; footnotes of .docx files.
+
+- ADR-026 (Proposed, 2026-11-17; options A + C chosen by the product owner, the approval channel awaits
+  confirmation): Discover laws from official indexes; give every loaded source an official route. Amends ADR-017
+  (a) for the network list. Context: the watcher only followed reforms of the 8 laws loaded, 4 of them through the
+  hand-fed inbox; nothing told a lawyer that a law exists that is not loaded. Options: (A) read official indexes
+  daily and PROPOSE, a person approves; (B) discover and load automatically; (C) only add URLs for the 4 inbox
+  sources. Decision: A + C. (1) Indexes are a closed registry too (`app/ingestion/indexes.py`, today only
+  Cámara de Diputados "Leyes Federales Vigentes", 318 entries on 2026-11-17), read with the same rules as a law
+  (https, robots.txt, one request, conditional GET, a block recorded and never evaded) and parsed by
+  deterministic code; a parse with fewer than `min_entries` rows fails (`IndexLayoutError`) instead of marking the
+  catalog gone. Reading an index downloads NO law. (2) `corpus_index_entries` (public corpus): the first read files
+  everything as `available`, a later new entry is `new`, an absent one gets `missing_since` (never deleted).
+  (3) Approval: `python -m app.ingestion.discover approve INDEX:KEY --domain ... --by ...` writes
+  `corpus_sources`; jurisdiction, scope, language and grammar come from the index's closed spec, legal domains from
+  the closed `LEGAL_DOMAINS`, the doc type from the title's first word (else `--doc-type`), the cite_id code from
+  the official file name; a clash with an existing code or URL is refused. The watcher reads the static registry
+  plus `corpus_sources` and ingests an approved law's FIRST version (no lineage), then its reforms like any other.
+  Approval is an operator command, not a button: the public corpus is shared by every firm and the API's role
+  can never write it (ADR-010 c, tested); the web shows the catalog read-only (`GET /reforms/indexes`).
+  (4) C: CC_NL (hcnl.gob.mx) and both Monterrey regulations (monterrey.gob.mx) return byte-for-byte the files in
+  SHA256SUMS; robots.txt of both hosts allows those paths. California's site answers 403 to automation, so the
+  route is its official bulk directory: the newest `pubinfo_YYYY.zip` (~1.2 GB, weekly, ETag, byte ranges) is
+  checked with a HEAD daily and, when it changed, read by HTTP ranges (central directory, the 6 MB section table,
+  the code's section texts), never downloaded whole; a cache of section texts makes a weekly update re-read only
+  the changed sections (the first run reads every section once, ~2 700 requests, capped by
+  `leginfo_max_requests`). The extraction is shared with `scripts/extract_ca_code.py`, so the text matches the seed.
+  Consequences: the watcher's network list grows by one index page and three hosts; a law approved this way is
+  searchable and citable, but the brief verifier and the explicit-reference resolver (ADR-019/022) do not know its
+  NAME until a person adds it to their grammar; tau was calibrated on the current corpus (doctor warns after the
+  next ingestion, ADR-017 e). Pending: confirm the operator-only approval (alternative: a platform-admin role in
+  the web, which needs a separate privileged service); a person reviews the terms of use of hcnl.gob.mx,
+  monterrey.gob.mx and leginfo; state and municipal indexes (Periódico Oficial de NL, Gaceta Municipal de
+  Monterrey) one at a time, each after that review.
+
+- ADR-027 (Accepted 2026-11-17, every option chosen by the product owner): A legal news feed of 30 items, from official
+  sources and press, chosen by fixed rules, shown in the sources' own words. Amends ADR-017 (a) again: the job
+  that may reach the network now also reads a closed list of news sources, and for the first time some are NOT
+  official (press). Options asked: sources (official + press / official only / press only), relevance (fixed rules
+  / rules + local model / model only), text shown (source's own / plus a model summary marked unverified).
+  Decision: official + press, fixed rules, source's own text. (1) Sources (`app/news/sources.py`): internal (the
+  reforms the watcher recorded; the official index's new laws and reforms of the last `news_recent_days`), SCJN
+  press-release listing, and three RSS feeds (Nexos "El juego de la Corte"; El Financiero and La Jornada Política,
+  which only contribute items that name legal terms). Checked 2026-11-17 and left out: Google News RSS (its
+  robots.txt disallows our client), Proceso and El Economista (403), DOF (no answer), Gaceta Parlamentaria (403).
+  Same rules as the watcher: https, robots.txt, one request, conditional GET, a block recorded as `news:<id>` and
+  never evaded; RSS with a DTD/entities is refused before parsing. (2) Relevance (`app/news/score.py`): source
+  weight (official 2.5-3, legal blog 1.5, general press 1) + legal terms from a closed catalog on folded text
+  (capped at 3; "iniciativa" only in its legislative sense) + recency (half-life `news_half_life_days`); the same
+  story from two sources once (title similarity across sources only: one index lists distinct laws with
+  near-identical titles); at most `news_max_per_source` per source; the matched terms are stored and shown
+  ("Por qué aparece"). (3) Text: title, outlet, date and the summary the feed itself publishes, clipped to
+  `news_excerpt_chars`; no article body is fetched, nothing is generated, so the zero-hallucination contract is
+  untouched (the model is not involved). (4) Storage: `news_items` under the public corpus tenant (one feed for
+  every firm, written only by `corpus_ingestor`, the API reads it: `GET /news`); an item that leaves the top
+  `news_feed_size` is retired (`in_feed = false`), never deleted; an item keeps the day it was first seen.
+  (5) Runs after the reform watcher in the daily task (`dev-up.ps1 -WatchReforms`), also when Ollama is down (it
+  needs no model). Consequences: press outlets appear inside a legal product, labelled as press and never as
+  sources of an answer; their terms of use are the firm's to review; the feed shows official items above press by
+  construction, so a slow news week shows fewer than 30 items rather than filler. Pending: a person reviews the
+  terms of use of each press source; a source of legislative proposals (initiatives) that allows automated
+  reading (the Gaceta Parlamentaria refuses it).
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

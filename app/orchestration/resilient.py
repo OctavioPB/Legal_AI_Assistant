@@ -73,14 +73,19 @@ class TenantUserLimits:
 
     def __init__(self, per_tenant: RateLimiter, per_user: RateLimiter) -> None:
         self._tenant, self._user = per_tenant, per_user
+        # Reading both buckets and charging them is ONE step: without it, requests racing for a
+        # user's last token all passed the read and the losers paid the tenant before failing.
+        self._lock = threading.Lock()
 
     def check(self, tenant_id: str, user_id: str) -> None:
-        wait = max(self._tenant.retry_after(tenant_id), self._user.retry_after(user_id))
-        if wait > 0:
-            key = tenant_id if self._tenant.retry_after(tenant_id) >= wait else user_id
-            raise RateLimitExceededError(key, wait)
-        self._tenant.acquire(tenant_id)
-        self._user.acquire(user_id)
+        with self._lock:
+            t_wait = self._tenant.retry_after(tenant_id)
+            u_wait = self._user.retry_after(user_id)
+            if t_wait > 0 or u_wait > 0:
+                key, wait = (tenant_id, t_wait) if t_wait >= u_wait else (user_id, u_wait)
+                raise RateLimitExceededError(key, wait)
+            self._tenant.acquire(tenant_id)
+            self._user.acquire(user_id)
 
 
 class ResilientClient:

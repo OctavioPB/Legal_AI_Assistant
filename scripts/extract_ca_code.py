@@ -1,32 +1,25 @@
 """Extract one California code from the official leginfo bulk dump (data/corpus/MANIFEST.md).
 
-    uv run --with remotezip python scripts/extract_ca_code.py LAB data/corpus/raw/CA_LABOR_CODE.txt
+    uv run python scripts/extract_ca_code.py LAB data/corpus/raw/CA_LABOR_CODE.txt
     uv run python scripts/extract_ca_code.py LAB out.txt --zip path/to/pubinfo_2025.zip
 
-Reads only LAW_SECTION_TBL.dat plus the needed .lob files (HTTP range requests when remote).
-A section can have several ACTIVE rows (versions with different operative dates). The one in force
-TODAY is the row with the greatest EFFECTIVE_DATE <= today; later ones are not yet law and are
-reported, not ingested. Rows without an effective date count as in force.
+The extraction itself lives in `app/ingestion/leginfo.py` (shared with the reform watcher, ADR-026),
+so the seed and every later check build the text the same way. Remote: HTTP range requests only
+(the central directory, LAW_SECTION_TBL.dat and the needed .lob files), never the whole archive.
 """
 
 from __future__ import annotations
 
 import argparse
-import html
-import re
 import sys
+import zipfile
 from datetime import date
 from typing import Any
 
-URL = "https://downloads.leginfo.legislature.ca.gov/pubinfo_2025.zip"
-
-
-def natural(s: str) -> list[Any]:
-    return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", s.strip(".")) if t]
-
-
-def clean(v: str) -> str | None:
-    return None if v == "NULL" else v.strip("`")
+from app.ingestion.corpus import LEGINFO
+from app.ingestion.leginfo import RangeFile, extract_code, latest_archive
+from app.ingestion.watch import UrllibFetcher
+from app.settings import get_settings
 
 
 def main() -> int:
@@ -38,58 +31,26 @@ def main() -> int:
     a = ap.parse_args()
 
     if a.zip:
-        import zipfile
-
-        z: Any = zipfile.ZipFile(a.zip)
+        z = zipfile.ZipFile(a.zip)
     else:
-        from remotezip import RemoteZip
-
-        z = RemoteZip(URL)
-    names = set(z.namelist())
-
-    rows: dict[str, list[list[str]]] = {}
-    with z.open("LAW_SECTION_TBL.dat") as f:
-        for raw in f:
-            c = raw.decode("utf-8", errors="replace").rstrip("\n").split("\t")
-            if len(c) >= 16 and clean(c[1]) == a.code and clean(c[15]) == "Y":
-                rows.setdefault(clean(c[2]) or "", []).append(c)
-
-    chosen: list[list[str]] = []
-    skipped: list[str] = []
-    for sec, versions in rows.items():
-        eff = [(clean(v[6]) or "0000-00-00")[:10] for v in versions]
-        ok = [(e, v) for e, v in zip(eff, versions, strict=True) if e <= a.today]
-        if not ok:
-            skipped.append(f"{sec}: only future versions {sorted(eff)}")
-            continue
-        ok.sort(key=lambda p: p[0])
-        chosen.append(ok[-1][1])
-        for e, _ in ok[:-1]:
-            skipped.append(f"{sec}: superseded version effective {e}")
-        for e in eff:
-            if e > a.today:
-                skipped.append(f"{sec}: future version effective {e}")
-    chosen.sort(key=lambda c: natural(clean(c[2]) or ""))
-
-    out: list[str] = []
-    last: tuple[str | None, ...] | None = None
-    for c in chosen:
-        xml = z.read(c[14]).decode("utf-8", errors="replace") if c[14] in names else ""
-        paras = [
-            html.unescape(re.sub(r"<[^>]+>", "", p)).strip()
-            for p in re.findall(r"<p[^>]*>(.*?)</p>", xml, re.S)
-        ] or [html.unescape(re.sub(r"<[^>]+>", "", xml)).strip()]
-        head = tuple(clean(c[i]) for i in (8, 9, 10, 11, 12))
-        if head != last:
-            d, t, p, ch, ar = (h or "-" for h in head)
-            out.append(f"Division {d} Title {t} Part {p} Chapter {ch} Article {ar}")
-            last = head
-        out.append(f"§ {clean(c[2])} " + "\n".join(p for p in paras if p))
+        s = get_settings()
+        f = UrllibFetcher(
+            s.reform_watch_user_agent, s.reform_watch_timeout_s, s.reform_watch_max_bytes
+        )
+        listing = f.get(LEGINFO)
+        url = latest_archive(listing.body or b"", LEGINFO)
+        head = f.get(url, method="HEAD") if url else None
+        if url is None or head is None or not head.size:
+            sys.stderr.write(f"no archive found at {LEGINFO} ({listing.status})\n")
+            return 1
+        rf: Any = RangeFile(f, url, head.size, s.leginfo_max_requests)
+        z = zipfile.ZipFile(rf)
+    ex = extract_code(z, a.code, date.fromisoformat(a.today))
     with open(a.out, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write("\n\n".join(out) + "\n")
-    sys.stdout.write(f"{a.code}: {len(chosen)} sections written to {a.out}\n")
-    for s in skipped:
-        sys.stdout.write(f"  skipped {s}\n")
+        fh.write(ex.text)
+    sys.stdout.write(f"{a.code}: {ex.sections} sections written to {a.out}\n")
+    for s_ in ex.skipped:
+        sys.stdout.write(f"  skipped {s_}\n")
     return 0
 
 

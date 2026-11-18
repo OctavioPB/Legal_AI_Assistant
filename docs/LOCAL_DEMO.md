@@ -68,7 +68,7 @@ no lo uses fuera de tu equipo. La cookie sigue siendo `httpOnly` y `SameSite=Str
 La jurisdicción, el perfil y el idioma se fijan al iniciar cada conversación o caso. El historial (barra izquierda)
 es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
 
-## Herramientas para abogados (ADR-017/018/019)
+## Herramientas para abogados (ADR-017/018/019/025)
 - **Leyes** (`/leyes`): navegador de cada ley cargada por títulos, capítulos y artículos; "Ir al artículo" por
   número; partes citables (copiar cita, guardar en asunto) y comparación con versiones anteriores. Sin modelo.
 - **Verificar** (`/verificar`): pegue o suba un escrito (PDF con texto) y revise cada artículo citado: si existe,
@@ -76,17 +76,61 @@ es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
   resultados). Las leyes no cargadas se reportan como tales, nunca se adivinan.
 - **Asuntos** (`/asuntos`): carpeta por asunto con conversaciones, investigaciones, casos, verificaciones, fuentes
   guardadas y notas; solo la ven su responsable y los colegas que agregue (aislamiento en la base, ADR-018).
-- **Reformas** (`/reformas`): el vigilante revisa las fuentes oficiales (diputados.gob.mx para LFT, CPEUM, CCF,
-  CPF); si una ley cambió, carga la nueva versión sin borrar la anterior y avisa qué conversaciones, fuentes
-  guardadas o verificaciones citan disposiciones reformadas. Las fuentes estatales/municipales y el código de
-  California no tienen descarga oficial estable: una versión nueva se deja en `data/corpus/inbox/{CLAVE}.pdf`
-  (o `.txt`). Es la única pieza con red, y solo hacia esas URL; si una fuente rechaza la descarga, se anota y
-  no se insiste.
+- **Documentos** (`/documentos`): suba un contrato, un escrito, una resolución o una norma que no esté cargada
+  (PDF con texto, Word `.docx` o texto plano, hasta 25 MB). Queda citable en las conversaciones igual que la ley;
+  la cita nombra la sección del documento («Contrato», CUARTA.- PENA CONVENCIONAL).
+  - **Quién lo ve.** Sin asunto: todo el despacho. Dentro de un asunto: solo sus miembros, y solo se usa en las
+    conversaciones de ese asunto (aislamiento en la base, ADR-025). Borrar el asunto borra sus documentos.
+  - **Qué se guarda.** El archivo original no; solo el texto extraído. "Ver el texto extraído" muestra lo que
+    leyó el sistema, parte por parte: revíselo, porque lo que falte ahí el asistente tampoco lo ve.
+  - **Ámbito.** Se archiva bajo un ámbito del catálogo: un documento marcado como de Nuevo León no aparece en una
+    conversación federal ni de otro estado.
+  - Un documento corto queda listo en segundos; un PDF largo, en minutos. La lista se actualiza sola. Un PDF
+    escaneado (solo imágenes) no se puede leer: pase antes un OCR o suba el Word.
+  - Lo elimina quien lo subió o un administrador; las conversaciones que lo citaron conservan el nombre de la cita.
+- **Reformas** (`/reformas`): el vigilante revisa las fuentes oficiales de las 8 leyes cargadas
+  (diputados.gob.mx para LFT, CPEUM, CCF y CPF; hcnl.gob.mx para el Código Civil de NL; monterrey.gob.mx para los
+  dos reglamentos; el archivo oficial de leginfo para el Labor Code de California, leído por partes sin
+  descargarlo completo). Si una ley cambió, carga la nueva versión sin borrar la anterior y avisa qué
+  conversaciones, fuentes guardadas o verificaciones citan disposiciones reformadas. Una versión también puede
+  dejarse a mano en `data/corpus/inbox/{CLAVE}.pdf` (o `.txt`). Es la única pieza con red, y solo hacia esas URL;
+  si una fuente rechaza la descarga, se anota y no se insiste.
+  - **Leyes nuevas (ADR-026).** También lee a diario la lista oficial de leyes federales vigentes de Diputados y
+    muestra en `/reformas` las leyes que aparecieron desde la primera lectura y el catálogo completo. Leer la
+    lista no descarga ninguna ley. Para cargar una, quien administra el equipo la aprueba:
+    `uv run python -m app.ingestion.discover list --status new` (o `--search aguas`) y
+    `uv run python -m app.ingestion.discover approve DIP_FED:LGAg --domain environmental --by "Su nombre"`.
+    La siguiente revisión la descarga y la carga; desde entonces también se vigilan sus reformas.
+    `discover dismiss DIP_FED:CLAVE --by ...` la descarta. Materias válidas: las de `LEGAL_DOMAINS` en
+    `app/ingestion/corpus.py`. El verificador de escritos aún no reconoce por nombre las leyes aprobadas así
+    (se buscan y se citan en las conversaciones, pero "art. 5 de la Ley General de Aguas" en un escrito sale como
+    ley no identificada hasta que se agregue su nombre a la gramática).
+  - **Noticias** (`/noticias`, ADR-027): un feed de hasta 30 notas jurídicas que se actualiza en la misma revisión
+    diaria. Entran las reformas que cargó el vigilante, las leyes nuevas y las reformas recientes del índice
+    oficial, los comunicados de la Suprema Corte y notas de prensa (Nexos "El juego de la Corte"; de El
+    Financiero y La Jornada solo las que mencionan términos jurídicos). Se ordenan con reglas fijas (fuente
+    oficial primero, términos jurídicos, fecha); el modelo no interviene y cada nota se muestra con las palabras
+    de su fuente y su enlace. A mano: `uv run python -m app.news.pipeline` (`--dry-run` muestra el feed sin
+    guardarlo). Si en la semana hubo pocas noticias jurídicas, el feed muestra menos de 30: no se rellena.
   - Al iniciar la demo se revisa en segundo plano si la última revisión tiene más de 20 h.
   - Revisión diaria (03:00, o al encender el equipo): `dev-up.ps1 -ScheduleReforms`; quitarla:
-    `-UnscheduleReforms`. A mano: `uv run python -m app.ingestion.watch` (`--dry-run` no escribe nada).
+    `-UnscheduleReforms`. A mano: `dev-up.ps1 -WatchReforms -IfStaleHours 0` (`-DryRun` no escribe nada).
   - Log: `.run\watch-AAAAMMDD.log`. `doctor` avisa si el vigilante no corre hace 3 días, si una fuente está
     bloqueada o si τ se calibró antes de la última reforma.
+
+## Elegir el modelo (ADR-024)
+Al crear una conversación, investigación o caso aparece "Modelo" con los modelos que puede usar el despacho; queda
+fijo para esa conversación y se ve como chip junto al ámbito. Cada modelo muestra su medición en la evaluación
+golden o "Sin medir".
+- **Gemma 4 · 26B** (predeterminado) y **Qwen 3 · 4B**: en este equipo; no se instala nada.
+- **Claude Opus 5.5** (externo, opcional). La pregunta, el historial, los hechos del caso y los fragmentos
+  recuperados se envían a Anthropic. Para habilitarlo:
+  1. Poner `ANTHROPIC_API_KEY=...` en `.env` (nunca en el repositorio).
+  2. `uv add anthropic` (descarga el SDK oficial; la demo local no lo necesita).
+  3. Reiniciar la API; un administrador del despacho activa Ajustes › "Modelos externos".
+  Al desactivarlo, las conversaciones con Claude ya no pueden continuar.
+- Medir un modelo: `uv run python -m evals.run --suite golden --model-profile qwen` (con Claude cuesta dinero:
+  25 casos) y copiar los números del reporte a `config/model_measurements.yaml`.
 
 ## Cuenta para presentar
 Separada de `demo` (que usan las pruebas E2E), con nombres presentables y una contraseña fácil de teclear
@@ -122,8 +166,11 @@ cd web && npm run e2e:full             # navegador real + API + modelos locales 
 - τ está calibrado con conjuntos de prueba redactados por IA y **sin revisión de un abogado**; ningún τ
   cumple a la vez falsos rechazos ≤ 5 % y rechazo correcto ≥ 95 % con el coseno de bge-m3.
 - Una cita verificada prueba procedencia, no fidelidad (una cita correcta con un resumen invertido pasa).
-- La ingesta de documentos del despacho (subir PDFs) no está construida; el corpus es público y se siembra
-  por línea de comandos.
+- Documentos del despacho: sin OCR (un PDF escaneado falla), sin notas al pie de `.docx`, y la lectura de
+  contratos y sentencias es por forma (cláusulas, encabezados, párrafos) y **sin revisión de un abogado**. τ se
+  calibró con texto de leyes, no con contratos. Si la app se cierra a media carga, el documento queda
+  "interrumpido" y hay que subirlo otra vez.
+- El corpus público se siembra por línea de comandos; no hay jurisprudencia ni tesis cargadas.
 - API y web no corren en contenedores: las lanza `scripts/dev-up.ps1` (o a mano, como arriba).
 - `-H 127.0.0.1` es obligatorio al lanzar la web a mano: sin él, `next start` escucha en todas las interfaces
   y la app queda visible en la red local.

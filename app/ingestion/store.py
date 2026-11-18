@@ -25,6 +25,8 @@ from app.db.models import Chunk as ChunkRow
 from app.db.session import PUBLIC_CORPUS_TENANT_ID, tenant_session
 from app.ingestion.chunker import CHUNKER_VERSION, Chunker, report
 from app.ingestion.model import ChunkThresholds, DocMeta
+from app.ingestion.normalizer_generic import normalize_generic_text
+from app.ingestion.normalizer_generic import parse as parse_generic
 from app.ingestion.normalizer_mx import normalize_text as normalize_mx
 from app.ingestion.normalizer_mx import parse as parse_mx
 from app.ingestion.normalizer_us import normalize_us_text
@@ -101,18 +103,26 @@ def ingest_document(
     official_id: str | None = None,
     legal_domain: list[str] | None = None,
     valid_from: date | None = None,
-    grammar: Literal["mx", "us"] = "mx",
+    grammar: Literal["mx", "us", "generic"] = "mx",
+    matter_id: uuid.UUID | None = None,
+    user_id: uuid.UUID | None = None,
 ) -> IngestStats:
+    """`matter_id` (ADR-025): a client file of that matter; `user_id` anchors the transaction so
+    the matter's RLS lets its member write it."""
     t0 = time.monotonic()
     public = tenant_id == PUBLIC_CORPUS_TENANT_ID
     th = thresholds or ChunkThresholds(counter=counter.name)
-    normalize, parse = (
-        (normalize_us_text, parse_us) if grammar == "us" else (normalize_mx, parse_mx)
-    )
+    if matter_id is not None and public:
+        raise ValueError("a public document cannot belong to a matter")
+    normalize, parse = {
+        "us": (normalize_us_text, parse_us),
+        "mx": (normalize_mx, parse_mx),
+        "generic": (normalize_generic_text, parse_generic),
+    }[grammar]
     src = normalize(raw_text)
     checksum = hashlib.sha256(src.encode("utf-8")).hexdigest()
 
-    with tenant_session(engine, tenant_id, allow_public=public) as s:
+    with tenant_session(engine, tenant_id, allow_public=public, user_id=user_id) as s:
         known = s.execute(
             text(
                 "SELECT 1 FROM documents WHERE tenant_id = :t AND source_uri = :u "
@@ -139,13 +149,14 @@ def ingest_document(
     validate_vectors([c.cite_id for c in chunks], vectors)
 
     gen = _generation(embedder, th)
-    with tenant_session(engine, tenant_id, allow_public=public) as s:
+    with tenant_session(engine, tenant_id, allow_public=public, user_id=user_id) as s:
         live = s.execute(
             text(
                 "SELECT DISTINCT embedding_model, embedding_revision, chunker_version, "
-                "chunk_thresholds::text FROM chunks WHERE tenant_id = :t"
+                "chunk_thresholds::text FROM chunks WHERE tenant_id IN (:t, :pub)"
             ),
-            {"t": tenant_id},
+            # a firm's file is searched together with the public corpus: one generation for both
+            {"t": tenant_id, "pub": PUBLIC_CORPUS_TENANT_ID},
         ).all()
         want = (
             gen["embedding_model"],
@@ -198,6 +209,7 @@ def ingest_document(
             version_label=meta.version_label,
             source_uri=source_uri,
             checksum_sha256=checksum,
+            matter_id=matter_id,
         )
         s.add(doc)
         s.flush()

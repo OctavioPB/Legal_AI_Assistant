@@ -6,7 +6,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal, Self
 
-from pydantic import model_validator
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
 
@@ -42,6 +42,16 @@ class Settings(BaseSettings):
         20_480  # per-call context for the chat model (context budget + answer + prompt)
     )
     llm_timeout_s: float = 600.0
+    # --- model profiles (ADR-024): chosen per conversation, fixed at creation ------------------
+    model_profile_default: Literal["gemma", "qwen", "claude"] = "gemma"
+    # Remote profile: usable only with a key here (from .env, never the repo) AND the firm's
+    # explicit opt-in (tenant_model_policy). Without the key the profile is listed as unavailable.
+    anthropic_api_key: SecretStr | None = None
+    anthropic_effort: Literal["low", "medium", "high"] = "medium"
+    # Claude Opus 5.5 always thinks and thinking counts toward max_tokens: the answer cap of the
+    # alias is raised by this headroom so reasoning cannot eat the answer.
+    anthropic_thinking_headroom_tokens: int = 8_000
+    anthropic_timeout_s: float = 300.0
     # --- chunking (rag.md); stored with every chunk, changing them = new generation (ADR-006) ---
     chunk_min_tokens: int = 80
     chunk_max_tokens: int = 800
@@ -68,6 +78,16 @@ class Settings(BaseSettings):
     reform_watch_user_agent: str = "LegalAI-ReformWatcher/1.0"
     reform_watch_max_bytes: int = 60 * 1024 * 1024
     reform_alert_days: int = 365  # a reform older than this no longer raises alerts
+    # ADR-026: California's archive is read by byte ranges; the first run reads every section of
+    # the code once (~2 700 requests for the Labor Code), later runs only the changed ones.
+    leginfo_max_requests: int = 4_000
+    # ADR-027: the legal news feed (fixed rules, no model)
+    news_feed_size: int = 30
+    news_recent_days: int = 30  # reforms and index changes older than this are not news
+    news_half_life_days: float = 7.0  # recency bonus halves every week
+    news_min_press_terms: float = 1.0  # legal-term weight a general outlet's item needs
+    news_excerpt_chars: int = 280  # the source's own summary, clipped
+    news_max_per_source: int = 10  # no single source fills the feed (official index, SCJN)
     # Retrieval experiments (golden protocol, 2026-11-08). Off by default until measured:
     # lexical_match "any" ORs the query lexemes (websearch_to_tsquery ANDs them: a natural question
     # matched nothing); rerank_breadcrumb scores breadcrumb + text, as the chunks were embedded.
@@ -83,6 +103,11 @@ class Settings(BaseSettings):
     context_citable_units: bool = True
     # ADR-023: a unit inside an apartado expands to that apartado, not to the whole article
     context_unit_apartado: bool = True
+    # ADR-025: the firm's own documents (client files)
+    client_file_max_bytes: int = 25 * 1024 * 1024
+    client_file_max_chars: int = 3_000_000  # extracted text (about 1 000 pages)
+    client_file_stale_minutes: int = 60  # a job "processing" for longer was interrupted
+    client_file_min_articles: int = 3  # fewer articles than this: not a statute, generic grammar
     validator_quote_min_words: int = 5  # a quoted run shorter than this is not checked
     validator_coverage_min_words: int = 6  # shorter units (headings, labels) need no citation
 

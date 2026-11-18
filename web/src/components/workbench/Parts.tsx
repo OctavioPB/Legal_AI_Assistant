@@ -2,11 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
-import type { Action, Citation, Conversation, Message } from "@/lib/api";
+import { getSource, type Action, type Citation, type Conversation, type Message } from "@/lib/api";
 import { TITLE_MAX } from "@/lib/conversation";
 import { errorKey, type Running } from "@/lib/useWorkbench";
 import { AnswerView } from "../AnswerView";
-import { CitationChip } from "../CitationChip";
 import { RefusalCard } from "../RefusalCard";
 
 /** Title of the open conversation with rename and delete (delete asks inline, no native dialog). */
@@ -87,9 +86,19 @@ export function ConversationBar({
 }
 
 /** One stored answer: the validated text, or the system's refusal (never the model's words). */
-export function AssistantMessage({ message, onOpen, body }: { message: Message; onOpen: (id: string) => void; body?: string }) {
+export function AssistantMessage({
+  message,
+  onOpen,
+  body,
+  numbers,
+}: {
+  message: Message;
+  onOpen: (id: string) => void;
+  body?: string;
+  numbers?: Map<string, number>;
+}) {
   if (message.status === "refused") return <RefusalCard reason={message.refusal_reason} />;
-  return <AnswerView text={body ?? message.content} citations={message.citations} onOpen={onOpen} compact />;
+  return <AnswerView text={body ?? message.content} citations={message.citations} onOpen={onOpen} compact numbers={numbers} />;
 }
 
 export function UserMessage({ text, label }: { text: string; label: string }) {
@@ -133,23 +142,71 @@ export function ErrorNote({ code }: { code: string }) {
   );
 }
 
-/** Every source cited so far in the conversation (Brand.md 8.4); a chip opens the viewer. */
+// The excerpt of each card, fetched once per page view (the text of a cite_id never changes, inv. 3).
+const excerpts = new Map<string, Promise<string>>();
+function excerptOf(citeId: string): Promise<string> {
+  let p = excerpts.get(citeId);
+  if (!p) {
+    p = getSource(citeId).then((s) => s.text);
+    p.catch(() => excerpts.delete(citeId));
+    excerpts.set(citeId, p);
+  }
+  return p;
+}
+
+function SourceCard({ source, n, onOpen }: { source: Citation; n: number; onOpen: (id: string) => void }) {
+  const t = useTranslations("workbench.sources");
+  const [text, setText] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    excerptOf(source.cite_id)
+      .then((x) => live && setText(x))
+      .catch(() => live && setText(""));
+    return () => {
+      live = false;
+    };
+  }, [source.cite_id]);
+  return (
+    <li className="source-card" id={`source-${n}`}>
+      <p className="source-card-head">
+        <span className="source-num" aria-hidden="true">
+          {n}
+        </span>
+        <span className="source-card-title">{source.citation_string}</span>
+      </p>
+      {text === null ? (
+        <p className="small muted">{t("loading")}</p>
+      ) : (
+        text && (
+          <p className="source-excerpt legal-text" lang={source.cite_id.startsWith("US-") ? "en" : "es"}>
+            {text}
+          </p>
+        )
+      )}
+      <button type="button" className="source-open" onClick={() => onOpen(source.cite_id)} title={source.cite_id}>
+        {t("open")}
+        <span className="sr-only">: {source.citation_string}</span>
+      </button>
+    </li>
+  );
+}
+
+/** Every source cited in the conversation (Brand.md 11.3): numbered cards in order of first
+ *  appearance (the same numbers as in the answers), with an excerpt; each opens the viewer. */
 export function SourcesPanel({ sources, onOpen }: { sources: Citation[]; onOpen: (id: string) => void }) {
   const t = useTranslations("workbench.sources");
   const titleId = useId();
   return (
     <aside className="sources-panel" aria-labelledby={titleId}>
-      <h2 id={titleId} className="eyebrow">
+      <h2 id={titleId} className="sources-title">
         {t("title")}
       </h2>
       {sources.length === 0 ? (
         <p className="small muted">{t("empty")}</p>
       ) : (
-        <ol className="source-list">
-          {sources.map((c) => (
-            <li key={c.cite_id}>
-              <CitationChip citeId={c.cite_id} label={c.citation_string} onOpen={onOpen} />
-            </li>
+        <ol className="source-cards">
+          {sources.map((c, i) => (
+            <SourceCard key={c.cite_id} source={c} n={i + 1} onOpen={onOpen} />
           ))}
         </ol>
       )}

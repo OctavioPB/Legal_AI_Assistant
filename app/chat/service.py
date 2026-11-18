@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Literal
 
@@ -22,6 +22,7 @@ from app.ingestion.tokens import TokenCounter
 from app.observability.trace import TracedAttempt, TracedHit, Tracer, TraceRecord
 from app.orchestration.aliases import AliasName, AliasRegistry
 from app.orchestration.client import LLMClient
+from app.orchestration.profiles import ProfileCatalog, UnknownProfileError
 from app.prompts.composer import Composer, Persona, SessionPrompt, Workflow
 from app.rag.context import SessionContext
 from app.rag.expansion import render_context
@@ -126,6 +127,19 @@ class ChatDeps:
     aliases: AliasRegistry
     tracer: Tracer
     require_pinned_models: bool = True  # False only in tests with a fake client
+    profiles: ProfileCatalog | None = None  # ADR-024; None = single profile (tests)
+    model_profile: str = "gemma"  # the profile `llm`/`aliases` belong to
+
+    def for_profile(self, key: str) -> ChatDeps:
+        """The same deps answering through another model profile (ADR-024). Raises
+        UnknownProfileError / ProfileUnavailableError; never substitutes another profile."""
+        if key == self.model_profile:
+            return self
+        if self.profiles is None:
+            raise UnknownProfileError(key)
+        p = self.profiles.serving(key)
+        assert p.llm is not None
+        return replace(self, llm=p.llm, aliases=p.registry, model_profile=p.key)
 
 
 _PROMPT_LANG = {"es": "es-MX", "en": "en-US"}
@@ -244,6 +258,7 @@ def answer_query(
         "persona": req.persona, "workflow": req.workflow, "jurisdiction_id": ctx.jurisdiction_id,
         "country": ctx.country, "level": ctx.level, "state_code": ctx.state_code,
         "municipality": ctx.municipality, "include_historical": ctx.include_historical,
+        "model_profile": deps.model_profile,
     }  # fmt: skip
     versions: dict[str, str | int | float | None] = {
         "embedding_model": deps.embedder.model, "embedding_revision": deps.embedder.revision,
@@ -277,7 +292,8 @@ def answer_query(
             conn, tenant_id=ctx.tenant_id, query_text=req.query, filters=filters,
             retrieved_cite_ids=hit_ids, result=None, output_text=rf.block, event_type="refusal",
             extra_verdict={"refusal_reason": rf.reason_key, "best_score": rf.best_score,
-                           "tau": rf.tau, "fragments_above_tau": rf.fragments_above_tau},
+                           "tau": rf.tau, "fragments_above_tau": rf.fragments_above_tau,
+                           "model_profile": deps.model_profile},
         )  # fmt: skip
         deps.tracer.record(
             TraceRecord(request_id=rid, outcome="refused", refusal_block=rf.block,
@@ -311,6 +327,7 @@ def answer_query(
         conn, tenant_id=ctx.tenant_id, query_text=req.query, filters=filters,
         retrieved_cite_ids=hit_ids, result=result, output_text=output,
         event_type="query" if answered else "refusal", model_alias=alias,
+        extra_verdict={"model_profile": deps.model_profile},
     )  # fmt: skip
     deps.tracer.record(
         TraceRecord(

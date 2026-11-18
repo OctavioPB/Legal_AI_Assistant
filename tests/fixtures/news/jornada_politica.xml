@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0">
+  <channel>
+    <title>La Jornada: Política</title>
+    <pubDate>Tue, 17 Nov 2026 08:06:11 GMT</pubDate>
+      <lastBuildDate>Tue, 17 Nov 2026 08:06:11 GMT</lastBuildDate>
+      <description>Noticias de la sección de Política del diario mexicano La Jornada</description>
+      <link>https://www.jornada.com.mx/2026/11/17/index.php?section=politica</link>
+    <language>es-mx</language>
+    <ttl>1440</ttl>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <image>
+      <title>La Jornada</title>
+      <url>https://www.jornada.com.mx/imagenes/logo_250x50.png</url>
+      <link>https://www.jornada.com.mx/</link>
+    </image>
+    
+      <item>
+	
+        <title>Decidirá la Corte si atrae litigio entre Telcel y AT&amp;T   </title>
+        <link>https://www.jornada.com.mx/2026/11/17/politica/008n1pol?partner=rss</link>
+	
+        <description>La Suprema Corte de Justicia de la Nación (SCJN) decidirá el próximo miércoles si toma en sus manos un caso que enfrenta a los gigantes de la telefonía Telcel, de Carlos Slim, y AT&amp;amp;T, recientemente adquirida por Televisa y Fintech Holdings Inc.</description>
+        <pubDate>Tue, 17 Nov 2026 08:06:11 GMT</pubDate>
+      </item>
+<item>
+	
+        <title>Cristina Rivera Garza: Timbre   </title>
+        <link>https://www.jornada.com.mx/2026/11/17/opinion/012o1pol?partner=rss</link>
+	<author>Cristina Rivera Garza</author>
+        <description>Han sido casi diez años de aguantar    la respiración, de apretar la mandíbula y oír el rechinar de los dientes, y de tragar saliva muy amarga. Me viene a la memoria aquella primera mañana después de las elecciones del 2017, cuando entendimos que el país que acunó generaciones enteras de nuestras familias y donde muchos crecimos o nos convertimos en adultos, se volvía, sin tapujos, en contra nuestra. No sabíamos entonces el grado de crueldad y la cantidad de odio que se echaría a andar por las calles, obligándolas al silencio más oscuro y acostumbrándolas al homicidio consuetudinario y a los secuestros organizados por los escuadrones de la muerte del Estado.</description>
+        <pubDate>Tue, 17 Nov 2026 08:06:11 GMT</pubDate>
+      </item>
+<item>
+	
+        <title>Se busca acuerdo sobre titular del INE: Monreal   </title>
+        <link>https://www.jornada.com.mx/2026/11/17/politica/007n1pol?partner=rss</link>
+	
+        <description>Morena en la Cámara de Diputados insistirá esta semana en llegar a un acuerdo con los otros grupos parlamentarios sobre el nombramiento de quien ocupará la presidencia del Instituto Nacional Electoral (INE).</description>
+        <pubDate>Tue, 17 Nov 2026 08:06:11 GMT</pubDate>
+      </item>
+<item>
+	
+        <title>Sesión urgente del Colegio Académico en la UAM se prolonga más de 10 horas   </title>
+        <link>https://www.jornada.com.mx/2026/11/17/politica/010n2pol?partner=rss</link>
+	
+        <description>A cuatro semanas de que la Unidad Iztapalapa de la Universidad Autónoma Metropolitana (UAM-I) se fue a paro en demanda de instalaciones dignas, que luego se extendió a los cinco planteles, ayer sesionó en calidad de urgente el Colegio Académico para abordar el cese de actividades y el uso del presupuesto en la institución, cuestionado por la compra de seis autos eléctricos para directivos, cuya venta ya fue anunciada por la casa de estudios.</description>
+        <pubDate>Tue, 17 Nov 2026 08:06:11 GMT</pubDate>
+      </item>
+  </channel>
+</rss>

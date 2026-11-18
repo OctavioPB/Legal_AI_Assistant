@@ -2,8 +2,9 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { conversationSources, titleFrom } from "@/lib/conversation";
+import { conversationSources, sourceNumbers, titleFrom } from "@/lib/conversation";
 import { resolve } from "@/lib/jurisdiction";
+import { takeDraft } from "@/lib/draft";
 import { useCatalogs, useConversation } from "@/lib/useWorkbench";
 import { SourceViewer } from "../SourceViewer";
 import { History } from "./History";
@@ -11,6 +12,8 @@ import { Announcer, AssistantMessage, BusyElsewhere, Composer, ConversationBar, 
 import { DEFAULT_SCOPE, loadScope, ScopePicker, ScopeSummary, type Scope } from "./Scope";
 import { Workbench } from "./Workbench";
 import { MatterPicker, useInitialMatter, useMatters } from "./MatterPicker";
+import { ModelPicker, useModels } from "./ModelPicker";
+import type { ModelKey } from "@/lib/api";
 
 /** Conversar (ADR-016): short answers, follow-ups that keep the conversation's sources. */
 export function ConversarView() {
@@ -22,6 +25,8 @@ export function ConversarView() {
   const [scope, setScope] = useState<Scope>(DEFAULT_SCOPE);
   const matters = useMatters();
   const [matter, setMatter] = useInitialMatter();
+  const models = useModels();
+  const [model, setModel] = useState<ModelKey | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [seed, setSeed] = useState<Seed>();
   // Opening a conversation from the history moves the focus to its title (keyboard and screen
@@ -35,13 +40,31 @@ export function ConversarView() {
     if (catalogs) setScope(loadScope(catalogs.rows, catalogs.personas));
   }, [catalogs]);
 
+  // Brand.md 11.2: a question written in the start page's box runs here, once.
+  useEffect(() => {
+    if (!catalogs) return;
+    const d = takeDraft("chat");
+    if (!d) return;
+    const s = loadScope(catalogs.rows, catalogs.personas);
+    const j = resolve(catalogs.rows, s.selection);
+    if (!j) return;
+    void w.send(d.text, "ask", {
+      kind: "chat", title: titleFrom(d.text), jurisdiction_id: j.id, persona: s.persona,
+      language: locale === "en-US" ? "en" : "es", include_historical: s.historical, matter_id: d.matter,
+      ...(d.model ? { model_profile: d.model } : {}),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the catalogs arrive
+  }, [catalogs]);
+
+  const sources = conversationSources(w.messages);
+  const numbers = sourceNumbers(sources);
   return (
     <Workbench
       title={t("title")}
       failed={failed}
       ready={Boolean(catalogs)}
       history={<History kind="chat" version={w.listVersion} activeId={w.activeId} onOpen={(id) => void openAndFocus(id)} onNew={() => { void w.open(null); setSeed({ text: "", n: Date.now() }); }} />}
-      aside={<SourcesPanel sources={conversationSources(w.messages)} onOpen={setViewing} />}
+      aside={<SourcesPanel sources={sources} onOpen={setViewing} />}
     >
       {catalogs && (
         <>
@@ -56,13 +79,14 @@ export function ConversarView() {
               <p>{t("welcomeBody")}</p>
               <ScopePicker rows={catalogs.rows} personas={catalogs.personas} value={scope} onChange={setScope} />
               <MatterPicker matters={matters} value={matter} onChange={setMatter} />
+              <ModelPicker info={models} value={model} onChange={setModel} />
               <Examples items={[t("ex1"), t("ex2"), t("ex3")]} onPick={(text) => setSeed({ text, n: Date.now() })} />
             </section>
           )}
           <ol className="thread" aria-label={tw("threadLabel")}>
             {w.messages.map((m) => (
               <li key={m.seq} className={m.role === "user" ? "turn turn-user" : "turn turn-assistant"}>
-                {m.role === "user" ? <UserMessage text={m.content} label={tw("you")} /> : <AssistantMessage message={m} onOpen={setViewing} />}
+                {m.role === "user" ? <UserMessage text={m.content} label={tw("you")} /> : <AssistantMessage message={m} onOpen={setViewing} numbers={numbers} />}
               </li>
             ))}
             {w.runningHere && (
@@ -91,6 +115,7 @@ export function ConversarView() {
                   : {
                       kind: "chat", title: titleFrom(text), jurisdiction_id: j.id, persona: scope.persona,
                       language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, matter_id: matter,
+                      ...(model ? { model_profile: model } : {}),
                     },
               );
             }}

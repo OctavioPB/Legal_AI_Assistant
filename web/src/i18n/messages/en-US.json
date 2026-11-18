@@ -15,7 +15,13 @@
     "settings": "Settings",
     "leyes": "Laws",
     "verificar": "Verify",
-    "asuntos": "Matters"
+    "asuntos": "Matters",
+    "home": "Home",
+    "work": "Work",
+    "tools": "Tools",
+    "reformas": "Amendments",
+    "documentos": "Documents",
+    "noticias": "News"
   },
   "lang": {
     "es-MX": "Español",
@@ -80,6 +86,10 @@
     "error": {
       "rate_limited": "Too many requests in a row. Wait a few seconds and try again.",
       "llm_unavailable": "The model service is unavailable right now. Please try again in a few minutes.",
+      "model_not_allowed": "The firm does not allow external models. An administrator can enable them in Settings; meanwhile, start a conversation with a local model.",
+      "model_unavailable": "That model is not configured on this server. Start a conversation with another model.",
+      "model_declined": "The external model provider declined the request. No answer was generated.",
+      "cites_matter_files": "This conversation cites documents of another matter. So that people outside that matter never see them, it can only stay in its original matter or outside every matter.",
       "session": "Your session ended. Please sign in again.",
       "generic": "The request could not be completed. Please try again."
     }
@@ -88,7 +98,12 @@
     "title": "Answer",
     "citationsTitle": "Cited sources",
     "noCitations": "This answer cites no sources.",
-    "gap": "Not enough sources for this section."
+    "gap": "Not enough sources for this section.",
+    "verified": "{count, plural, =1 {# citation checked} other {# citations checked}} against the text of the law",
+    "reasoningCount": "{count, plural, =1 {# paragraph} other {# paragraphs}} of own analysis, without normative support",
+    "copy": "Copy with citations",
+    "copied": "Copied to the clipboard.",
+    "copySources": "Sources"
   },
   "mark": {
     "strategic": {
@@ -103,7 +118,8 @@
   "cite": {
     "verified": "Verified citation",
     "open": "Open source",
-    "unverified": "Unverified identifier"
+    "unverified": "Unverified identifier",
+    "mark": "Source {n}: {label}, verified. Open source"
   },
   "refusal": {
     "title": "Insufficient sources",
@@ -139,7 +155,9 @@
     "notCurrent": "Not in force",
     "current": "In force",
     "identifier": "Identifier",
-    "reformed": "This provision changed after it was cited ({change}, {date}). Current version:"
+    "reformed": "This provision changed after it was cited ({change}, {date}). Current version:",
+    "firmDocument": "Firm document",
+    "section": "Full section"
   },
   "footer": {
     "disclaimer": "Research tool. It does not replace a lawyer's professional judgment."
@@ -170,7 +188,9 @@
     },
     "sources": {
       "title": "Cited sources",
-      "empty": "Cited sources will appear here. Select one to read the original text."
+      "empty": "Cited sources will appear here. Select one to read the original text.",
+      "open": "Open full text",
+      "loading": "Loading excerpt…"
     },
     "chat": {
       "title": "Chat",
@@ -225,6 +245,7 @@
       "claim": "Claim or theory of the case",
       "claimPlaceholder": "What is requested or argued (optional)…",
       "privacyNote": "The facts are stored for your user only, inside the firm, and never leave this machine.",
+      "privacyNoteRemote": "The facts are stored for your user only, inside the firm. With an external model, the facts and every argument are sent to that provider to generate the answer.",
       "create": "Create case",
       "cardTitle": "Case",
       "roundsLabel": "Rounds",
@@ -257,57 +278,68 @@
       "done": "Done",
       "personaHelp": "The profile guides vocabulary and the order of sources; it neither widens nor narrows the jurisdiction.",
       "historicalHelp": "Turn it on only if you need what a law said before an amendment."
+    },
+    "model": {
+      "label": "Model",
+      "help": "Fixed when the conversation starts and recorded in the audit log. Every model goes through the same citation checks.",
+      "name": {
+        "gemma": "Gemma 4 · 26B",
+        "qwen": "Qwen 3 · 4B",
+        "claude": "Claude Opus 5.5"
+      },
+      "summary": {
+        "gemma": "The most accurate local model; slower.",
+        "qwen": "Faster; in the evaluation it refused many questions that did have a source.",
+        "claude": "Anthropic's model, in the cloud."
+      },
+      "local": "On this machine",
+      "remote": "External · Anthropic",
+      "default": "default",
+      "measured": "Measured ({date}, {cases} cases): answered {answered} of the questions with a source · refused {refusal} of those without one · valid citations {precision} · {seconds} s typical",
+      "notReviewed": "cases not yet reviewed by a lawyer",
+      "unmeasured": "Not measured: the evaluation has not been run with this model yet.",
+      "remoteWarning": "With this model, your question, the conversation history and the retrieved law fragments are sent to Anthropic to generate every answer. Do not use it unless the firm has authorized it for the matter.",
+      "fixed": "Model: {name}",
+      "fixedRemote": "external"
     }
   },
   "home": {
-    "title": "What do you need to do <em>today</em>?",
-    "intro": "A legal research assistant that answers only from the loaded laws and cites every source. When it finds no basis, it says so instead of making it up.",
-    "choose": "Choose how you want to work",
-    "conversar": {
-      "title": "Chat",
-      "text": "Ask legal questions and continue with follow-up questions, as in a conversation.",
-      "when": "Use it for specific questions: “What does the law say about…?”",
-      "go": "Start a chat →"
+    "eyebrow": "Verifiable legal research",
+    "title": "What do you need to <em>solve</em> today?",
+    "intro": "It answers only from the loaded laws and cites every source. When it finds no basis, it says so instead of making it up.",
+    "modeLegend": "What you want to do",
+    "mode": {
+      "ask": "Ask",
+      "research": "Research in depth",
+      "case": "Argue a case"
     },
-    "investigacion": {
-      "title": "Research",
-      "text": "State a problem and get an organized dossier: the issue, the applicable law, analysis and sources.",
-      "when": "Use it to prepare a brief or a memo; it can be exported to PDF.",
-      "go": "Start a research →"
+    "modeHelp": {
+      "ask": "A short answer with its sources; you can keep asking.",
+      "research": "An organized dossier (issue, laws, analysis and sources), exportable to PDF.",
+      "case": "Describe the facts; then test your arguments against opposing counsel."
     },
-    "argumentar": {
-      "title": "Argue",
-      "text": "Describe a case and test your arguments: the system acts as opposing counsel or strengthens them.",
-      "when": "Use it to prepare a hearing or anticipate the other lawyer's objections.",
-      "go": "Work on a case →"
+    "input": {
+      "ask": "Your question",
+      "research": "Research question",
+      "case": "Facts of the case"
     },
-    "howTitle": "How it works",
-    "step1": "Write your question. By default it searches Mexican federal law; you can change the jurisdiction with the “Change” button.",
-    "step2": "Wait for the answer: with the local model it takes 1.5 to 4 minutes. The screen shows the current stage.",
-    "step3": "Check the sources: every citation marked with ✓ opens the original text of the law with the passage highlighted.",
-    "step4": "If there are not enough sources, the system says so and suggests what to do. It is not an error: it guarantees nothing is made up.",
-    "tools": "Tools",
-    "leyes": {
-      "title": "Laws",
-      "text": "Read each law by titles, chapters and articles, and compare its versions.",
-      "go": "Open the navigator →"
+    "placeholder": {
+      "ask": "e.g. What are the grounds for termination without liability for the employer?",
+      "research": "e.g. What severance applies to an unjustified dismissal?",
+      "case": "Relevant facts, in chronological order…"
     },
-    "verificar": {
-      "title": "Verify citations",
-      "text": "Paste or upload a brief and check that each cited article exists, is current and says what is attributed to it.",
-      "go": "Verify a brief →"
+    "submit": {
+      "ask": "Ask →",
+      "research": "Research →",
+      "case": "Prepare the case →"
     },
-    "asuntos": {
-      "title": "Matters",
-      "text": "Group chats, research, cases, sources and notes by matter, and share them with your colleagues.",
-      "go": "See my matters →"
-    },
-    "reformas": {
-      "title": "Amendments",
-      "text": "See which laws changed and which part of your work cites amended provisions.",
-      "go": "See amendments →"
-    },
-    "eyebrow": "Verifiable legal research"
+    "recentTitle": "Pick up where you left off",
+    "recentEmpty": "Your recent work will appear here.",
+    "kind": {
+      "chat": "Question",
+      "research": "Research",
+      "case": "Case"
+    }
   },
   "matters": {
     "title": "Matters",
@@ -335,7 +367,7 @@
     "loading": "Loading…",
     "close": "Close matter",
     "reopen": "Reopen matter",
-    "confirmDelete": "Delete the matter? Its conversations are not deleted: they become private to their authors again.",
+    "confirmDelete": "Delete the matter? Its conversations are not deleted: they become private to their authors again. The documents uploaded to the matter ARE deleted.",
     "delete": "Delete",
     "cancel": "Cancel",
     "work": "Work on this matter",
@@ -376,7 +408,8 @@
       "cancel": "Cancel",
       "error": "It could not be saved.",
       "saved": "Saved to the matter."
-    }
+    },
+    "filesIn": "Documents of the matter"
   },
   "laws": {
     "title": "Laws",
@@ -439,7 +472,8 @@
       "ingested": "New version loaded",
       "failed": "Check failed",
       "blocked": "The source refused the download",
-      "skipped": "No automatic download (updated by hand)"
+      "skipped": "No automatic download (updated by hand)",
+      "indexed": "Index read"
     },
     "versions": "from version {from} to {to}",
     "published": "published on {date}",
@@ -454,6 +488,30 @@
       "derogated": "Repealed",
       "removed": "Removed",
       "added": "New"
+    },
+    "discovery": {
+      "title": "Laws in official indexes",
+      "intro": "The official list of laws in force is read every day. Reading it downloads no law: a law that is not loaded is loaded only when the system administrator approves it, because the public collection is shared by every firm.",
+      "howTo": "To load a law, the administrator of this machine runs: uv run python -m app.ingestion.discover approve {ref} --domain AREA --by NAME",
+      "lastRead": "Last read: {when}",
+      "neverRead": "Not read yet.",
+      "fresh": "New since the first read",
+      "noFresh": "No new laws since the first read.",
+      "approved": "Approved",
+      "catalog": "Full catalog ({n})",
+      "filter": "Search the catalog",
+      "noMatch": "No law matches.",
+      "lastReform": "Last reform: {text}",
+      "status": {
+        "available": "Not loaded",
+        "new": "New",
+        "approved": "Approved",
+        "dismissed": "Dismissed"
+      },
+      "loaded": "Loaded",
+      "pending": "Approved; loaded at the next check",
+      "missing": "No longer listed by the index",
+      "official": "Official document"
     }
   },
   "verify": {
@@ -525,6 +583,123 @@
   "settings": {
     "title": "Settings",
     "close": "Close",
-    "session": "Session"
+    "session": "Session",
+    "models": "External models",
+    "allowRemote": "Allow the firm to use Claude (Anthropic)",
+    "allowRemoteHelp": "When on, whoever starts a conversation with Claude sends their questions, the history and the retrieved fragments to Anthropic. Gemma and Qwen stay on this machine. When turned off, conversations with Claude can no longer continue.",
+    "remoteNotConfigured": "This server has no Anthropic key configured: Claude is unavailable even if allowed.",
+    "adminOnly": "Only a firm administrator can change this.",
+    "saved": "Saved."
+  },
+  "files": {
+    "title": "Firm documents",
+    "intro": "Upload contracts, briefs, rulings or a law that is not loaded. The assistant can cite them in your conversations, the same way it cites the law.",
+    "uploadTitle": "Upload a document",
+    "file": "File",
+    "fileHelp": "PDF with text, Word (.docx) or plain text. 25 MB at most. A scanned PDF (images only) cannot be read.",
+    "docTitle": "Document name",
+    "docTitlePlaceholder": "Services agreement 2026",
+    "docTitleHelp": "This is how it will appear in citations. Left empty, the file name is used.",
+    "kind": "Document type",
+    "kinds": {
+      "contrato": "Contract or agreement",
+      "escrito": "Brief (complaint, answer, motion)",
+      "resolucion": "Ruling (judgment, order, award)",
+      "norma": "Law, regulation or rule not loaded",
+      "otro": "Other document"
+    },
+    "language": "Document language",
+    "languages": {
+      "es": "Spanish",
+      "en": "English"
+    },
+    "where": "Scope of the document",
+    "allStates": "The whole country",
+    "whereHelpAll": "It will appear in conversations of any scope in this country.",
+    "whereHelpNarrow": "It will appear only in conversations of this scope. A federal conversation or one of another state will not see it.",
+    "visibleFirm": "No matter: the whole firm can consult it.",
+    "visibleMatter": "Inside the matter: only its members will see it, and it will be used only in the conversations of that matter.",
+    "privacy": "The original file is not stored. It is read on this computer, only its text is kept, and nobody outside your firm can see it.",
+    "upload": "Upload and process",
+    "uploading": "Uploading…",
+    "uploadedAnnounce": "“{title}” was received and is being processed.",
+    "doneAnnounce": "The documents have finished processing.",
+    "listTitle": "Uploaded documents",
+    "loading": "Loading…",
+    "empty": "There are no documents yet. Upload the first one with the form above.",
+    "firmWide": "Whole firm",
+    "aMatter": "A matter",
+    "by": "uploaded by {name}",
+    "status": {
+      "processing": "Processing",
+      "ready": "Ready · {count, plural, =1 {# citable part} other {# citable parts}}",
+      "failed": "Could not be processed"
+    },
+    "processingHelp": "You can keep working; this list updates itself. A long PDF takes a few minutes.",
+    "failed": {
+      "no_text": "No text was found. If it is a scanned PDF, convert it to a PDF with text (OCR) first, or upload the Word file.",
+      "unreadable": "The file is damaged or password-protected and could not be opened.",
+      "too_long": "The document is too long. Split it and upload the parts separately.",
+      "embedder_unavailable": "The local search engine did not respond. Check that the application is running and upload it again.",
+      "generation_mismatch": "The search index changed version and this document cannot be mixed with it. Tell whoever administers the system.",
+      "interrupted": "Processing was interrupted (the application was closed). Delete it and upload it again.",
+      "internal": "An error occurred while processing it. Delete it and try again."
+    },
+    "showText": "View the extracted text",
+    "hideText": "Hide the text",
+    "textHelp": "This is the text as the system read it, part by part. Check it before relying on it: if something is missing here, the assistant will not see it either.",
+    "noUnits": "There is no text to show.",
+    "ask": "Ask about this document",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete the document? Its text is erased; conversations that cited it keep the name of the citation but can no longer open it.",
+    "errors": {
+      "tooLarge": "The file is larger than 25 MB.",
+      "unsupported": "That kind of file cannot be read. Use PDF, Word (.docx) or plain text.",
+      "busy": "Too many requests. Wait a moment and try again.",
+      "matter": "The matter is no longer available. Choose another or upload it without a matter.",
+      "generic": "The document could not be uploaded. Try again."
+    }
+  },
+  "news": {
+    "title": "News",
+    "intro": "Changes to legislation, Supreme Court decisions and press items on legal matters. They are chosen by fixed rules (official sources first, legal terms and date), not by the model, and each item is shown in its source's own words.",
+    "refreshed": "Updated: {when}",
+    "never": "No news yet. The feed is updated every day together with the reform check.",
+    "loadError": "The news could not be loaded. Please try again.",
+    "show": "Show",
+    "filter": {
+      "all": "All",
+      "law": "Changes to legislation",
+      "court": "Courts",
+      "press": "Press"
+    },
+    "none": "No items of this kind for now.",
+    "kind": {
+      "reform": "Reform loaded",
+      "new_law": "New law",
+      "recent_reform": "Recent reform",
+      "court": "Supreme Court",
+      "press": "Press"
+    },
+    "official": "Official source",
+    "seen": "seen on {date}",
+    "why": "Why it is here: {terms}",
+    "lastReform": "Last reform: {text}",
+    "openSource": "Open at the source",
+    "openInApp": "See what changed",
+    "sources": "Sources",
+    "sourcesHelp": "A closed list of sources. If one refuses automated reading, that is recorded and not retried. From the press only the title, outlet, date, link and the source's own summary are kept.",
+    "source": "Source",
+    "checkedAt": "Read",
+    "result": "Result",
+    "notYet": "Not read yet",
+    "outcome": {
+      "collected": "Read",
+      "unchanged": "No changes",
+      "blocked": "The source refused reading",
+      "failed": "Error reading",
+      "skipped": "Retried at the next check"
+    }
   }
 }

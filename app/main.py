@@ -15,9 +15,13 @@ from fastapi import FastAPI
 from sqlalchemy import create_engine
 
 from app.api.conversations import router as conversations_router
-from app.api.deps import AppState
+from app.api.deps import AppState, WorkerJobs
+from app.api.files import router as files_router
 from app.api.laws import router as laws_router
 from app.api.matters import router as matters_router
+from app.api.models import register_model_errors
+from app.api.models import router as models_router
+from app.api.news import router as news_router
 from app.api.reforms import router as reforms_router
 from app.api.routes import register_errors, router
 from app.api.verify import router as verify_router
@@ -25,8 +29,18 @@ from app.chat.service import ChatDeps
 from app.ingestion.embedders import OllamaEmbedder
 from app.ingestion.tokens import HFTokenCounter
 from app.observability.trace import InMemoryTracer
+from app.orchestration.aliases import AliasRegistry
+from app.orchestration.anthropic_client import AnthropicClient, MissingSDKError
 from app.orchestration.ollama import OllamaClient
 from app.orchestration.pins import load_registry
+from app.orchestration.profiles import (
+    ANTHROPIC_PINS,
+    ModelProfile,
+    ProfileCatalog,
+    load_measurements,
+    load_pins,
+    qwen_registry,
+)
 from app.orchestration.resilient import RateLimiter, ResilientClient, TenantUserLimits
 from app.prompts.composer import Composer
 from app.rag.rerank import DenseReranker
@@ -80,6 +94,43 @@ def check_tau_provenance(
         )
 
 
+def build_profiles(settings: Settings, local: AliasRegistry) -> ProfileCatalog:
+    """ADR-024: the local profiles always; `claude` only with a key in .env (and the SDK
+    installed). Without them it stays in the catalog as unavailable, never half-configured."""
+
+    def ollama(reg: AliasRegistry) -> ResilientClient:
+        inner = OllamaClient(reg, base_url=settings.ollama_url, num_ctx=settings.llm_num_ctx,
+                             timeout_s=settings.llm_timeout_s)  # fmt: skip
+        return ResilientClient(inner, reg, timeout_s=settings.llm_timeout_s)
+
+    qwen = qwen_registry(local)
+    remote = load_pins(ANTHROPIC_PINS)
+    claude_llm: ResilientClient | None = None
+    reason: str | None = None
+    if settings.anthropic_api_key is None or not settings.anthropic_api_key.get_secret_value():
+        reason = "no_api_key"
+    else:
+        try:
+            inner = AnthropicClient(
+                remote, api_key=settings.anthropic_api_key.get_secret_value(),
+                effort=settings.anthropic_effort,
+                thinking_headroom_tokens=settings.anthropic_thinking_headroom_tokens,
+                timeout_s=settings.anthropic_timeout_s,
+            )  # fmt: skip
+            claude_llm = ResilientClient(inner, remote, timeout_s=settings.anthropic_timeout_s)
+        except MissingSDKError:
+            reason = "sdk_missing"
+    return ProfileCatalog(
+        profiles={
+            "gemma": ModelProfile("gemma", local, ollama(local)),
+            "qwen": ModelProfile("qwen", qwen, ollama(qwen)),
+            "claude": ModelProfile("claude", remote, claude_llm, unavailable=reason),
+        },
+        default=settings.model_profile_default,
+        measurements=load_measurements(),
+    )
+
+
 def build_state(settings: Settings) -> AppState:
     """Wire the local stack. Importing nothing heavy until the app actually starts."""
     registry = load_registry()
@@ -90,21 +141,20 @@ def build_state(settings: Settings) -> AppState:
         reranker=rerank_label(reranker.name, settings),
     )  # fmt: skip
     settings = load_tau(settings)
-    llm = ResilientClient(
-        OllamaClient(registry, base_url=settings.ollama_url, num_ctx=settings.llm_num_ctx,
-                     timeout_s=settings.llm_timeout_s),
-        registry, timeout_s=settings.llm_timeout_s,
-    )  # fmt: skip
+    profiles = build_profiles(settings, registry)
+    default = profiles.serving(settings.model_profile_default)
+    assert default.llm is not None
     chat = ChatDeps(
         embedder=embedder, reranker=reranker, counter=HFTokenCounter(),
-        settings=settings, composer=Composer(), llm=llm, aliases=registry, tracer=InMemoryTracer(),
+        settings=settings, composer=Composer(), llm=default.llm, aliases=default.registry,
+        tracer=InMemoryTracer(), profiles=profiles, model_profile=default.key,
     )  # fmt: skip
     limits = TenantUserLimits(
         RateLimiter(settings.rate_tenant_per_s, settings.rate_tenant_burst),
         RateLimiter(settings.rate_user_per_s, settings.rate_user_burst),
     )
     engine = create_engine(settings.app_url(), pool_size=8, pool_pre_ping=True)
-    return AppState(settings=settings, engine=engine, chat=chat, limits=limits)
+    return AppState(settings=settings, engine=engine, chat=chat, limits=limits, jobs=WorkerJobs())
 
 
 def create_app(state: AppState | None = None) -> FastAPI:
@@ -114,15 +164,19 @@ def create_app(state: AppState | None = None) -> FastAPI:
         check_configuration(st.settings)
         app.state.legal = st
         yield
+        if isinstance(st.jobs, WorkerJobs):
+            st.jobs.shutdown()
         st.engine.dispose()
 
     app = FastAPI(title="Legal AI Assistant", version="0.1.0", lifespan=lifespan,
                   docs_url=None, redoc_url=None, openapi_url=None)  # fmt: skip
     app.include_router(router)
     app.include_router(conversations_router)
-    for r in (matters_router, laws_router, verify_router, reforms_router):
+    for r in (matters_router, laws_router, verify_router, reforms_router, models_router,
+              files_router, news_router):  # fmt: skip
         app.include_router(r)
     register_errors(app)
+    register_model_errors(app)
     return app
 
 

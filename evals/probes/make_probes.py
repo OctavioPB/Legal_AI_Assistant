@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 
 def covered(topic: str, session: str, gold: list[str], wordings: list[str]) -> dict[str, object]:
@@ -219,7 +220,10 @@ if __name__ == "__main__":
     }
     out = Path(__file__).with_name("tau_probes_v1.json")
     out.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
-    n = lambda xs: sum(len(x["wordings"]) for x in xs)  # type: ignore[arg-type]  # noqa: E731
+
+    def n(xs: list[dict[str, Any]]) -> int:
+        return sum(len(x["wordings"]) for x in xs)
+
     print(
         f"{len(COVERED)} covered topics ({n(COVERED)} wordings), {len(ABSENT)} absent ({n(ABSENT)})"
     )

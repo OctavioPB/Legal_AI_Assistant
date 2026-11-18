@@ -2,9 +2,10 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useId, useState } from "react";
-import { SIDES, type Conversation, type Message, type Side } from "@/lib/api";
-import { closingKind, conversationSources, splitClosingList, TITLE_MAX } from "@/lib/conversation";
+import { SIDES, type Conversation, type Message, type ModelKey, type Side } from "@/lib/api";
+import { closingKind, conversationSources, sourceNumbers, splitClosingList, TITLE_MAX } from "@/lib/conversation";
 import { resolve } from "@/lib/jurisdiction";
+import { takeDraft } from "@/lib/draft";
 import { useCatalogs, useConversation } from "@/lib/useWorkbench";
 import { AnswerView } from "../AnswerView";
 import { SourceViewer } from "../SourceViewer";
@@ -13,6 +14,7 @@ import { Announcer, AssistantMessage, BusyElsewhere, Composer, ConversationBar, 
 import { DEFAULT_SCOPE, loadScope, ScopePicker, ScopeSummary, type Scope } from "./Scope";
 import { Workbench } from "./Workbench";
 import { MatterPicker, useInitialMatter, useMatters } from "./MatterPicker";
+import { isRemote, ModelPicker, useModels } from "./ModelPicker";
 
 const CASE_MAX = 8000;
 
@@ -41,7 +43,7 @@ function CaseCard({ conversation }: { conversation: Conversation }) {
 }
 
 /** A round's answer: the body, then its closing list as a numbered panel (Brand.md 3.3). */
-function RoundAnswer({ message, onOpen }: { message: Message; onOpen: (id: string) => void }) {
+function RoundAnswer({ message, onOpen, numbers }: { message: Message; onOpen: (id: string) => void; numbers: Map<string, number> }) {
   const t = useTranslations("workbench.case");
   const titleId = useId();
   const heading = message.action === "attack" ? t("attackTitle") : t("strengthenTitle");
@@ -49,7 +51,7 @@ function RoundAnswer({ message, onOpen }: { message: Message; onOpen: (id: strin
     return (
       <div className="round-answer" data-action={message.action}>
         <p className="round-label">{heading}</p>
-        <AssistantMessage message={message} onOpen={onOpen} />
+        <AssistantMessage message={message} onOpen={onOpen} numbers={numbers} />
       </div>
     );
   }
@@ -58,11 +60,11 @@ function RoundAnswer({ message, onOpen }: { message: Message; onOpen: (id: strin
   return (
     <div className="round-answer" data-action={message.action}>
       <p className="round-label">{heading}</p>
-      <AssistantMessage message={message} onOpen={onOpen} body={split.body} />
+      <AssistantMessage message={message} onOpen={onOpen} body={split.body} numbers={numbers} />
       {kind && (
         <section className="closing-panel" aria-labelledby={titleId}>
           <h3 id={titleId}>{t(kind === "vulnerabilities" ? "vulnerabilities" : "reinforce")}</h3>
-          <AnswerView text={split.list} citations={message.citations} onOpen={onOpen} compact />
+          <AnswerView text={split.list} citations={message.citations} onOpen={onOpen} compact numbers={numbers} />
         </section>
       )}
     </div>
@@ -75,6 +77,8 @@ function NewCase({
   scope,
   onScope,
   picker,
+  remote,
+  initialFacts = "",
   onCreate,
 }: {
   rows: Parameters<typeof ScopePicker>[0]["rows"];
@@ -82,13 +86,15 @@ function NewCase({
   scope: Scope;
   onScope: (s: Scope) => void;
   picker: React.ReactNode;
+  remote: boolean; // ADR-024: the chosen model is external, so the facts leave the machine
+  initialFacts?: string; // Brand.md 11.2: the facts written in the start page's box
   onCreate: (title: string, side: Side, facts: string, claim: string) => Promise<void>;
 }) {
   const t = useTranslations("workbench.case");
   const ids = { title: useId(), side: useId(), facts: useId(), claim: useId() };
   const [title, setTitle] = useState("");
   const [side, setSide] = useState<Side>("actor");
-  const [facts, setFacts] = useState("");
+  const [facts, setFacts] = useState(initialFacts);
   const [claim, setClaim] = useState("");
   const [busy, setBusy] = useState(false);
   return (
@@ -142,7 +148,7 @@ function NewCase({
       </div>
       <ScopePicker rows={rows} personas={personas} value={scope} onChange={onScope} />
       {picker}
-      <p className="small muted">{t("privacyNote")}</p>
+      <p className="small muted">{t(remote ? "privacyNoteRemote" : "privacyNote")}</p>
       <button type="submit" className="button" disabled={busy || !title.trim() || !facts.trim() || !resolve(rows, scope.selection)}>
         {t("create")}
       </button>
@@ -161,6 +167,18 @@ export function ArgumentarView() {
   const [scope, setScope] = useState<Scope>(DEFAULT_SCOPE);
   const matters = useMatters();
   const [matter, setMatter] = useInitialMatter();
+  const models = useModels();
+  const [model, setModel] = useState<ModelKey | null>(null);
+  const [draftFacts, setDraftFacts] = useState<{ text: string; n: number } | null>(null);
+  useEffect(() => {
+    // Brand.md 11.2: facts written on the start page prefill the case form (the side is chosen here)
+    const d = takeDraft("case");
+    if (!d) return;
+    setDraftFacts({ text: d.text, n: d.at });
+    setMatter(d.matter);
+    setModel(d.model);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
+  }, []);
   const [viewing, setViewing] = useState<string | null>(null);
   const [seed, setSeed] = useState<Seed>();
   // Opening a conversation from the history moves the focus to its title (keyboard and screen
@@ -174,18 +192,28 @@ export function ArgumentarView() {
     if (catalogs) setScope(loadScope(catalogs.rows, catalogs.personas));
   }, [catalogs]);
 
+  const sources = conversationSources(w.messages);
+  const numbers = sourceNumbers(sources);
   return (
     <Workbench
       title={t("pageTitle")}
       failed={failed}
       ready={Boolean(catalogs)}
       history={<History kind="case" version={w.listVersion} activeId={w.activeId} onOpen={(id) => void openAndFocus(id)} onNew={() => { void w.open(null); setSeed({ text: "", n: Date.now() }); }} />}
-      aside={w.conversation ? <SourcesPanel sources={conversationSources(w.messages)} onOpen={setViewing} /> : undefined}
+      aside={w.conversation ? <SourcesPanel sources={sources} onOpen={setViewing} /> : undefined}
     >
       {catalogs && !w.conversation && (
         <>
           <NewCase
-            picker={<MatterPicker matters={matters} value={matter} onChange={setMatter} />}
+            key={draftFacts?.n ?? 0}
+            initialFacts={draftFacts?.text}
+            picker={
+              <>
+                <MatterPicker matters={matters} value={matter} onChange={setMatter} />
+                <ModelPicker info={models} value={model} onChange={setModel} />
+              </>
+            }
+            remote={isRemote(models, model)}
             rows={catalogs.rows}
             personas={catalogs.personas}
             scope={scope}
@@ -197,6 +225,7 @@ export function ArgumentarView() {
                 kind: "case", title, jurisdiction_id: j.id, persona: scope.persona,
                 language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, matter_id: matter,
                 case: { side, facts, claim },
+                ...(model ? { model_profile: model } : {}),
               });
             }}
           />
@@ -211,7 +240,7 @@ export function ArgumentarView() {
           <ol className="thread" aria-label={t("roundsLabel")}>
             {w.messages.map((m) => (
               <li key={m.seq} className={m.role === "user" ? "turn turn-user" : "turn turn-assistant"}>
-                {m.role === "user" ? <UserMessage text={m.content} label={t("yourArgument")} /> : <RoundAnswer message={m} onOpen={setViewing} />}
+                {m.role === "user" ? <UserMessage text={m.content} label={t("yourArgument")} /> : <RoundAnswer message={m} onOpen={setViewing} numbers={numbers} />}
               </li>
             ))}
             {w.runningHere && (

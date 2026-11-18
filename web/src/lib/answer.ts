@@ -88,3 +88,17 @@ export function citedIds(blocks: Block[]): string[] {
   }
   return [...seen];
 }
+
+const CITE = /\[\s*cite\s*:\s*([^\]\[]{0,2000})\]/gi;
+
+/** Brand.md 11.3 "Copiar con citas": the answer as plain text, each citation replaced by its
+ *  source number ([1], [1, 2]); ids the validator did not accept stay as written. Bold markers go;
+ *  the reasoning tags stay (they say the line has no normative support). */
+export function plainWithNumbers(text: string, numberOf: (id: string) => number | undefined): string {
+  return text
+    .replace(CITE, (_m, ids: string) => {
+      const parts = [...new Set(ids.split(/[;,]/).map((s) => s.trim()).filter(Boolean))].map((id) => numberOf(id) ?? id);
+      return `[${parts.join(", ")}]`;
+    })
+    .replace(/\*\*([^*\n]{1,500})\*\*/g, "$1");
+}

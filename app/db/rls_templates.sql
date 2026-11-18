@@ -96,3 +96,12 @@ CREATE POLICY {table}_via_conversation ON {table} AS RESTRICTIVE FOR ALL
   WITH CHECK (EXISTS (SELECT 1 FROM conversations c WHERE c.id = {table}.conversation_id
          AND c.tenant_id = {table}.tenant_id));
 -- @end
+
+-- @template matter_scoped
+-- ADR-025: rows that may belong to a matter (documents, doc_nodes, chunks, client_files). Without a
+-- matter they follow their base policy alone (public corpus, firm-wide files); with one they are
+-- visible only to the matter's creator and members, and to nobody without the user anchor.
+CREATE POLICY {table}_matter_scope ON {table} AS RESTRICTIVE FOR ALL
+  USING (matter_id IS NULL OR app_matter_visible(matter_id))
+  WITH CHECK (matter_id IS NULL OR app_matter_visible(matter_id));
+-- @end

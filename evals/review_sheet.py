@@ -14,6 +14,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 from evals.golden import CaseResult, read_run
 
@@ -80,8 +81,8 @@ def case_section(r: CaseResult) -> str:
     return "\n".join(lines)
 
 
-def build(report: dict[str, object]) -> str:
-    cases = [CaseResult.model_validate(c) for c in report["cases"]]  # type: ignore[union-attr]
+def build(report: dict[str, Any]) -> str:
+    cases = [CaseResult.model_validate(c) for c in report["cases"]]
     head = [
         f"# Hoja de revisión · {report['run_id']}", "",
         f"Commit `{report.get('commit')}`{' (con cambios sin commit)' if report.get('dirty') else ''} · "

@@ -29,5 +29,5 @@
 - Records of decisions: non-trivial choices go to the ADR log (`decision-record` skill).
 
 ## UI/Frontend
-- Todo desarrollo de UI obedece `Brand.md` (raíz). PRs de UI declaran conformidad;
+- Todo desarrollo de UI obedece `docs/Brand.md`. PRs de UI declaran conformidad;
   vacíos en Brand.md se resuelven extendiendo Brand.md, nunca improvisando en el componente.

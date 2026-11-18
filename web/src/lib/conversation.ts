@@ -12,14 +12,20 @@ export function titleFrom(text: string, max = 80): string {
   return `${(space > max / 2 ? cut.slice(0, space) : cut).trimEnd()}…`;
 }
 
-/** Every source cited in the conversation, newest answer first, each id once. */
+/** Every source cited in the conversation, each id once, in order of first appearance: its
+ *  position is its number, in the answers and in the sources panel alike (Brand.md 11.3). */
 export function conversationSources(messages: Message[]): Citation[] {
   const seen = new Map<string, Citation>();
-  for (const m of [...messages].reverse()) {
+  for (const m of messages) {
     if (m.role !== "assistant" || m.status !== "answered") continue;
     for (const c of m.citations) if (!seen.has(c.cite_id)) seen.set(c.cite_id, c);
   }
   return [...seen.values()];
+}
+
+/** cite_id -> its number in the conversation (1-based). */
+export function sourceNumbers(sources: Citation[]): Map<string, number> {
+  return new Map(sources.map((c, i) => [c.cite_id, i + 1]));
 }
 
 export interface ClosingList {

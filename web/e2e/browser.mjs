@@ -60,8 +60,26 @@ const STUBS = {
     sources: [{ id: "s1", cite_id: "MX-FED-LFT-ART47-FRACII-v2026.05.14", citation_string: "Ley Federal del Trabajo, art. 47, fracc. II", note: "", added_by: "E2E", added_at: "2026-11-08T10:00:00Z", change: "amended", current_cite_id: "MX-FED-LFT-ART47-FRACII-v2026.10.01" }],
     reports: [] },
   "verify/reports": [],
+  // ADR-025 (Brand.md 9.7): one file of a matter ready, one being processed, one that failed
+  files: [
+    { id: "f0000000-0000-4000-8000-000000000001", title: "Contrato de servicios", kind: "contrato", language: "es", jurisdiction_id: 1, matter_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", status: "ready", error_key: null, pages: null, chunk_count: 7, source_format: "docx", created_at: "2026-11-14T10:00:00Z", mine: true, uploaded_by_name: "E2E", can_delete: true },
+    { id: "f0000000-0000-4000-8000-000000000002", title: "Demanda inicial", kind: "escrito", language: "es", jurisdiction_id: 1, matter_id: null, status: "failed", error_key: "no_text", pages: null, chunk_count: null, source_format: "pdf", created_at: "2026-11-14T09:00:00Z", mine: false, uploaded_by_name: "Mario", can_delete: false },
+  ],
+  "files/f0000000-0000-4000-8000-000000000001/text": [
+    { cite_id: "CF-D1A2B3C4D5E-S4", citation_string: "«Contrato de servicios», PRIMERA.- OBJETO", text: "PRIMERA.- OBJETO. La Prestadora se obliga a prestar servicios de asesoría jurídica. [texto de ejemplo]" },
+    { cite_id: "CF-D1A2B3C4D5E-S7", citation_string: "«Contrato de servicios», CUARTA.- PENA CONVENCIONAL", text: "CUARTA.- PENA CONVENCIONAL. Tres meses de honorarios. [texto de ejemplo]" },
+  ],
   reforms: { changes: [{ id: "c1", official_id: "LFT", title: "Ley Federal del Trabajo", old_version: "2026.05.14", new_version: "2026.10.01", published_on: "2026-10-01", detected_at: "2026-11-08T09:00:00Z", counts: { amended: 2, added: 2, derogated: 1, removed: 1, unchanged: 30 } }],
     checks: [{ official_id: "LFT", checked_at: "2026-11-08T09:00:00Z", outcome: "ingested", http_status: 200, detail: null }, { official_id: "CC_NL", checked_at: "2026-11-08T09:00:00Z", outcome: "skipped", http_status: null, detail: "inbox" }] },
+  // ADR-027: the shared legal news feed (sample data)
+  news: { refreshed_at: "2026-11-17T09:00:00Z", items: [
+    { id: "n1", kind: "court", title: "La Suprema Corte resuelve un amparo en revisión [ejemplo]", url: "https://www.internet2.scjn.gob.mx/red2/comunicados/comunicado.asp?id=1", outlet: "Suprema Corte de Justicia de la Nación · Comunicado 1", official: true, published_at: null, first_seen_at: "2026-11-17T09:00:00Z", excerpt: null, terms: ["Suprema Corte", "amparo"], facts: {}, score: 6.5 },
+    { id: "n2", kind: "reform", title: "Ley Federal del Trabajo", url: "/reformas?c=c1", outlet: "Vigilante de reformas", official: true, published_at: "2026-10-01T12:00:00Z", first_seen_at: "2026-11-08T09:00:00Z", excerpt: null, terms: ["ley"], facts: { counts: { amended: 2, added: 2 } }, score: 5.1 },
+    { id: "n3", kind: "press", title: "Decidirá la Corte si atrae un litigio [ejemplo]", url: "https://www.jornada.com.mx/ejemplo", outlet: "La Jornada", official: false, published_at: "2026-11-16T08:00:00Z", first_seen_at: "2026-11-17T09:00:00Z", excerpt: "Extracto publicado por la fuente. [texto de ejemplo]", terms: ["Suprema Corte", "juicio"], facts: {}, score: 4.2 },
+  ], sources: [
+    { source_id: "scjn", outlet: "Suprema Corte de Justicia de la Nación", official: true, checked_at: "2026-11-17T09:00:00Z", outcome: "collected" },
+    { source_id: "jornada_politica", outlet: "La Jornada", official: false, checked_at: "2026-11-17T09:00:00Z", outcome: "blocked" },
+  ] },
   "reforms/alerts": [{ where: "matter_source", target_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", target_title: "Pérez vs. ACME", kind: null, matter_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", cite_id: "MX-FED-LFT-ART47-FRACII-v2026.05.14", citation_string: "Ley Federal del Trabajo, art. 47, fracc. II", change: "amended", published_on: "2026-10-01", current_cite_id: "MX-FED-LFT-ART47-FRACII-v2026.10.01" }],
 };
 const POSTS = {
@@ -95,15 +113,22 @@ page.on("pageerror", (e) => consoleErrors.push(String(e)));
 // ---- home, default locale ------------------------------------------------------------------
 await page.goto(`${BASE}/`);
 const welcome = () => page.locator(".welcome h2").innerText();
-check("the start page explains the three workspaces, in es-MX by default", (await page.locator(".home-tiles:not(.home-tools) .home-tile").count()) === 3 && (await page.locator("h1").innerText()).includes("hacer hoy"));
-check("the start page says how an answer is built", (await page.locator(".home-steps li").count()) === 4);
-check("the start page lists the four tools", (await page.locator(".home-tools .home-tile").count()) === 4);
+await page.locator(".mesa").waitFor();
+check("the start page is one box with three modes, in es-MX by default (Brand.md 11.2)", (await page.locator(".mesa-mode").count()) === 3 && (await page.locator("h1").innerText()).includes("resolver hoy"));
+check("the start page says it answers only from the loaded laws", (await page.locator(".home-trust").innerText()).includes("cita cada fuente"));
+check("recent work says when there is none yet", (await page.locator(".recent").innerText()).includes("trabajo reciente"));
 check("an amendment that touches the user's work raises a banner on the start page", (await page.locator(".alert-banner").innerText()).includes("1 citas"));
 check("html lang is es-MX", (await page.getAttribute("html", "lang")) === "es-MX");
-await page.locator(".home-tile", { hasText: "Conversar" }).click();
-await page.waitForURL(/\/conversar$/);
+await page.getByLabel("Argumentar un caso").check();
+check("the box relabels itself for the chosen mode", (await page.locator(".mesa-label").innerText()) === "Hechos del caso");
+await page.getByLabel("Hechos del caso").fill("La trabajadora fue despedida sin aviso escrito.");
+await page.getByRole("button", { name: "Preparar el caso →" }).click();
+await page.waitForURL(/\/argumentar$/);
+await page.locator(".case-form").waitFor();
+check("the case facts written on the start page prefill the case form (never the URL)", (await page.getByLabel("Hechos", { exact: true }).inputValue()).includes("sin aviso escrito") && !page.url().includes("aviso"));
+await page.goto(`${BASE}/conversar`);
 await page.locator(".welcome").waitFor();
-check("a start-page tile opens its workspace", (await welcome()).includes("consultar") && (await page.locator("h1").innerText()) === "Conversar");
+check("a workspace opens with its welcome", (await welcome()).includes("consultar") && (await page.locator("h1").innerText()) === "Conversar");
 check("exactly one h1 on the workspace", (await page.locator("h1").count()) === 1);
 
 // ---- minimal configuration (non-technical users) ------------------------------------------------
@@ -125,7 +150,7 @@ await page.getByLabel("Mensaje").fill("");
 
 // ---- the three workspaces (ADR-016, Brand.md 8) ----------------------------------------------
 const nav = page.getByRole("navigation", { name: "Secciones" });
-check("the top bar links the three workspaces", (await nav.getByRole("link").allInnerTexts()).join("|") === "Conversar|Investigación|Argumentar|Leyes|Verificar|Asuntos");
+check("the side rail links home, the three workspaces and the tools (Brand.md 11.1)", (await nav.getByRole("link").allInnerTexts()).join("|") === "Inicio|Conversar|Investigación|Argumentar|Leyes|Documentos|Verificar|Asuntos|Reformas|Noticias");
 check("the open workspace is aria-current", (await nav.getByRole("link", { name: "Conversar" }).getAttribute("aria-current")) === "page");
 check("an empty history says so", (await page.locator(".history").innerText()).includes("Aún no hay conversaciones"));
 await nav.getByRole("link", { name: "Investigación" }).click();
@@ -184,6 +209,13 @@ check("work starts inside the matter from its own links", (await page.getByRole(
 await page.goto(`${BASE}/reformas`);
 await page.locator(".alert-list").waitFor();
 check("Reformas lists the affected work and every source check", (await page.locator(".alert-list").innerText()).includes("Pérez vs. ACME") && (await page.locator(".checks tbody tr").count()) === 2);
+await page.goto(`${BASE}/noticias`);
+await page.locator(".news-list").waitFor();
+check("Noticias lists the feed with its kind, source and why it is there", (await page.locator(".news-item").count()) === 3 && (await page.locator(".news-list").innerText()).includes("Por qué aparece"));
+check("an external news link opens without a referrer", (await page.locator('.news-item a[href^="https://"]').evaluateAll((as) => as.every((a) => a.rel.includes("noreferrer") && a.target === "_blank"))));
+await page.getByRole("button", { name: "Prensa" }).click();
+check("the news filter shows only the chosen kind", (await page.locator(".news-item").count()) === 1);
+check("a refused news source is said in words", (await page.locator("table.checks").innerText()).includes("La fuente rechazó la lectura"));
 await page.goto(`${BASE}/conversar`);
 
 // Language, theme and sign-out live in the "Ajustes" side panel (Brand.md 10): open it, choose, close.
@@ -241,11 +273,11 @@ check("skip link is visible when focused", skipVisible);
 const outline = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle + " " + getComputedStyle(document.activeElement).outlineWidth);
 check("focused control has a visible outline", outline.startsWith("solid") && outline.endsWith("2px"), outline);
 const tabStops = [];
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 12; i++) {
   await page.keyboard.press("Tab");
   tabStops.push(await page.evaluate(() => document.activeElement?.textContent?.trim()));
 }
-check("the settings button is reachable by keyboard from the top bar", tabStops.includes("Ajustes"), tabStops.slice(0, 9).join(" | "));
+check("the settings button is reachable by keyboard from the side rail", tabStops.includes("Ajustes"), tabStops.slice(0, 12).join(" | "));
 await page.getByRole("button", { name: "Ajustes" }).focus();
 await page.keyboard.press("Enter");
 await page.locator("dialog.settings-dialog[open]").waitFor();
@@ -290,14 +322,15 @@ await tabReachesEverything("/leyes?ley=LFT&p=d.tsegundo.civ.art47", "Leyes");
 await tabReachesEverything("/verificar", "Verificar");
 await tabReachesEverything(`/asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b`, "Asuntos");
 await tabReachesEverything("/reformas", "Reformas");
+await tabReachesEverything("/noticias", "Noticias");
 await page.goto(`${BASE}/conversar`);
 
-// ---- phone width: the top bar stays small, settings behind one button (Brand.md 8.1) ----------
+// ---- phone width: the rail becomes a band that stays small, settings behind one button (11.1) --
 await page.setViewportSize({ width: 390, height: 844 });
 await page.goto(`${BASE}/conversar`);
 await page.locator(".welcome").waitFor();
-const barHeight = await page.locator(".app-header").evaluate((e) => e.getBoundingClientRect().height);
-check("on a phone the top bar is compact", barHeight < 170, `${Math.round(barHeight)}px`);
+const barHeight = await page.locator(".app-nav").evaluate((e) => e.getBoundingClientRect().height);
+check("on a phone the navigation band takes less than a third of the screen", barHeight < 844 / 3, `${Math.round(barHeight)}px`);
 check("on a phone the history starts closed", (await page.getByRole("button", { name: "Mostrar historial" }).count()) === 1);
 const settings = page.getByRole("button", { name: "Ajustes" });
 check("on a phone language and theme stay behind 'Ajustes'", !(await page.getByRole("button", { name: "English" }).isVisible()));
@@ -332,7 +365,7 @@ for (const p of ["conversar", "investigacion", "argumentar"]) {
   await axe(`${p} (dark)`);
   await pick("Claro");
 }
-for (const [p, ready] of [["leyes?ley=LFT&p=d.tsegundo.civ.art47", "#law-node-title"], ["verificar", ".verify-form"], ["asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", "#matter-title"], ["reformas", ".alert-list"]]) {
+for (const [p, ready] of [["leyes?ley=LFT&p=d.tsegundo.civ.art47", "#law-node-title"], ["verificar", ".verify-form"], ["documentos", ".file-list"], ["asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", "#matter-title"], ["reformas", ".alert-list"], ["noticias", ".news-list"]]) {
   await page.goto(`${BASE}/${p}`);
   await page.locator(ready).waitFor();
   await axe(`${p.split("?")[0]} (light)`);
@@ -345,6 +378,24 @@ await axe("login (light)");
 await pick("Oscuro");
 await axe("login (dark)");
 await pick("Sistema");
+
+// ---- firm documents (ADR-025, Brand.md 9.7) ----------------------------------------------------
+await page.goto(`${BASE}/documentos?matter=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b`);
+await page.locator(".file-item").first().waitFor();
+check("Documentos: the upload form says what is kept and who will see it", (await page.locator(".file-form").innerText()).includes("El archivo original no se guarda") && (await page.locator(".file-form").innerText()).includes("solo lo verán los miembros del asunto"));
+check("Documentos: nothing can be sent without a file", await page.getByRole("button", { name: "Subir y procesar" }).isDisabled());
+check("Documentos: the matter of the link is preselected", (await page.locator(".file-form").getByLabel("Asunto").inputValue()) === "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b");
+const fileRows = page.locator(".file-item");
+check("Documentos: a ready file shows its citable parts and its matter", (await fileRows.nth(0).innerText()).includes("Listo · 7 partes citables") && (await fileRows.nth(0).innerText()).includes("Pérez vs. ACME"));
+check("Documentos: a failed file says why in plain words and what to do", (await fileRows.nth(1).innerText()).includes("No se pudo procesar") && (await fileRows.nth(1).innerText()).includes("PDF escaneado"));
+check("Documentos: only the uploader (or an admin) gets the delete button", (await fileRows.nth(0).getByRole("button", { name: "Eliminar" }).count()) === 1 && (await fileRows.nth(1).getByRole("button", { name: "Eliminar" }).count()) === 0);
+await fileRows.nth(0).getByRole("button", { name: "Ver el texto extraído" }).click();
+await page.locator(".file-units li").first().waitFor();
+check("Documentos: the extracted text is shown part by part, as text", (await page.locator(".file-units li").count()) === 2 && (await page.locator(".file-unit-text").first().innerText()).startsWith("PRIMERA.- OBJETO"));
+check("Documentos: 'Preguntar sobre este documento' opens a conversation in its matter", (await fileRows.nth(0).getByRole("link", { name: "Preguntar sobre este documento" }).getAttribute("href")) === "/conversar?matter=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b");
+await fileRows.nth(0).getByRole("button", { name: "Eliminar" }).click();
+check("Documentos: deleting asks first and says what is lost", (await fileRows.nth(0).innerText()).includes("¿Eliminar el documento? Se borra su texto"));
+await fileRows.nth(0).getByRole("button", { name: "Cancelar" }).click();
 
 // ---- login form behaviour (API is down on purpose) --------------------------------------------
 await page.goto(`${BASE}/login`);

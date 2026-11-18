@@ -30,6 +30,11 @@
   empty node, unclosed quote/table. Property tests: no chunk crosses a node; concatenated chunk
   text covers each article with no loss or duplication; every `cite_id` unique and parseable.
 
+- Documents that are not statutes (ADR-025, `normalizer_generic.py`): a section (clause opener, heading line,
+  or a bounded group of loose paragraphs) is typed `articulo` = the context unit; its paragraphs are `parrafo`
+  = the retrieval unit; a bare heading travels with the paragraph it introduces; a block over 4 000 characters
+  is cut at sentence ends. Shape only, nothing inferred. Citations use the document's own section names.
+
 ## Versioning (CLAUDE.md invariant 5, ADR-006)
 - Chunk rows carry `embedding_model`, `embedding_revision`, `chunker_version` and the chunk
   thresholds. Query embeddings must use the same model+revision as the rows they search.

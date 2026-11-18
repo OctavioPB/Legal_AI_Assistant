@@ -17,6 +17,8 @@ from sqlalchemy import text
 from app.api.deps import PrincipalDep, StateDep
 from app.corpus.lineage import successions
 from app.db.session import tenant_transaction
+from app.ingestion.corpus import CORPUS
+from app.ingestion.indexes import INDEXES
 
 router = APIRouter(prefix="/reforms")
 
@@ -57,6 +59,35 @@ class Check(BaseModel):
 class Overview(BaseModel):
     changes: list[Change]
     checks: list[Check]
+
+
+class IndexRead(BaseModel):
+    index_id: str
+    title: str
+    url: str
+    checked_at: datetime | None
+    outcome: str | None
+    detail: str | None
+
+
+class IndexEntryOut(BaseModel):
+    index_id: str
+    entry_key: str
+    title: str
+    url: str
+    status: Literal["available", "new", "approved", "dismissed"]
+    published_on: date | None
+    last_reform_on: date | None
+    last_reform_text: str | None
+    note: str | None
+    first_seen_at: datetime
+    missing: bool  # no longer listed by the index (abrogated, renamed)
+    loaded: bool  # a version of it is in the corpus
+
+
+class Discovery(BaseModel):
+    indexes: list[IndexRead]
+    entries: list[IndexEntryOut]
 
 
 class LineageRow(BaseModel):
@@ -152,7 +183,9 @@ def overview(p: PrincipalDep, st: StateDep) -> Overview:
                 "s.http_status, s.detail, (SELECT d.title FROM documents d "
                 "WHERE d.official_id = s.official_id AND d.valid_to IS NULL "
                 "ORDER BY d.ingested_at DESC LIMIT 1) AS title "
-                "FROM source_checks s ORDER BY s.official_id, s.checked_at DESC"
+                "FROM source_checks s WHERE s.official_id NOT LIKE 'index:%' "
+                "AND s.official_id NOT LIKE 'news:%' "
+                "ORDER BY s.official_id, s.checked_at DESC"
             )
         ).all()
     return Overview(
@@ -179,6 +212,67 @@ def overview(p: PrincipalDep, st: StateDep) -> Overview:
                 detail=r.detail,
             )
             for r in checks
+        ],
+    )
+
+
+@router.get("/indexes", response_model=Discovery)
+def indexes(p: PrincipalDep, st: StateDep) -> Discovery:
+    """ADR-026: what the official indexes list, and which of it is loaded, new or decided. Read
+    only: an operator approves a law with `python -m app.ingestion.discover approve` (the public
+    corpus is shared by every firm and never written by the API's role)."""
+    static_urls = [d.source_url for d in CORPUS if d.source_url]
+    with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
+        checks = {
+            r.official_id: r
+            for r in conn.execute(
+                text(
+                    "SELECT DISTINCT ON (official_id) official_id, checked_at, outcome, detail "
+                    "FROM source_checks WHERE official_id LIKE 'index:%' "
+                    "ORDER BY official_id, checked_at DESC"
+                )
+            )
+        }
+        rows = conn.execute(
+            text(
+                "SELECT e.index_id, e.entry_key, e.title, e.url, e.status, e.published_on, "
+                "e.last_reform_on, e.last_reform_text, e.note, e.first_seen_at, "
+                "e.missing_since IS NOT NULL AS missing, "
+                "(e.url = ANY(:static) OR EXISTS (SELECT 1 FROM documents d "
+                " WHERE d.official_id = e.source_key AND d.valid_to IS NULL)) AS loaded "
+                "FROM corpus_index_entries e ORDER BY CASE e.status WHEN 'new' THEN 0 "
+                "WHEN 'approved' THEN 1 ELSE 2 END, e.index_id, e.title, e.entry_key LIMIT 2000"
+            ),
+            {"static": static_urls},
+        ).all()
+    return Discovery(
+        indexes=[
+            IndexRead(
+                index_id=s.index_id,
+                title=s.title,
+                url=s.url,
+                checked_at=c.checked_at if (c := checks.get(f"index:{s.index_id}")) else None,
+                outcome=c.outcome if c else None,
+                detail=c.detail if c else None,
+            )
+            for s in INDEXES.values()
+        ],
+        entries=[
+            IndexEntryOut(
+                index_id=r.index_id,
+                entry_key=r.entry_key,
+                title=r.title,
+                url=r.url,
+                status=r.status,
+                published_on=r.published_on,
+                last_reform_on=r.last_reform_on,
+                last_reform_text=r.last_reform_text,
+                note=r.note,
+                first_seen_at=r.first_seen_at,
+                missing=r.missing,
+                loaded=r.loaded,
+            )
+            for r in rows
         ],
     )
 

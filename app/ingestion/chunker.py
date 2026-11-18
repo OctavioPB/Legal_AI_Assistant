@@ -224,6 +224,11 @@ class Chunker:
 
     @staticmethod
     def _citation(meta: DocMeta, nodes: list[Node], part: int) -> str:
+        if meta.citation_style == "plain":
+            names = ", ".join(n.label for n in nodes)
+            title = f'"{meta.title}"' if meta.language == "en" else f"«{meta.title}»"
+            word = "part" if meta.language == "en" else "parte"
+            return f"{title}, {names}" + (f" ({word} {part})" if part else "")
         if meta.language == "en":  # "Cal. Lab. Code, § 1102.5(a)(1)": subdivisions attach directly
             out = ""
             for n in nodes:
