@@ -300,10 +300,15 @@ def run_all(
 
 
 def main(argv: list[str] | None = None) -> int:
+    import argparse
+
     from app.main import load_tau  # tau from the calibration record, exactly as the API loads it
 
+    parser = argparse.ArgumentParser(prog="python -m app.doctor")
+    parser.add_argument("--database", help="database to check (default: the configured one)")
+    args = parser.parse_args(argv)
     settings = load_tau(get_settings())
-    engine = create_engine(settings.superuser_url())
+    engine = create_engine(settings.superuser_url(args.database))
     try:
         with engine.connect() as conn:
             results = run_all(conn, settings)

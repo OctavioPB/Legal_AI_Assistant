@@ -112,8 +112,10 @@ def test_a_broken_search_config_is_detected(admin_engine: Engine) -> None:
     assert any("legal_es" in n for n in names)
 
 
-def test_the_cli_reports_and_sets_the_exit_code(capsys) -> None:  # type: ignore[no-untyped-def]
-    code = doctor.main([])
+def test_the_cli_reports_and_sets_the_exit_code(capsys, migrated_db: str) -> None:  # type: ignore[no-untyped-def]
+    # The migrated test database, never the configured one: in CI that one exists (docker initdb)
+    # but is never migrated, so the doctor found no tables and the test failed only there.
+    code = doctor.main(["--database", migrated_db])
     out = capsys.readouterr().out
     assert code == 0 and "passed" in out and "failed" in out
 

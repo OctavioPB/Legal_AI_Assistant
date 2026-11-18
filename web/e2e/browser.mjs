@@ -119,7 +119,9 @@ const welcome = () => page.locator(".welcome h2").innerText();
 await page.locator(".mesa").waitFor();
 check("the start page is one box with three modes, in es-MX by default (Brand.md 11.2)", (await page.locator(".mesa-mode").count()) === 3 && (await page.locator("h1").innerText()).includes("resolver hoy"));
 check("the start page says it answers only from the loaded laws", (await page.locator(".home-trust").innerText()).includes("cita cada fuente"));
-check("recent work says when there is none yet", (await page.locator(".recent").innerText()).includes("trabajo reciente"));
+// `.recent` renders its title at once and the empty message only after the request resolves: wait
+// for the message, or a slow runner reads the section before it is there (failed on CI only).
+check("recent work says when there is none yet", await page.locator(".recent", { hasText: "trabajo reciente" }).waitFor({ timeout: 10_000 }).then(() => true, () => false));
 check("an amendment that touches the user's work raises a banner on the start page", (await page.locator(".alert-banner").innerText()).includes("1 citas"));
 check("html lang is es-MX", (await page.getAttribute("html", "lang")) === "es-MX");
 await page.getByLabel("Argumentar un caso").check();
