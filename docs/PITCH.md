@@ -1,177 +1,176 @@
 # PITCH.md — Legal AI Assistant
-### Investigación jurídica con IA donde cada afirmación es verificable — o no existe
+### AI-assisted legal research where every claim is verifiable — or does not exist
 
 ---
 
-## 1. El problema
+## 1. The problem
 
-Los abogados en México y EE.UU. enfrentan tres realidades simultáneas:
+Lawyers in Mexico and the US face three realities at once:
 
-1. **La investigación jurídica es cara y lenta.** Localizar la norma aplicable a través de
-   tres niveles de gobierno (federal, 32 estados, miles de municipios en MX), verificar su
-   vigencia tras reformas constantes y cruzarla con jurisprudencia consume una fracción enorme
-   de horas facturables — frecuentemente delegada a los perfiles con menos criterio para ella.
-2. **La IA generativa genérica es inutilizable en este dominio.** Los LLMs de propósito
-   general inventan artículos, mezclan legislación de estados distintos y citan tesis
-   inexistentes con total fluidez. Los casos sancionados en cortes de EE.UU. por citas
-   fabricadas (desde *Mata v. Avianca* en adelante) convirtieron "usé ChatGPT" en un riesgo
-   de responsabilidad profesional, no en una ventaja.
-3. **La confidencialidad no es negociable.** Los expedientes están protegidos por secreto
-   profesional; subirlos a herramientas que no garantizan aislamiento estricto es una
-   violación ética per se.
+1. **Legal research is expensive and slow.** Locating the applicable rule across
+   three levels of government (federal, 32 states, thousands of municipalities in MX), checking its
+   validity after constant reforms and cross-referencing it with case law consumes an enormous fraction
+   of billable hours — often delegated to the people with the least judgment for it.
+2. **Generic generative AI is unusable in this domain.** General-purpose LLMs
+   invent articles, mix the legislation of different states and cite nonexistent theses
+   with total fluency. The cases sanctioned in US courts for fabricated citations
+   (from *Mata v. Avianca* onward) turned "I used ChatGPT" into a professional-liability
+   risk, not an advantage.
+3. **Confidentiality is non-negotiable.** Case files are protected by professional
+   privilege; uploading them to tools that do not guarantee strict isolation is an ethical
+   violation per se.
 
-El mercado no necesita "un chatbot que sepa de leyes". Necesita un sistema donde **la
-velocidad de la IA y el estándar probatorio de un abogado dejen de estar en conflicto**.
+The market does not need "a chatbot that knows about laws". It needs a system where **the
+speed of AI and a lawyer's standard of proof stop being in conflict**.
 
-## 2. La solución
+## 2. The solution
 
-Un asistente jurídico bilingüe (es-MX / en-US), multi-jurisdiccional y multi-tenant, con un
-contrato de producto inusual en la categoría:
+A bilingual (es-MX / en-US), multi-jurisdiction, multi-tenant legal assistant with a
+product contract that is unusual in the category:
 
-> **Toda afirmación jurídica sale con una cita verificable a un fragmento recuperado del
-> corpus oficial — o el sistema se rehúsa a responder y dice exactamente qué fuente falta.**
+> **Every legal claim comes out with a verifiable citation to a fragment retrieved from the
+> official corpus — or the system refuses to answer and says exactly which source is missing.**
 
-Dos flujos de trabajo sobre ese contrato:
+Two workflows on top of that contract:
 
-- **Dossier Builder** — compila expedientes de investigación: marco normativo aplicable,
-  criterios jurisprudenciales y análisis, con cada afirmación anclada a un `cite_id`
-  clickeable que abre el PDF oficial en el párrafo exacto, jerarquizando fuentes
-  (Constitución > ley federal > estatal > municipal; jurisprudencia obligatoria > tesis aislada).
-- **Adversarial Counterpart** — actúa como abogado de la contraparte: ataca la estrategia del
-  usuario con contradicciones normativas citadas y falacias lógicas señaladas, distinguiendo
-  explícitamente derecho citado de razonamiento estratégico, y cerrando con las
-  vulnerabilidades priorizadas del caso.
+- **Dossier Builder** — compiles research files: the applicable legal framework,
+  case-law criteria and analysis, with each claim anchored to a clickable `cite_id`
+  that opens the official PDF at the exact paragraph, ranking sources
+  (Constitution > federal law > state > municipal; binding case law > isolated thesis).
+- **Adversarial Counterpart** — acts as opposing counsel: it attacks the user's strategy with cited
+  normative contradictions and flagged logical fallacies, explicitly distinguishing cited law
+  from strategic reasoning, and closing with the case's prioritized vulnerabilities.
 
-El usuario selecciona **jurisdicción** (país → estado → municipio: p. ej. México → Nuevo
-León → Monterrey), **especialidad** (laboral, penal, corporativo/financiero) e **idioma**;
-el sistema garantiza estructuralmente que jamás le contestará con la ley de otro estado.
+The user selects **jurisdiction** (country → state → municipality: e.g. Mexico → Nuevo
+León → Monterrey), **specialty** (labor, criminal, corporate/financial) and **language**;
+the system structurally guarantees that it will never answer with the law of another state.
 
-## 3. Por qué se puede confiar (los diferenciadores no son features, son arquitectura)
+## 3. Why it can be trusted (the differentiators are not features, they are architecture)
 
-**a) La negativa fundada es una feature, no un fallo.** Si el corpus recuperado no sustenta
-la respuesta, el sistema emite un bloque estructurado: qué falta y qué acción lo resuelve.
-Un asistente que sabe decir "no tengo la fuente" es el único que un abogado puede citar en
-juicio sin miedo.
+**a) A grounded refusal is a feature, not a failure.** If the retrieved corpus does not support
+the answer, the system emits a structured block: what is missing and what action resolves it.
+An assistant that knows how to say "I don't have the source" is the only one a lawyer can cite in
+court without fear.
 
-**b) El aislamiento jurisdiccional es matemático, no probabilístico.** El filtro por
-estado/municipio ocurre como predicado SQL *antes* de cualquier búsqueda semántica — la ley
-de Jalisco es literalmente invisible para una sesión de Nuevo León. No dependemos de que un
-modelo "entienda" la diferencia.
+**b) Jurisdictional isolation is mathematical, not probabilistic.** The state/municipality
+filter happens as an SQL predicate *before* any semantic search — the law
+of Jalisco is literally invisible to a Nuevo León session. We do not depend on a
+model "understanding" the difference.
 
-**c) El secreto profesional vive en la base de datos.** Row-Level Security de PostgreSQL
-aísla los expedientes de cada despacho por debajo del código de aplicación: un bug no puede
-filtrar datos entre firmas. El aislamiento se demuestra con una prueba automática de fuga
-cross-tenant en cada build, no se promete.
+**c) Professional privilege lives in the database.** PostgreSQL Row-Level Security
+isolates each firm's files below the application code: a bug cannot
+leak data between firms. The isolation is demonstrated by an automatic cross-tenant leak test on every build,
+not promised.
 
-**d) Verificación posterior a la generación.** Un validador independiente del modelo revisa
-cada cita emitida contra lo efectivamente recuperado en esa consulta; una cita no sustentada
-se regenera o se convierte en negativa. La alucinación no se "minimiza" — se vuelve
-estructuralmente inexpresable en la salida.
+**d) Post-generation verification.** A validator independent of the model checks
+every emitted citation against what was actually retrieved in that query; an unsupported citation
+is regenerated or turned into a refusal. Hallucination is not "minimized" — it becomes
+structurally inexpressible in the output.
 
-**e) Bilingüe de verdad.** Embeddings cross-lingual: preguntas en inglés recuperan derecho
-mexicano en español y viceversa. Las citas textuales de normas se conservan siempre en su
-idioma original; las traducciones se marcan como no oficiales.
+**e) Truly bilingual.** Cross-lingual embeddings: questions in English retrieve Mexican law
+in Spanish and vice versa. Verbatim quotations of rules are always kept in their original
+language; translations are marked as unofficial.
 
-## 4. Especificación de ingeniería
+## 4. Engineering specification
 
 ### 4.1 Stack
 
-| Capa | Tecnología | Rol |
+| Layer | Technology | Role |
 |---|---|---|
-| Frontend | Next.js + TypeScript, next-intl | UI bilingüe con toggling sin recarga, streaming SSE, render de citas con deep-link |
-| API | FastAPI (Python 3.12), gestionado con `uv` | Validación de sesión (jurisdicción/persona/idioma contra catálogos cerrados), middleware RLS |
-| Datos | PostgreSQL 16 + `pgvector` (HNSW) + `tsvector` + `ltree` | Un solo perímetro: relacional, vectorial y full-text bajo las mismas políticas RLS |
-| Parsing | Docling (IBM, open-source) | PDFs legales multi-columna → estructura jerárquica navegable; auditable y sin SaaS externo |
-| Normalización | Gramáticas jurídicas propias por tipo de fuente | Artículo/Fracción/Inciso (MX), §/subsection/holding (US) → árbol `ltree` con vigencia |
-| Embeddings | Cohere embed-v3 multilingual | Espacio vectorial cross-lingual compartido es/en |
-| Reranking | Cross-encoder multilingüe (Cohere Rerank 3 / bge-reranker self-hosted) | Precisión fina sobre candidatos híbridos |
-| Orquestación LLM | LiteLLM Proxy (self-hosted) | Routing por alias de tarea sobre Anthropic / OpenAI / Gemini / DeepSeek; budgets y límites por tenant; fallbacks |
-| Async | Celery + Redis | Ingesta pesada fuera del camino de consulta |
-| Observabilidad | Langfuse + Prometheus; audit log inmutable | Cada respuesta reconstruible: prompt, fragmentos, veredicto del validador |
+| Frontend | Next.js + TypeScript, next-intl | Bilingual UI with toggling without a reload, SSE streaming, citation rendering with deep links |
+| API | FastAPI (Python 3.12), managed with `uv` | Session validation (jurisdiction/persona/language against closed catalogs), RLS middleware |
+| Data | PostgreSQL 16 + `pgvector` (HNSW) + `tsvector` + `ltree` | A single perimeter: relational, vector and full-text under the same RLS policies |
+| Parsing | Docling (IBM, open source) | Multi-column legal PDFs → navigable hierarchical structure; auditable and with no external SaaS |
+| Normalization | Own legal grammars per source type | Artículo/Fracción/Inciso (MX), §/subsection/holding (US) → `ltree` tree with validity |
+| Embeddings | Cohere embed-v3 multilingual | A shared cross-lingual es/en vector space |
+| Reranking | Multilingual cross-encoder (Cohere Rerank 3 / self-hosted bge-reranker) | Fine precision over hybrid candidates |
+| LLM orchestration | LiteLLM Proxy (self-hosted) | Routing by task alias over Anthropic / OpenAI / Gemini / DeepSeek; per-tenant budgets and limits; fallbacks |
+| Async | Celery + Redis | Heavy ingestion off the query path |
+| Observability | Langfuse + Prometheus; immutable audit log | Every answer reconstructible: prompt, fragments, validator verdict |
 
-### 4.2 Pipeline de una consulta
+### 4.2 Pipeline of a query
 
 ```
-sesión {tenant, idioma, jurisdicción, persona, workflow}
-  → predicado jurisdiccional duro (SQL, apilamiento federal→estatal→municipal, jamás laterales)
-  → búsqueda híbrida prefiltrada: brazo semántico (coseno) + brazo léxico (FTS)
-  → fusión RRF → rerank cross-encoder → umbral de confianza τ
-       └─ bajo τ: NEGATIVA ESTRUCTURADA sin invocar el LLM
-  → expansión al artículo padre (ltree) → presupuesto de contexto etiquetado con cite_id
-  → prompt compuesto en 5 capas versionadas (núcleo anti-alucinación fijo → workflow →
-    persona → sesión → fragmentos; ninguna variable proviene de texto libre del usuario)
-  → LLM vía alias de tarea (LiteLLM)
-  → VALIDADOR DE CITAS: existencia, cobertura y cita textual contra lo recuperado; 1
-    regeneración; si persiste, negativa (generada por código, no por el modelo)
-  → audit log → respuesta con citas clickeables
+session {tenant, language, jurisdiction, persona, workflow}
+  → hard jurisdiction predicate (SQL, federal→state→municipal stacking, never lateral)
+  → prefiltered hybrid search: semantic arm (cosine) + lexical arm (FTS)
+  → RRF fusion → cross-encoder rerank → confidence threshold τ
+       └─ below τ: STRUCTURED REFUSAL without invoking the LLM
+  → expansion to the parent article (ltree) → context budget labelled with cite_id
+  → prompt composed in 5 versioned layers (fixed anti-hallucination core → workflow →
+    persona → session → fragments; no variable comes from free user text)
+  → LLM via task alias (LiteLLM)
+  → CITATION VALIDATOR: existence, coverage and verbatim quotation against what was retrieved; 1
+    regeneration; if it persists, a refusal (generated by code, not by the model)
+  → audit log → answer with clickable citations
 ```
 
-### 4.3 Datos y multi-tenancy
+### 4.3 Data and multi-tenancy
 
-- Cada fragmento recuperable porta su genealogía jurídica como columnas tipadas e indexadas
-  (`country / level / state_code / municipality / doc_type / is_current`) y un **`cite_id`
-  inmutable y versionado** (`MX-FED-LFT-ART47-FRACII-v2025.06`) — el contrato entre modelo,
-  validador y UI.
-- El chunking respeta la estructura legal (unidad de cita = fracción/párrafo; unidad de
-  contexto = artículo íntegro), con la jerarquía embebida en el texto antes de vectorizar.
-- Modelo pooled multi-tenant con RLS forzado (`FORCE ROW LEVEL SECURITY`) y tenant sintético
-  `PUBLIC_CORPUS` para el derecho público compartido; expedientes privados bajo el tenant del
-  despacho. Storage con prefijos y políticas IAM espejo; presupuestos LLM por tenant.
-- Las reformas versionan, nunca borran: consultas históricas son un modo explícito con
-  advertencia de vigencia.
+- Every retrievable fragment carries its legal genealogy as typed, indexed columns
+  (`country / level / state_code / municipality / doc_type / is_current`) and an **immutable,
+  versioned `cite_id`** (`MX-FED-LFT-ART47-FRACII-v2025.06`) — the contract between model,
+  validator and UI.
+- Chunking respects the legal structure (citation unit = fracción/paragraph; context
+  unit = the whole article), with the hierarchy embedded in the text before vectorizing.
+- A pooled multi-tenant model with forced RLS (`FORCE ROW LEVEL SECURITY`) and a synthetic
+  `PUBLIC_CORPUS` tenant for shared public law; private files under the firm's tenant.
+  Storage with prefixes and mirrored IAM policies; per-tenant LLM budgets.
+- Reforms create versions, never delete: historical queries are an explicit mode with
+  a validity warning.
 
-### 4.4 Calidad medida, no declarada
+### 4.4 Quality measured, not declared
 
-Suite dorada (golden dataset) con distractores deliberados — el mismo número de artículo en
-otro estado, la versión derogada de la norma — corriendo en CI ante cualquier cambio de
-prompt, chunker, embeddings o modelo:
+A golden dataset with deliberate distractors — the same article number in
+another state, the repealed version of the rule — running in CI on any change of
+prompt, chunker, embeddings or model:
 
-| Métrica | Gate de release |
+| Metric | Release gate |
 |---|---|
-| Precisión de citas (citas emitidas que existen en lo recuperado) | **= 1.00, duro** |
-| Fuga jurisdiccional | **= 0.00, duro** |
-| Fidelidad de afirmaciones al fragmento citado | ≥ 0.98 |
-| Exactitud de negativas (rehúsa cuando debe) | ≥ 0.95 |
-| Falsas negativas (rehúsa cuando podía responder) | ≤ 0.05 |
-| Recall de recuperación @k | ≥ 0.90 |
+| Citation precision (emitted citations that exist in what was retrieved) | **= 1.00, hard** |
+| Jurisdictional leakage | **= 0.00, hard** |
+| Fidelity of claims to the cited fragment | ≥ 0.98 |
+| Refusal accuracy (refuses when it should) | ≥ 0.95 |
+| False refusals (refuses when it could have answered) | ≤ 0.05 |
+| Retrieval recall @k | ≥ 0.90 |
 
-Los modelos compiten por los aliases de tarea con estas métricas; el proveedor detrás de cada
-alias puede cambiar sin tocar código de aplicación.
+Models compete for the task aliases on these metrics; the provider behind each
+alias can change without touching application code.
 
-Cómo se mantiene honesta la medición: los casos los redactan o aprueban abogados (cada caso
-declara autoría y revisión); las diferencias de 1–2 casos se reportan como ruido, no como
-mejora; cada corrida guarda su configuración y versiones; la fidelidad se califica sobre hojas
-que muestran el texto completo de cada fragmento citado; y todo cambio de recuperación o prompts
-registra cifras antes y después.
+How the measurement is kept honest: cases are written or approved by lawyers (each case
+declares authorship and review); differences of 1–2 cases are reported as noise, not as an
+improvement; each run stores its configuration and versions; fidelity is graded on sheets
+that show the full text of each cited fragment; and every change to retrieval or prompts
+records figures before and after.
 
-### 4.5 Honestidad de alcance
+### 4.5 Honesty about scope
 
-El sistema garantiza **trazabilidad, no criterio jurídico**: es una herramienta para
-abogados, no un abogado. Una cita válida prueba procedencia, no que la paráfrasis sea fiel
-(cita correcta con resumen invertido es un riesgo residual conocido, mitigado con cita textual,
-NLI y revisión humana). Los gates se calculan sobre conjuntos pequeños al inicio: una diferencia
-de uno o dos casos es ruido. Su calidad depende de la frescura del corpus (la vigilancia del DOF
-y gacetas es trabajo operativo permanente) y su costo por consulta es ~1.3–1.6× el de un RAG
-ingenuo por el doble paso de validación — en este dominio, ese sobrecosto *es* el producto.
+The system guarantees **traceability, not legal judgment**: it is a tool for
+lawyers, not a lawyer. A valid citation proves provenance, not that the paraphrase is faithful
+(a correct citation with an inverted summary is a known residual risk, mitigated with verbatim quotation,
+NLI and human review). The gates are computed on small sets at first: a difference
+of one or two cases is noise. Its quality depends on the freshness of the corpus (watching the DOF
+and gazettes is permanent operational work) and its cost per query is ~1.3–1.6× that of a naive RAG
+because of the double validation pass — in this domain, that overhead *is* the product.
 
-## 5. Estado y camino
+## 5. State and path
 
-- **Hoy (2026-11-14):** demo funcional que corre completa en un equipo, sin enviar nada fuera
-  (`docs/LOCAL_DEMO.md`): tres espacios de trabajo (Conversar, Investigación, Argumentar) con citas
-  verificadas y negativa estructurada; navegador de leyes, verificador de citas de escritos, asuntos con
-  miembros, vigilante de reformas y **documentos del propio despacho** citables y aislados por asunto.
-  Medido sobre 25 casos redactados por IA, aún sin revisión de abogados: recall@8 1.00, fuga
-  jurisdiccional 0, negativa correcta 5/5, falsa negativa 1/20 con el modelo local. Diseño en
-  `docs/LegalAI-System-Architecture.md`, decisiones en el registro de ADR, avance en `PLAN.md`.
-- **Caso completo listo para revisión (2026-11-17):** un despido laboral ficticio corrido por todas las
-  herramientas, con un paquete para que un abogado califique cada respuesta contra el texto completo de lo citado
-  (`docs/EVALUACION-E2E.md`). La primera corrida ya mostró lo que solo un abogado puede juzgar: citas reales y
-  verificadas a artículos que no rigen el caso.
-- **Falta para cerrar la demo:** revisión del conjunto de evaluación por abogados (hasta entonces
-  las compuertas no cuentan), OCR para documentos escaneados y medir el perfil remoto opcional.
-- **Después:** calculadora de términos procesales, plantillas de escritos, jurisprudencia y el
-  citator mexicano, exportación del dossier (`ROADMAP.md`). El monitoreo de reformas y el
-  verificador de citas de escritos externos, antes en esta lista, ya están construidos.
+- **Today (2026-11-14):** a working demo that runs entirely on one machine, sending nothing outside
+  (`docs/LOCAL_DEMO.md`): three workspaces (Conversar, Investigación, Argumentar) with verified
+  citations and a structured refusal; a law navigator, a citation verifier for briefs, matters with
+  members, a reform watcher and **the firm's own documents**, citable and isolated per matter.
+  Measured on 25 AI-drafted cases, not yet reviewed by lawyers: recall@8 1.00, jurisdictional
+  leakage 0, correct refusal 5/5, false refusal 1/20 with the local model. Design in
+  `docs/LegalAI-System-Architecture.md`, decisions in the ADR log, progress in `PLAN.md`.
+- **A complete case ready for review (2026-11-17):** a fictional labor dismissal run through all the
+  tools, with a packet for a lawyer to grade each answer against the full text of what is cited
+  (`docs/EVALUACION-E2E.md`). The first run already showed what only a lawyer can judge: real, verified
+  citations to articles that do not govern the case.
+- **Missing to close the demo:** review of the evaluation set by lawyers (until then
+  the gates do not count), OCR for scanned documents and measuring the optional remote profile.
+- **Afterwards:** procedural-deadline calculator, brief templates, case law and the Mexican
+  citator, dossier export (`ROADMAP.md`). Reform monitoring and the
+  citation verifier for external briefs, formerly on this list, are already built.
 
 ---
 

@@ -1,55 +1,55 @@
-# Casos de extremo a extremo (E2E) para revisión de abogados
+# End-to-end (E2E) cases for lawyer review
 
-Un caso E2E recorre la aplicación completa como lo haría un abogado, con los modelos reales, y produce un paquete
-para que **un abogado real** juzgue cada salida. No es la suite golden: aquí nada se califica solo. El sistema
-reporta lo que él mismo verificó (procedencia de las citas, citas textuales, cobertura); la exactitud jurídica, la
-fidelidad a las fuentes y la utilidad son la calificación del abogado.
+An E2E case walks through the whole application as a lawyer would, with the real models, and produces a packet
+for **a real lawyer** to judge each output. It is not the golden suite: here nothing is graded automatically. The system
+reports what it verified itself (provenance of citations, verbatim quotations, coverage); legal accuracy,
+fidelity to the sources and usefulness are the lawyer's grade.
 
-## Casos
+## Cases
 
-| Id | Carpeta | Materia | Estado |
+| Id | Folder | Subject | Status |
 |---|---|---|---|
-| E2E-LAB-01 | `laboral_01/` | Despido verbal de una trabajadora embarazada (LFT, CPEUM 123-A) | Corrido 2026-11-17; esperando revisión |
+| E2E-LAB-01 | `laboral_01/` | Verbal dismissal of a pregnant worker (LFT, CPEUM 123-A) | Run 2026-11-17; awaiting review |
 
-Cada caso tiene `caso.md` (hechos), `guion.json` (preguntas, puntos y artículos esperados, referencias sembradas en
-el escrito) y los documentos del caso. Todo es **ficticio** y lo redactó el equipo técnico con IA
-(`authored_by: ai-draft`, `reviewed_by: null`): los «puntos esperados» solo valen como referencia cuando un abogado
-los aprueba o los corrige.
+Each case has `caso.md` (facts), `guion.json` (questions, expected points and articles, references seeded in
+the brief) and the case's documents. Everything is **fictional** and was written by the technical team with AI
+(`authored_by: ai-draft`, `reviewed_by: null`): the «expected points» only count as a reference once a lawyer
+approves or corrects them. The case files are in Spanish, like the law they use.
 
-## Correr un caso
+## Running a case
 
 ```bash
 docker compose up -d postgres redis
-uv run uvicorn app.main:app --host 127.0.0.1 --port 8000          # API con los modelos locales (Ollama)
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000          # API with the local models (Ollama)
 uv run python -m evals.e2e.run_case laboral_01 --credentials .demo-credentials [--keep]
 uv run python -m evals.e2e.review evals/e2e/runs/E2E-LAB-01-<UTC>.json
 ```
 
-`run_case` crea el asunto, sus notas y su documento, hace cada pregunta, la investigación, las rondas de
-Argumentar, el verificador y la hoja de puntos clave. Guarda en `runs/<id>-<UTC>.json` cada respuesta con los intentos y
-veredictos del validador y el **texto completo** de cada unidad citada y de su artículo. Con `--keep` el asunto
-queda en la aplicación para recorrerlo en pantalla. Con el modelo local tarda de 15 a 25 minutos.
+`run_case` creates the matter, its notes and its document, asks each question, runs the research file, the
+Argumentar rounds, the verifier and the key-points sheet. It saves in `runs/<id>-<UTC>.json` each answer with the attempts and
+validator verdicts and the **full text** of each cited unit and of its article. With `--keep` the matter
+stays in the application so it can be walked through on screen. With the local model it takes 15 to 25 minutes.
 
-`review` escribe junto a la corrida:
+`review` writes next to the run:
 
-- `-revision.md`: el paquete completo en texto (para imprimir o anexar), con casillas de calificación;
-- `-review.html`: la página interactiva que se publica para el abogado; sus calificaciones se guardan solas, una
-  revisión por persona;
-- `-review.json`: los mismos datos.
+- `-revision.md`: the complete packet as text (to print or attach), with grading boxes;
+- `-review.html`: the interactive page that is published for the lawyer; their grades are saved automatically, one
+  review per person;
+- `-review.json`: the same data.
 
-## Cómo se comparte con el abogado
+## How it is shared with the lawyer
 
-La página se publica como artefacto privado. Para que el abogado pueda **guardar** sus calificaciones, compártala
-desde el menú Compartir con acceso de **Colaborador** (si es del despacho) o invítelo **por correo como Editor** (si
-es externo, y sin enlace público). Con acceso de solo lectura la página funciona, pero conserva las calificaciones
-solo en su navegador y le ofrece «Copiar mis calificaciones» para enviarlas por correo. Las revisiones recibidas se
-leen en la misma página (panel «Revisiones recibidas», visible para el dueño) o con la herramienta de datos del
-artefacto (colección `reviews`).
+The page is published as a private artifact. So that the lawyer can **save** their grades, share it
+from the Share menu with **Contributor** access (if they are from the firm) or invite them **by email as Editor** (if
+they are external, and with no public link). With read-only access the page works, but keeps the grades
+only in their browser and offers «Copiar mis calificaciones» so they can be sent by email. The reviews received are
+read on the same page (the «Revisiones recibidas» panel, visible to the owner) or with the artifact's data tool
+(`reviews` collection).
 
-## Qué hacer con la revisión
+## What to do with the review
 
-1. Los puntos esperados que el abogado apruebe o corrija se vuelven casos golden (`evals/golden/`), con
-   `authored_by: ai-draft` y `reviewed_by: <abogado>`.
-2. Cada «No» en «¿Esta fuente dice lo que la respuesta le atribuye?» es un error de fidelidad: se registra con su
-   cita y se usa para medir la mejora (el validador prueba procedencia, no fidelidad; blueprint §12).
-3. Los resultados se anotan en `docs/PLAN.md` con la fecha y el id de la corrida.
+1. The expected points the lawyer approves or corrects become golden cases (`evals/golden/`), with
+   `authored_by: ai-draft` and `reviewed_by: <lawyer>`.
+2. Each «No» on «¿Esta fuente dice lo que la respuesta le atribuye?» is a fidelity error: it is recorded with its
+   citation and used to measure improvement (the validator proves provenance, not fidelity; blueprint §12).
+3. The results are noted in `docs/PLAN.md` with the date and the run id.

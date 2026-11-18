@@ -1,452 +1,456 @@
-# Brand.md — Fuente de verdad de UI/Frontend (v2 · estilo OPB · 2026-11-08)
+# Brand.md — Source of truth for UI/Frontend (v2 · OPB style · 2026-11-08)
 
-Regla: TODO desarrollo de UI/Frontend obedece este archivo (PLAN.md WS6 y WS0.T05). Si un caso no
-está cubierto, se extiende este archivo primero; no se improvisa en el componente. Los PRs de UI
-declaran conformidad con la sección que aplican.
+Rule: ALL UI/Frontend development obeys this file (PLAN.md WS6 and WS0.T05). If a case is not
+covered, this file is extended first; nothing is improvised in the component. UI PRs
+declare conformity with the section they apply.
 
-**Estado:** v2 pedida por la persona dueña del producto el 2026-11-08: identidad visual **OPB** (la de
-Octavio Pérez Bravo), con la estructura y los componentes de Library-RAG como referencia. Sustituye D2, D3 y
-la tipografía de UI de v1 (D5–D7). Siguen intactas las tres marcas (§3), la accesibilidad (§6) y las reglas
-técnicas (§7). Cualquier cambio posterior de identidad se hace aquí primero.
+> Language note: this document is in English; the interface it describes is in Spanish (es-MX) with an
+> English (en-US) catalog. Text in «quotes» or "quotes" that names a button, heading or message is the
+> label as it appears on screen (Spanish), and is kept as is because tests and screenshots match on it.
 
-## 0. Decisiones de identidad (cerradas 2026-11-07)
+**Status:** v2 requested by the product owner on 2026-11-08: the **OPB** visual identity (that of
+Octavio Pérez Bravo), with the structure and components of Library-RAG as a reference. It replaces D2, D3 and
+the UI typography of v1 (D5–D7). The three marks (§3), accessibility (§6) and the technical rules (§7) remain
+intact. Any later change of identity is made here first.
 
-| # | Decisión | Resolución |
+## 0. Identity decisions (closed 2026-11-07)
+
+| # | Decision | Resolution |
 |---|---|---|
-| D1 | Nombre del producto y logotipo | Nombre de trabajo: "Legal AI Assistant", solo wordmark tipográfico (sin símbolo) |
-| D2 | Color primario de marca | Azul tinta `#1F3A5F` |
-| D3 | Acento | Dorado `#B58A2B` (decorativo; texto pequeño usa `accent-ink`) |
-| D4 | Tuteo/usted en es-MX | Formal impersonal ("Seleccione la jurisdicción") |
-| D5 (v2) | Primario | Azul OPB `#003366` (sustituye D2) |
-| D6 (v2) | Acento | Oro OPB `#C8982A`, decorativo (botón de envío, reglas, marcas); texto pequeño en `accent-ink` `#8A6512` (sustituye D3) |
-| D7 (v2) | Tipografía | Títulos Fraunces 300 (cursiva oro en la palabra clave), UI Plus Jakarta Sans; normas siguen en Source Serif 4 e identificadores en JetBrains Mono |
-| D8 (v2) | Wordmark | "Legal *AI* Assistant" en Fraunces sobre la barra azul, "AI" en cursiva oro claro |
+| D1 | Product name and logo | Working name: "Legal AI Assistant", typographic wordmark only (no symbol) |
+| D2 | Primary brand colour | Ink blue `#1F3A5F` |
+| D3 | Accent | Gold `#B58A2B` (decorative; small text uses `accent-ink`) |
+| D4 | Formal/informal address in es-MX | Formal impersonal ("Seleccione la jurisdicción") |
+| D5 (v2) | Primary | OPB blue `#003366` (replaces D2) |
+| D6 (v2) | Accent | OPB gold `#C8982A`, decorative (send button, rules, marks); small text in `accent-ink` `#8A6512` (replaces D3) |
+| D7 (v2) | Typography | Headings Fraunces 300 (gold italic on the key word), UI Plus Jakarta Sans; statutes remain in Source Serif 4 and identifiers in JetBrains Mono |
+| D8 (v2) | Wordmark | "Legal *AI* Assistant" in Fraunces on the blue bar, "AI" in light-gold italic |
 
-Cambiar D1–D3 solo toca los tokens de §1 y el wordmark; ningún componente codifica un color.
+Changing D1–D3 only touches the tokens of §1 and the wordmark; no component hardcodes a colour.
 
-## 1. Identidad y color
+## 1. Identity and colour
 
-Los colores viven como **tokens CSS arriba** de la hoja de estilos; los overrides de marca van **al
-final** (una regla previa con el mismo selector pierde). Nunca un hex en un componente.
-Modo claro y oscuro; `prefers-color-scheme` por defecto, con selector manual persistido.
+Colours live as **CSS tokens at the top** of the stylesheet; brand overrides go **at the
+end** (an earlier rule with the same selector loses). Never a hex in a component.
+Light and dark mode; `prefers-color-scheme` by default, with a persisted manual selector.
 
-| Token | Claro | Oscuro | Uso |
+| Token | Light | Dark | Use |
 |---|---|---|---|
-| `--bg` | `#F4F6F9` | `#061A2F` | fondo de página |
-| `--surface` | `#FFFFFF` | `#0B2742` | tarjetas, paneles |
-| `--surface-2` | `#EEF2F7` | `#10304F` | rieles (historial, fuentes), controles segmentados |
-| `--line` | `#E0EAF4` | `#173B5E` | líneas decorativas de tarjetas y separadores (no de controles) |
-| `--text` | `#1C1C2E` | `#EAF0F7` | texto principal |
-| `--text-muted` | `#5B6474` | `#A9C1DA` | texto secundario |
-| `--primary` | `#003366` | `#8DB8E6` | acciones, enlaces, títulos |
-| `--on-primary` | `#FFFFFF` | `#061A2F` | texto sobre `--primary` relleno |
-| `--primary-soft` | `#E0EAF4` | `#143A62` | fondos suaves: burbuja del usuario, elemento activo, ámbito |
-| `--on-primary-soft` | `#003366` | `#D3E3F4` | texto sobre `--primary-soft` |
-| `--accent` | `#C8982A` | `#C8982A` | oro decorativo y botón de envío, NUNCA texto pequeño |
-| `--accent-light` | `#E8C46A` | `#E8C46A` | hover del oro, cursiva sobre azul |
-| `--accent-ink` | `#8A6512` | `#E8C46A` | texto pequeño en oro (etiquetas, cursivas de títulos) |
-| `--on-accent` | `#1C1C2E` | `#1C1C2E` | texto sobre oro relleno |
-| `--border` | `#7A8BA0` | `#5C7FA3` | bordes de controles (≥ 3:1) |
-| `--focus` | `#336699` | `#99BBDD` | anillo de foco |
-| `--nav-bg` | `#003366` | `#021E3A` | barra superior y pie |
-| `--verified-fg/bg` | `#155C3A` / `#E0F7EF` | `#8EE3BD` / `#0F3A2A` | cita verificada (verde OPB) |
-| `--reasoning-fg/bg` | `#5B2E9E` / `#F1EAFA` | `#D3BFF5` / `#2A1F45` | razonamiento del modelo (morado OPB: análisis estratégico) |
-| `--unsupported-fg/bg` | `#2D3A4F` / `#EAEFF5` | `#C9D3E5` / `#12304D` | contenido sin respaldo (refusal) |
+| `--bg` | `#F4F6F9` | `#061A2F` | page background |
+| `--surface` | `#FFFFFF` | `#0B2742` | cards, panels |
+| `--surface-2` | `#EEF2F7` | `#10304F` | rails (history, sources), segmented controls |
+| `--line` | `#E0EAF4` | `#173B5E` | decorative lines of cards and separators (not of controls) |
+| `--text` | `#1C1C2E` | `#EAF0F7` | main text |
+| `--text-muted` | `#5B6474` | `#A9C1DA` | secondary text |
+| `--primary` | `#003366` | `#8DB8E6` | actions, links, headings |
+| `--on-primary` | `#FFFFFF` | `#061A2F` | text on a filled `--primary` |
+| `--primary-soft` | `#E0EAF4` | `#143A62` | soft backgrounds: the user's bubble, active item, scope |
+| `--on-primary-soft` | `#003366` | `#D3E3F4` | text on `--primary-soft` |
+| `--accent` | `#C8982A` | `#C8982A` | decorative gold and send button, NEVER small text |
+| `--accent-light` | `#E8C46A` | `#E8C46A` | gold hover, italic on blue |
+| `--accent-ink` | `#8A6512` | `#E8C46A` | small text in gold (labels, heading italics) |
+| `--on-accent` | `#1C1C2E` | `#1C1C2E` | text on a filled gold |
+| `--border` | `#7A8BA0` | `#5C7FA3` | borders of controls (≥ 3:1) |
+| `--focus` | `#336699` | `#99BBDD` | focus ring |
+| `--nav-bg` | `#003366` | `#021E3A` | top bar and footer |
+| `--verified-fg/bg` | `#155C3A` / `#E0F7EF` | `#8EE3BD` / `#0F3A2A` | verified citation (OPB green) |
+| `--reasoning-fg/bg` | `#5B2E9E` / `#F1EAFA` | `#D3BFF5` / `#2A1F45` | model reasoning (OPB purple: strategic analysis) |
+| `--unsupported-fg/bg` | `#2D3A4F` / `#EAEFF5` | `#C9D3E5` / `#12304D` | unsupported content (refusal) |
 
-Contraste medido (WCAG 2.1, texto normal ≥ 4.5:1, controles ≥ 3:1), 2026-11-08. Claro: texto/fondo 15.46,
-texto/surface 16.73, muted/surface 5.97, primary/fondo 11.65, accent-ink/fondo 4.91, on-primary/primary 12.61,
-verified 7.13, reasoning 7.68, unsupported 9.93, borde/fondo 3.22, foco 5.54. Oscuro: texto/fondo 15.30,
-muted/surface 8.19, primary/fondo 8.47, accent-ink/fondo 10.48, verified 8.36, reasoning 9.08, unsupported 8.96,
-borde/fondo 4.20, foco 8.78. Sobre la barra azul: blanco 12.61, oro claro 7.53. El oro puro sobre fondo claro
-mide 2.43:1 y por eso NO se usa para texto; sobre él va `--on-accent` (6.36). Todo token nuevo se agrega con su medición; un test de contraste lee esta tabla (WS6.T08).
+Measured contrast (WCAG 2.1, normal text ≥ 4.5:1, controls ≥ 3:1), 2026-11-08. Light: text/background 15.46,
+text/surface 16.73, muted/surface 5.97, primary/background 11.65, accent-ink/background 4.91, on-primary/primary 12.61,
+verified 7.13, reasoning 7.68, unsupported 9.93, border/background 3.22, focus 5.54. Dark: text/background 15.30,
+muted/surface 8.19, primary/background 8.47, accent-ink/background 10.48, verified 8.36, reasoning 9.08, unsupported 8.96,
+border/background 4.20, focus 8.78. On the blue bar: white 12.61, light gold 7.53. Pure gold on a light background
+measures 2.43:1 and is therefore NOT used for text; `--on-accent` goes on top of it (6.36). Every new token is added with its measurement; a contrast test reads this table (WS6.T08).
 
-## 2. Tipografía (autoalojada)
+## 2. Typography (self-hosted)
 
-| Rol | Familia | Licencia |
+| Role | Family | Licence |
 |---|---|---|
-| Títulos (h1, h2, wordmark, títulos de tarjeta) | Fraunces 300/400, normal y cursiva | SIL OFL 1.1 |
+| Headings (h1, h2, wordmark, card titles) | Fraunces 300/400, normal and italic | SIL OFL 1.1 |
 | UI | Plus Jakarta Sans 400–700 | SIL OFL 1.1 |
-| Texto jurídico citado | Source Serif 4 (variable) | SIL OFL 1.1 |
-| Identificadores (`cite_id`) | JetBrains Mono | SIL OFL 1.1 |
+| Quoted legal text | Source Serif 4 (variable) | SIL OFL 1.1 |
+| Identifiers (`cite_id`) | JetBrains Mono | SIL OFL 1.1 |
 
-- Archivos `woff2` dentro del repo en `web/public/fonts/`, con `VERSION.txt` (familia, versión,
-  licencia, URL de origen y fecha). **Prohibido** Google Fonts, CDN, trackers o cualquier recurso
-  externo: el contexto es privilegiado y un `<link>` externo filtra el referrer. Un test falla si
-  un asset referencia una URL externa.
-- Escala (rem, base 16 px): 0.8125 · 0.875 · 1 · 1.125 · 1.25 · 1.5 · 1.875 · 2.25. Interlineado 1.5
-  en UI, 1.6 en texto jurídico. Longitud de línea del texto jurídico ≤ 75 caracteres.
-- Texto de normas y de jurisprudencia: **siempre en serif**, nunca en cursiva por defecto, con
-  `lang="es"` o `lang="en"` según el idioma ORIGINAL de la fuente (no el de la interfaz). Una
-  traducción se muestra en UI sans con la etiqueta "traducción no oficial".
+- `woff2` files inside the repo at `web/public/fonts/`, with `VERSION.txt` (family, version,
+  licence, source URL and date). **Forbidden:** Google Fonts, CDNs, trackers or any external
+  resource: the context is privileged and an external `<link>` leaks the referrer. A test fails if
+  an asset references an external URL.
+- Scale (rem, 16 px base): 0.8125 · 0.875 · 1 · 1.125 · 1.25 · 1.5 · 1.875 · 2.25. Line height 1.5
+  in the UI, 1.6 in legal text. Line length of legal text ≤ 75 characters.
+- Text of statutes and case law: **always serif**, never italic by default, with
+  `lang="es"` or `lang="en"` according to the ORIGINAL language of the source (not the interface's). A
+  translation is shown in UI sans with the label "traducción no oficial".
 
-## 3. Las tres marcas (visualmente distintas y estables)
+## 3. The three marks (visually distinct and stable)
 
-Ninguna se distingue solo por color: cada una difiere en forma, ícono y rótulo.
+None is distinguished by colour alone: each differs in shape, icon and label.
 
-| Marca | Significa | Forma | Ícono | Rótulo |
+| Mark | Means | Shape | Icon | Label |
 |---|---|---|---|---|
-| **Cita verificada** `[cite:]` | el sistema comprobó que existe en las fuentes de esta consulta | chip de borde sólido, esquinas rectas (radio 4 px), tipografía mono | ✓ escudo | `citation_string` |
-| **Razonamiento del modelo** `[razonamiento estratégico]` y `[análisis propio]` | lo añade el modelo, sin respaldo normativo | bloque sombreado `--reasoning-bg`, borde izquierdo discontinuo 3 px, cursiva | ◇ rombo | "Razonamiento estratégico" / "Análisis del asistente" + "sin respaldo normativo" |
-| **Sin respaldo** `<insuficiente>` | el sistema no puede responder con las fuentes disponibles | tarjeta completa, borde punteado `--unsupported`, fondo rayado sutil | ⌕ lupa | "Fuentes insuficientes" |
+| **Verified citation** `[cite:]` | the system checked that it exists in the sources of this query | chip with a solid border, square corners (4 px radius), mono type | ✓ shield | `citation_string` |
+| **Model reasoning** `[razonamiento estratégico]` and `[análisis propio]` | added by the model, with no normative support | shaded block `--reasoning-bg`, 3 px dashed left border, italic | ◇ diamond | "Razonamiento estratégico" / "Análisis del asistente" + "sin respaldo normativo" |
+| **Unsupported** `<insuficiente>` | the system cannot answer with the available sources | full card, dotted `--unsupported` border, subtle striped background | ⌕ magnifier | "Fuentes insuficientes" |
 
-Reglas: lo que añade el modelo sin respaldo **nunca** tiene apariencia de cita (sin chip, sin mono,
-sin ✓). Una cita que el validador rechazó nunca llega a la UI. El texto del modelo y de las
-fuentes se renderiza **como texto** (nunca `dangerouslySetInnerHTML`, nunca HTML crudo).
+Rules: what the model adds without support **never** looks like a citation (no chip, no mono,
+no ✓). A citation the validator rejected never reaches the UI. Text from the model and from the
+sources is rendered **as text** (never `dangerouslySetInnerHTML`, never raw HTML).
 
-### 3.1 Chip de cita
-- Contenido: `citation_string` (p. ej. "Ley Federal del Trabajo, art. 47, fracc. X"); el `cite_id`
-  completo va en `title`/tooltip y en copiar-al-portapapeles, en mono.
-- Acción: clic o Enter abre el visor de la fuente en el párrafo exacto (deep-link, texto resaltado
-  con `--accent` al 25 % de opacidad). Teclado: foco con anillo `--focus` 2 px + offset 2 px.
-- Estados: normal · hover (fondo `--verified-bg` más intenso) · foco · activo · **no vigente**
-  (insignia "No vigente" en `--accent-ink` con ícono de reloj; la advertencia de vigencia es
-  obligatoria, jurisdictions.md) · cargando fuente (esqueleto) · fuente no disponible (texto plano
-  del `citation_string`, sin enlace, con aviso).
-- Varias citas consecutivas se agrupan sin separador visual ambiguo (espacio 4 px).
+### 3.1 Citation chip
+- Content: `citation_string` (e.g. "Ley Federal del Trabajo, art. 47, fracc. X"); the full `cite_id`
+  goes in the `title`/tooltip and in copy-to-clipboard, in mono.
+- Action: click or Enter opens the source viewer at the exact paragraph (deep link, text highlighted
+  with `--accent` at 25 % opacity). Keyboard: focus with a 2 px `--focus` ring + 2 px offset.
+- States: normal · hover (a stronger `--verified-bg` background) · focus · active · **not in force**
+  ("No vigente" badge in `--accent-ink` with a clock icon; the validity warning is
+  mandatory, jurisdictions.md) · loading source (skeleton) · source unavailable (plain text
+  of the `citation_string`, no link, with a notice).
+- Several consecutive citations are grouped without an ambiguous visual separator (4 px space).
 
-### 3.2 Componente `Refusal` (primera clase, no es un error)
-Estructura fija: ícono + título "Fuentes insuficientes" · **Qué falta** (norma/precedente que habría
-que localizar, texto de catálogo según `reason_key`) · **Qué puede hacer** (acciones sugeridas:
-ampliar la jurisdicción, subir el documento faltante, reformular). Nunca usa rojo ni el patrón de
-alerta de error; nunca se presenta como fallo del sistema. Se anuncia a lectores de pantalla con
-`role="status"`. Cada `reason_key` del servidor (`retrieval.*`, `validation.*`) tiene entrada en el
-catálogo en ambos idiomas; el texto lo escribe el catálogo, jamás el modelo.
+### 3.2 `Refusal` component (first class, not an error)
+Fixed structure: icon + title "Fuentes insuficientes" · **What is missing** (the rule/precedent that would
+have to be located, catalog text according to `reason_key`) · **What you can do** (suggested actions:
+widen the jurisdiction, upload the missing document, rephrase). It never uses red or the error
+alert pattern; it is never presented as a system failure. It is announced to screen readers with
+`role="status"`. Each server `reason_key` (`retrieval.*`, `validation.*`) has an entry in the
+catalog in both languages; the text is written by the catalog, never by the model.
 
-### 3.3 Modo adversarial
-`[razonamiento estratégico]` se muestra con la marca de razonamiento (§3); el panel "Vulnerabilidades
-priorizadas" es una lista numerada 3–5 con la fuente faltante que resolvería cada punto, y
-conserva ambos tipos de marca visibles y distinguibles.
+### 3.3 Adversarial mode
+`[razonamiento estratégico]` is shown with the reasoning mark (§3); the "Vulnerabilidades
+priorizadas" panel is a numbered list of 3–5 with the missing source that would resolve each point, and
+keeps both kinds of mark visible and distinguishable.
 
-### 3.4 Laguna de sección y etiqueta de párrafo
-- **Laguna de sección** (`<insuficiente></insuficiente>` dentro de una respuesta fundamentada, p. ej. una
-  sección de jurisprudencia sin fuentes recuperadas): forma pequeña de la marca 3, párrafo con borde
-  punteado `--unsupported`, ícono ⌕ y el texto del catálogo "Sin fuentes suficientes para esta sección".
-  Lo que el modelo haya escrito dentro del bloque se descarta; nunca se muestra.
-- **Etiqueta de párrafo:** `[razonamiento estratégico]` / `[análisis propio]` solas en su línea marcan el
-  párrafo siguiente, hasta una línea en blanco. Al inicio de un renglón (antes de su primer punto) marcan ese renglón completo (ADR-021). Se muestran con la marca 2 (sombreado, borde discontinuo,
-  cursiva, rótulo "sin respaldo normativo").
-- **Chips repetidos:** cada afirmación lleva su propia cita (regla del validador), así que una respuesta
-  puede tener decenas de chips de la misma fuente. Pendiente de diseño: variante compacta para repeticiones
-  consecutivas del mismo `cite_id` (no se improvisa en el componente).
+### 3.4 Section gap and paragraph label
+- **Section gap** (`<insuficiente></insuficiente>` inside a grounded answer, e.g. a
+  case-law section with no retrieved sources): a small form of mark 3, a paragraph with a dotted
+  `--unsupported` border, the ⌕ icon and the catalog text "Sin fuentes suficientes para esta sección".
+  Whatever the model wrote inside the block is discarded; it is never shown.
+- **Paragraph label:** `[razonamiento estratégico]` / `[análisis propio]` alone on their line mark the
+  next paragraph, up to a blank line. At the start of a line (before its first period) they mark that whole line (ADR-021). They are shown with mark 2 (shading, dashed border,
+  italic, label "sin respaldo normativo").
+- **Repeated chips:** each claim carries its own citation (validator rule), so an answer
+  can have dozens of chips of the same source. Pending design: a compact variant for
+  consecutive repetitions of the same `cite_id` (nothing is improvised in the component).
 
-### 3.5 Visor de fuentes
-Diálogo modal nativo (`<dialog>`: foco atrapado, Esc cierra). Muestra la cita completa, la jerarquía
-(breadcrumb), documento, versión e insignia de vigencia ("Vigente" / "No vigente"), el identificador en mono
-y el artículo completo con el pasaje citado resaltado (`--accent` al 25 %). El artículo es una región con
-scroll alcanzable por teclado (`tabindex=0`, `role=region`). El idioma del texto (`lang`) es el de la fuente.
+### 3.5 Source viewer
+A native modal dialog (`<dialog>`: focus trapped, Esc closes). It shows the full citation, the hierarchy
+(breadcrumb), document, version and validity badge ("Vigente" / "No vigente"), the identifier in mono
+and the whole article with the cited passage highlighted (`--accent` at 25 %). The article is a region with
+scroll reachable by keyboard (`tabindex=0`, `role=region`). The text's language (`lang`) is the source's.
 
-## 4. Componentes base
-- **Selector de jurisdicción:** país → estado → municipio en cascada, valores solo del catálogo
-  cerrado. Las opciones inexistentes no se pueden escribir (select/combobox sin texto libre); un nivel
-  superior sin selección deshabilita el inferior. Muestra siempre el alcance efectivo apilado
-  ("México · Federal + Nuevo León + Monterrey"). Cambiarlo es acción del usuario, nunca inferencia.
-- **Selector de persona** (general, laboral, penal, corporativo, corporativo-financiero) y de
-  **idioma** (es-MX / en-US, sin recarga).
-- **Estados:** vacío (qué hacer primero, sin ilustraciones decorativas), cargando (esqueleto, nunca
-  spinner infinito), transmitiendo (cursor discreto; respeta `prefers-reduced-motion`), error de
-  red/servidor (lenguaje distinto al refusal, con reintento).
-- **Dossier:** secciones I–V con jerarquía tipográfica fija; la exportación a PDF conserva citas
-  (como `citation_string` + número de nota con lista de fuentes) y la jerarquía.
+## 4. Base components
+- **Jurisdiction selector:** country → state → municipality in a cascade, values only from the closed
+  catalog. Nonexistent options cannot be typed (select/combobox with no free text); a
+  higher level without a selection disables the lower one. It always shows the effective stacked scope
+  ("México · Federal + Nuevo León + Monterrey"). Changing it is a user action, never an inference.
+- **Persona selector** (general, labor, criminal, corporate, corporate-financial) and **language**
+  (es-MX / en-US, without a reload).
+- **States:** empty (what to do first, no decorative illustrations), loading (skeleton, never an
+  endless spinner), streaming (a discreet cursor; respects `prefers-reduced-motion`), network/server
+  error (language distinct from the refusal, with retry).
+- **Dossier:** sections I–V with a fixed typographic hierarchy; PDF export keeps citations
+  (as `citation_string` + a note number with a list of sources) and the hierarchy.
 
-## 5. Tono y microcopy
-- Formal profesional, claro y sin adornos; sin promesas de asesoría legal. Pie permanente:
+## 5. Tone and microcopy
+- Formal, professional, clear and unadorned; no promises of legal advice. Permanent footer:
   "Herramienta de investigación. No sustituye el criterio profesional del abogado." / "Research
   tool. It does not replace a lawyer's professional judgment."
-- Verbos de acción concretos ("Abrir fuente", "Ampliar jurisdicción"); sin exclamaciones, sin
-  humor, sin antropomorfismo ("creo que", "me parece").
-- **El microcopy es un catálogo** (next-intl, `es-MX` y `en-US`), claves `área.componente.clave`
-  (p. ej. `chat.refusal.title`). Paridad de claves verificada por test; ningún literal visible
-  en componentes. Los mensajes del servidor (refusals, vigencia) llegan como **claves**, no texto.
+- Concrete action verbs ("Abrir fuente", "Ampliar jurisdicción"); no exclamations, no
+  humour, no anthropomorphism ("I think", "it seems to me").
+- **Microcopy is a catalog** (next-intl, `es-MX` and `en-US`), keys `area.component.key`
+  (e.g. `chat.refusal.title`). Key parity is verified by a test; no visible literal
+  in components. Server messages (refusals, validity) arrive as **keys**, not text.
 
-## 6. Accesibilidad (WCAG 2.1 AA)
-- Contraste según §1; foco siempre visible; todo operable con teclado en orden lógico; áreas
-  táctiles ≥ 44 px; tamaño de texto escalable al 200 % sin pérdida.
-- Las tres marcas son comprensibles sin color (forma + ícono + rótulo). Íconos decorativos
-  `aria-hidden`; el significado va en texto accesible ("Cita verificada: …").
-- Contenido transmitido: región `aria-live="polite"` que no re-lee el texto ya anunciado.
-- `lang` correcto por fragmento (fuente original vs. interfaz). `prefers-reduced-motion` y
-  `prefers-contrast` respetados.
+## 6. Accessibility (WCAG 2.1 AA)
+- Contrast according to §1; focus always visible; everything operable by keyboard in a logical order; touch
+  targets ≥ 44 px; text size scalable to 200 % without loss.
+- The three marks are understandable without colour (shape + icon + label). Decorative icons are
+  `aria-hidden`; meaning goes in accessible text ("Cita verificada: …").
+- Streamed content: an `aria-live="polite"` region that does not re-read text already announced.
+- Correct `lang` per fragment (original source vs. interface). `prefers-reduced-motion` and
+  `prefers-contrast` respected.
 
-## 7. Reglas técnicas (verificadas por test, WS6.T08)
-1. Sin recursos externos (fuentes, scripts, imágenes, estilos); CSP estricta `default-src 'self'`.
-2. Tokens arriba, overrides de marca al final.
-3. Salida del modelo y texto jurídico solo como texto.
-4. Paridad de catálogos es-MX/en-US; sin literales de texto de usuario fuera del catálogo.
-5. Contraste de los tokens de §1 ≥ AA, leído desde esta tabla.
+## 7. Technical rules (verified by tests, WS6.T08)
+1. No external resources (fonts, scripts, images, styles); strict CSP `default-src 'self'`.
+2. Tokens at the top, brand overrides at the end.
+3. Model output and legal text only as text.
+4. es-MX/en-US catalog parity; no user-facing text literals outside the catalog.
+5. Contrast of the §1 tokens ≥ AA, read from this table.
 
-## 8. Espacios de trabajo: Conversar · Investigación · Argumentar (ADR-016, 2026-11-08)
+## 8. Workspaces: Conversar · Investigación · Argumentar (ADR-016, 2026-11-08)
 
-Estructura tomada de Library-RAG; identidad (color, tipografía, tono) de este archivo, sin cambios en §0–§2.
+Structure taken from Library-RAG; identity (colour, typography, tone) from this file, with no changes to §0–§2.
 
-### 8.0 Uso sin configuración (personas no técnicas, 2026-11-08)
-- **Arranque:** doble clic en `Iniciar Legal AI.cmd` (cierre: `Detener Legal AI.cmd`); nada se teclea en una terminal.
-- **Inicio (`/`):** un `h1` en pregunta ("¿Qué necesita hacer hoy?"), tres tarjetas enlace (título `--primary`,
-  qué hace, "Úselo para…", llamada a la acción) y "Cómo funciona" en 4 pasos, incluido qué significa un rechazo.
-- **Login:** recuerda despacho y correo en ese navegador (nunca la contraseña), "Mostrar contraseña", el cursor
-  empieza en el primer campo vacío y dice a quién pedir el acceso.
-- **Valores por omisión que funcionan:** el ámbito se muestra en UNA línea ("Se consultará: Federal (México) ·
-  General · solo normas vigentes") con un botón "Cambiar" (`aria-expanded`); los selectores aparecen solo al
-  pedirlos y cada opción explica su efecto en lenguaje llano.
-- **Ejemplos:** cada espacio ofrece preguntas de ejemplo (botones de borde discontinuo); un clic llena el composer y
-  le da el foco, nunca envía. Argumentar ofrece "Cargar un caso de ejemplo".
-- **Teclado y lector de pantalla:** todo control visible se alcanza con Tab (verificado por prueba en cada página);
-  abrir una conversación mueve el foco a su título; al terminar un turno se anuncia una sola vez "La respuesta está
-  lista" / "No hay fuentes suficientes…"; el composer dice "Ctrl + Enter para enviar".
-- **Una respuesta a la vez:** si hay un turno en curso en otra conversación se dice ("Podrá enviar cuando
-  termine"); la respuesta se guarda en SU conversación aunque el usuario haya cambiado de pantalla.
-- **Teléfono (≤ 40 rem):** idioma, tema y "Cerrar sesión" van tras el botón "Ajustes"; sin desplazamiento lateral.
+### 8.0 Use without configuration (non-technical people, 2026-11-08)
+- **Start-up:** double-click `Iniciar Legal AI.cmd` (to close: `Detener Legal AI.cmd`); nothing is typed in a terminal.
+- **Start page (`/`):** an `h1` as a question ("¿Qué necesita hacer hoy?"), three link cards (title `--primary`,
+  what it does, "Úselo para…", call to action) and "Cómo funciona" in 4 steps, including what a refusal means.
+- **Login:** remembers firm and email in that browser (never the password), "Mostrar contraseña", the cursor
+  starts in the first empty field and it says whom to ask for access.
+- **Defaults that work:** the scope is shown on ONE line ("Se consultará: Federal (México) ·
+  General · solo normas vigentes") with a "Cambiar" button (`aria-expanded`); the selectors appear only when
+  requested and each option explains its effect in plain language.
+- **Examples:** each workspace offers example questions (dashed-border buttons); a click fills the composer and
+  gives it focus, never sends. Argumentar offers "Cargar un caso de ejemplo".
+- **Keyboard and screen reader:** every visible control is reachable with Tab (verified by a test on each page);
+  opening a conversation moves focus to its title; when a turn finishes, "La respuesta está
+  lista" / "No hay fuentes suficientes…" is announced once; the composer says "Ctrl + Enter para enviar".
+- **One answer at a time:** if a turn is in progress in another conversation it says so ("Podrá enviar cuando
+  termine"); the answer is saved in ITS conversation even if the user has changed screen.
+- **Phone (≤ 40 rem):** language, theme and "Cerrar sesión" go behind the "Ajustes" button; no sideways scrolling.
 
-### 8.1 Marco de página
-- **Barra superior:** wordmark · navegación de las tres páginas · idioma · tema · "Cerrar sesión". La página
-  activa se marca con `aria-current="page"`, peso 650, color `--primary` y subrayado de 3 px en `--accent`
-  (decorativo; el acento nunca colorea texto, §1). En `/login` no hay navegación.
-- **Cuerpo en tres columnas** (≥ 64 rem): historial (17 rem, `--surface`) | contenido (máx. 56 rem) |
-  fuentes (19 rem, `--surface`); Investigación no tiene columna de fuentes (cada expediente lista las suyas).
-  Bajo 64 rem: una columna (historial, contenido, fuentes), el historial empieza **cerrado** y el composer
-  deja de ser fijo (taparía el caso y las respuestas).
-- **Encabezado de página:** un único `h1` con el nombre de la página y el botón "Ocultar/Mostrar historial"
-  (`aria-expanded`, `aria-controls`). La región principal NO es `aria-live` (re-leería respuestas enteras):
-  la etapa en curso se anuncia con `role="status"`.
+### 8.1 Page frame
+- **Top bar:** wordmark · navigation of the three pages · language · theme · "Cerrar sesión". The active
+  page is marked with `aria-current="page"`, weight 650, colour `--primary` and a 3 px underline in `--accent`
+  (decorative; the accent never colours text, §1). There is no navigation on `/login`.
+- **Three-column body** (≥ 64 rem): history (17 rem, `--surface`) | content (max 56 rem) |
+  sources (19 rem, `--surface`); Investigación has no sources column (each file lists its own).
+  Below 64 rem: one column (history, content, sources), the history starts **closed** and the composer
+  stops being fixed (it would cover the case and the answers).
+- **Page header:** a single `h1` with the page name and the "Ocultar/Mostrar historial" button
+  (`aria-expanded`, `aria-controls`). The main region is NOT `aria-live` (it would re-read whole answers):
+  the current stage is announced with `role="status"`.
 
-### 8.2 Historial
-- Botón primario "Nueva …" arriba, búsqueda (título y contenido de los mensajes), lista más reciente primero.
-- Cada elemento: título (600) y metadatos (fecha y hora **locales** del usuario · número de mensajes, 0.8125 rem,
-  `--text-muted`). El abierto: borde izquierdo 3 px `--accent` y fondo `--bg`, con `aria-current="page"`.
-- Vacío: texto de catálogo, sin ilustración. Solo lista conversaciones del propio usuario.
+### 8.2 History
+- A primary "Nueva …" button at the top, search (title and content of messages), list with the most recent first.
+- Each item: title (600) and metadata (the user's **local** date and time · number of messages, 0.8125 rem,
+  `--text-muted`). The open one: 3 px `--accent` left border and `--bg` background, with `aria-current="page"`.
+- Empty: catalog text, no illustration. It lists only the user's own conversations.
 
-### 8.3 Conversación
-- **Nueva:** tarjeta de bienvenida (`h2`, explicación, selector de jurisdicción y perfil). **Existente:** barra con
-  título (`h2`), "Renombrar" y "Eliminar" (confirmación en línea, sin diálogo nativo) y el **ámbito fijado** como
-  chips de solo lectura ("Ámbito fijado al iniciar; para cambiarlo, inicie una nueva": cambiarlo es acción del
-  usuario, nunca inferencia, §4).
-- **Turno del usuario:** bloque `--bg` con borde izquierdo 3 px `--primary`, rótulo ("Su consulta" / "Su argumento")
-  y texto tal como se escribió (`white-space: pre-wrap`, como texto).
-- **Respuesta:** `AnswerView` compacto (sin título visible ni lista propia de fuentes: las muestra el panel) o la
-  tarjeta `Refusal` de §3.2. Las marcas de §3 no cambian.
-- **En curso:** borde discontinuo, etapa (`role="status"`), tiempo transcurrido (no anunciado) y la nota de
-  duración del modelo local. Nunca un spinner infinito (§4).
-- **Composer:** etiqueta visible, contador de caracteres, Ctrl/⌘+Enter envía; si el turno falla, el texto se
-  conserva. Fijo al pie en pantallas anchas.
+### 8.3 Conversation
+- **New:** a welcome card (`h2`, explanation, jurisdiction and profile selector). **Existing:** a bar with
+  title (`h2`), "Renombrar" and "Eliminar" (inline confirmation, no native dialog) and the **fixed scope** as
+  read-only chips ("Ámbito fijado al iniciar; para cambiarlo, inicie una nueva": changing it is a user
+  action, never an inference, §4).
+- **User turn:** a `--bg` block with a 3 px `--primary` left border, a label ("Su consulta" / "Su argumento")
+  and the text as written (`white-space: pre-wrap`, as text).
+- **Answer:** a compact `AnswerView` (no visible title or own source list: the panel shows them) or the
+  `Refusal` card of §3.2. The marks of §3 do not change.
+- **In progress:** a dashed border, the stage (`role="status"`), elapsed time (not announced) and the note on the
+  local model's duration. Never an endless spinner (§4).
+- **Composer:** a visible label, a character counter, Ctrl/⌘+Enter sends; if the turn fails, the text is
+  kept. Fixed at the bottom on wide screens.
 
-### 8.4 Panel de fuentes
-Lista numerada de las fuentes citadas en toda la conversación (cada `cite_id` una vez, la respuesta más reciente
-primero), con el chip de §3.1; abre el visor de §3.5.
+### 8.4 Sources panel
+A numbered list of the sources cited across the whole conversation (each `cite_id` once, the most recent answer
+first), with the chip of §3.1; it opens the viewer of §3.5.
 
-### 8.5 Investigación (expediente)
-Cada pregunta es un expediente (`article`): rótulo "Pregunta", la pregunta (`h3`) y la respuesta completa con su
-lista numerada de fuentes. "Exportar PDF" usa la impresión del navegador: se ocultan barra, historial, composer y
-botones; cada cita conserva su `citation_string` más un **número de nota** que corresponde a la lista de fuentes
-(§4, Dossier); un expediente por página.
+### 8.5 Investigación (file)
+Each question is a file (`article`): the label "Pregunta", the question (`h3`) and the full answer with its
+numbered list of sources. "Exportar PDF" uses the browser's print: the bar, history, composer and
+buttons are hidden; each citation keeps its `citation_string` plus a **note number** that corresponds to the list of sources
+(§4, Dossier); one file per page.
 
-### 8.6 Argumentar (caso y rondas)
-- **Ficha del caso:** `details` abierto por defecto, borde izquierdo 3 px `--accent`; resumen "Caso · {parte}";
-  hechos y pretensión como texto. La parte sale de un catálogo cerrado (actora, demandada, defensa, acusación,
-  tercero interesado). Aviso de privacidad bajo el formulario.
-- **Ronda:** el argumento del usuario (8.3) y la respuesta con rótulo "Ataque de la contraparte" o "Argumento
-  fortalecido". El cierre "Vulnerabilidades priorizadas" / "Puntos a reforzar" sale del cuerpo y se muestra como
-  **panel** (borde superior 3 px `--primary`, fondo `--bg`, lista **numerada**, §3.3), con ambas marcas visibles.
-- **Composer:** "Enviar a la contraparte" (primario) y "Fortalecer mi argumento" (secundario).
+### 8.6 Argumentar (case and rounds)
+- **Case sheet:** `details` open by default, 3 px `--accent` left border; summary "Caso · {party}";
+  facts and claim as text. The party comes from a closed catalog (claimant, defendant, defence, prosecution,
+  interested third party). A privacy notice under the form.
+- **Round:** the user's argument (8.3) and the answer with the label "Ataque de la contraparte" or "Argumento
+  fortalecido". The closing "Vulnerabilidades priorizadas" / "Puntos a reforzar" is taken out of the body and shown as a
+  **panel** (3 px `--primary` top border, `--bg` background, **numbered** list, §3.3), with both marks visible.
+- **Composer:** "Enviar a la contraparte" (primary) and "Fortalecer mi argumento" (secondary).
 
-## 9. Herramientas: Leyes · Verificar · Asuntos · Reformas (ADR-017/018/019, 2026-11-08)
+## 9. Tools: Leyes · Verificar · Asuntos · Reformas (ADR-017/018/019, 2026-11-08)
 
-Mismo marco que §8 (barra, tokens, tipografía, tono); ninguna herramienta usa el modelo para el contenido jurídico.
+The same frame as §8 (bar, tokens, typography, tone); no tool uses the model for legal content.
 
-### 9.0 Navegación e inicio
-- La barra suma "Leyes", "Verificar" y "Asuntos" tras los tres espacios (mismo estilo de §8.1). "Reformas" se abre
-  desde el inicio y desde el aviso.
-- Inicio: debajo de las tres tarjetas, `h2` "Herramientas" con cuatro tarjetas del mismo componente. Si algo del
-  trabajo del usuario cita una disposición reformada, aparece **antes** de las tarjetas un aviso (borde
-  `--accent-ink`, borde izquierdo 3 px `--accent`, ícono ◷, `h2` "Hay reformas que afectan su trabajo", número de
-  citas y botón "Revisar"). Sin alertas, no hay aviso (nunca un aviso vacío).
+### 9.0 Navigation and start page
+- The bar adds "Leyes", "Verificar" and "Asuntos" after the three workspaces (same style as §8.1). "Reformas" is opened
+  from the start page and from the notice.
+- Start page: below the three cards, an `h2` "Herramientas" with four cards of the same component. If anything in
+  the user's work cites a reformed provision, a notice appears **before** the cards (`--accent-ink` border, 3 px
+  `--accent` left border, ◷ icon, `h2` "Hay reformas que afectan su trabajo", number of
+  citations and a "Revisar" button). With no alerts, there is no notice (never an empty notice).
 
-### 9.1 Leyes (navegador)
-- Dos columnas (≥ 64 rem): estructura (22 rem, `--surface`, con scroll propio) | artículo. Una columna debajo.
-- Estructura: selector de ley (catálogo de leyes cargadas, con su jurisdicción), versión y última reforma
-  registrada, "Ir al artículo" (número libre: "47", "50 Bis"; si no existe: "Esa ley no tiene ese artículo",
-  `role=status`), y el árbol como `details`/`summary` anidados; los artículos son botones con rótulo (600) y su
-  inicio en `--text-muted`. El abierto: borde izquierdo 3 px `--accent`, fondo `--bg`.
-- Artículo: ruta (título › capítulo), `h2` con el rótulo (recibe el foco al abrir), texto **serif** en una caja
-  `--surface` con `lang` de la fuente, "← anterior / siguiente →" y "Partes citables": cada parte con su
-  `citation_string`, el `cite_id` en mono, insignias "No vigente" o "◷ Reformada · fecha" (§3.1), "Copiar cita" y
+### 9.1 Leyes (navigator)
+- Two columns (≥ 64 rem): structure (22 rem, `--surface`, with its own scroll) | article. One column below.
+- Structure: a law selector (catalog of loaded laws, with their jurisdiction), version and last recorded
+  reform, "Ir al artículo" (free number: "47", "50 Bis"; if it does not exist: "Esa ley no tiene ese artículo",
+  `role=status`), and the tree as nested `details`/`summary`; articles are buttons with a label (600) and their
+  beginning in `--text-muted`. The open one: 3 px `--accent` left border, `--bg` background.
+- Article: path (title › chapter), an `h2` with the label (receives focus on opening), **serif** text in a
+  `--surface` box with the source's `lang`, "← anterior / siguiente →" and "Partes citables": each part with its
+  `citation_string`, the `cite_id` in mono, "No vigente" or "◷ Reformada · fecha" badges (§3.1), "Copiar cita" and
   "Guardar en asunto".
-- "Versiones": comparar la vigente con una anterior. Lo agregado va en `<ins>` (subrayado 2 px sobre
-  `--verified-bg`), lo eliminado en `<del>` (tachado sobre `--unsupported-bg`): forma + color, nunca solo color;
-  leyenda en texto. La URL guarda ley y artículo (`?ley=&p=`).
+- "Versiones": compare the current text with an earlier one. What was added goes in `<ins>` (2 px underline on
+  `--verified-bg`), what was removed in `<del>` (strikethrough on `--unsupported-bg`): shape + colour, never colour alone;
+  a legend in text. The URL keeps law and article (`?ley=&p=`).
 
-### 9.2 Verificar (citas de un escrito)
-- Formulario en tarjeta: grupo de opciones "Pegar el texto" / "Subir un PDF" (radio: una parada de Tab, flechas
-  dentro), nombre del escrito, texto o archivo, asunto opcional y el aviso fijo **"El escrito no se guarda"**.
-  "Cargar un texto de ejemplo" llena el campo y no envía.
-- Resultado (`h2` que recibe el foco): resumen por estado y una lista **numerada** de hallazgos. Cada estado tiene
-  ícono + rótulo + forma, nunca solo color: Vigente ✓ (estilo verificado), Derogado / No vigente ◷ (`--accent-ink`),
-  No existe ⌕ (punteado `--unsupported`), Ley no cargada ○ (texto `--text-muted`), Ley no identificada / ambigua ◇
-  (discontinuo `--reasoning`, "revise"). La cita textual: "coincide" / "NO coincide" / "coincide con una versión
-  anterior" / "demasiado corta". Una ley tomada del contexto se dice ("Confírmelo").
-- Con texto pegado (o PDF recién leído) cada hallazgo muestra su fragmento del escrito con la referencia en `<mark>`;
-  un reporte guardado no tiene texto (ADR-019) y no lo muestra. Las fuentes abren el visor de §3.5.
-- Pie: "La verificación comprueba existencia, vigencia y coincidencia textual. No juzga la interpretación."
+### 9.2 Verificar (citations of a brief)
+- A form in a card: an option group "Pegar el texto" / "Subir un PDF" (radio: one Tab stop, arrows
+  inside), name of the brief, text or file, optional matter and the fixed notice **"El escrito no se guarda"**.
+  "Cargar un texto de ejemplo" fills the field and does not send.
+- Result (an `h2` that receives focus): a summary by status and a **numbered** list of findings. Each status has an
+  icon + label + shape, never colour alone: Vigente ✓ (verified style), Derogado / No vigente ◷ (`--accent-ink`),
+  No existe ⌕ (dotted `--unsupported`), Ley no cargada ○ (`--text-muted` text), Ley no identificada / ambigua ◇
+  (dashed `--reasoning`, "revise"). The verbatim quotation: "coincide" / "NO coincide" / "coincide con una versión
+  anterior" / "demasiado corta". A law taken from context is stated as such ("Confírmelo").
+- With pasted text (or a freshly read PDF) each finding shows its fragment of the brief with the reference in `<mark>`;
+  a saved report has no text (ADR-019) and does not show it. The sources open the viewer of §3.5.
+- Footer: "La verificación comprueba existencia, vigencia y coincidencia textual. No juzga la interpretación."
 
 ### 9.3 Asuntos
-- Lista: formulario "Nuevo asunto" (nombre, referencia del cliente, descripción, aviso de privacidad) y tarjetas
-  (borde superior 3 px `--primary`; título `--primary` 650; referencia · papel · elementos · personas).
-- Asunto abierto (`h2` con foco, borde izquierdo 3 px `--accent`): acciones de la persona responsable (cerrar /
-  reabrir, eliminar con confirmación en línea que dice que las conversaciones NO se borran), y secciones `h3`:
-  Trabajo (enlaces "Nueva en Conversar/Investigación/Argumentar" y "Verificar un escrito", que abren la página con
-  el asunto preseleccionado; lista de conversaciones con su página, fecha y "de un colega"), Fuentes guardadas
-  (chip §3.1 + insignia de reforma + "Abrir la versión vigente"), Notas, Personas con acceso (agregar colega del
-  despacho de una lista cerrada; solo la persona responsable administra).
-- En los tres espacios: selector "Asunto" opcional al crear; en la barra de una conversación propia, selector
-  compacto para moverla; una conversación de un colega se muestra sin "Renombrar/Eliminar" y con la nota
-  "compartida por el asunto". "Guardar en asunto" vive en el visor de fuentes y en Leyes.
+- List: a "Nuevo asunto" form (name, client reference, description, privacy notice) and cards
+  (3 px `--primary` top border; title `--primary` 650; reference · role · items · people).
+- Open matter (`h2` with focus, 3 px `--accent` left border): actions of the responsible person (close /
+  reopen, delete with an inline confirmation saying the conversations are NOT deleted), and `h3` sections:
+  Trabajo (links "Nueva en Conversar/Investigación/Argumentar" and "Verificar un escrito", which open the page with
+  the matter preselected; a list of conversations with their page, date and "de un colega"), Fuentes guardadas
+  (chip §3.1 + reform badge + "Abrir la versión vigente"), Notas, Personas con acceso (add a colleague from the
+  firm from a closed list; only the responsible person administers).
+- In the three workspaces: an optional "Asunto" selector on creation; in the bar of one's own conversation, a
+  compact selector to move it; a colleague's conversation is shown without "Renombrar/Eliminar" and with the note
+  "compartida por el asunto". "Guardar en asunto" lives in the source viewer and in Leyes.
 
 ### 9.4 Reformas
-- `h2` "Su trabajo afectado": cada alerta con insignia ◷ (cambio · fecha), la cita, dónde está (conversación,
-  fuente guardada, verificación; enlace) y "Abrir lo citado" / "Abrir la versión vigente".
-- "Reformas registradas": ley, versiones, fecha de publicación, conteos por tipo de cambio y "Ver qué cambió".
-- "Última revisión de cada fuente": tabla (ley, revisada, resultado en palabras). Si una fuente rechaza la
-  descarga automática se dice "La fuente rechazó la descarga" (no se insiste, ADR-017).
-- El visor de fuentes (§3.5) muestra, si aplica, "Esta disposición cambió después de citarse (…)" en
-  `--accent-ink` con la versión vigente en mono.
+- `h2` "Su trabajo afectado": each alert with a ◷ badge (change · date), the citation, where it is (conversation,
+  saved source, verification; link) and "Abrir lo citado" / "Abrir la versión vigente".
+- "Reformas registradas": law, versions, publication date, counts by type of change and "Ver qué cambió".
+- "Última revisión de cada fuente": a table (law, checked, result in words). If a source rejects the automatic
+  download it says "La fuente rechazó la descarga" (it is not insisted on, ADR-017).
+- The source viewer (§3.5) shows, where it applies, "Esta disposición cambió después de citarse (…)" in
+  `--accent-ink` with the current version in mono.
 
 ### 9.8 Noticias (ADR-027, 2026-11-17)
-- Entrada "Noticias" al final de las herramientas de la barra lateral (§11.1), con ícono de periódico.
-- Encabezado `h1` "Noticias", la explicación de cómo se eligen (reglas fijas, nunca el modelo) y "Actualizado: …".
-- Filtros como botones con `aria-pressed` (Todas · Cambios a la legislación · Tribunales · Prensa). El activo se
-  marca con borde y subrayado `--accent-ink`, nunca con `--accent` puro (§6).
-- Cada nota es una tarjeta (`--surface`, borde `--line`, `--radius`):
-  - primera línea: insignia neutra del tipo, insignia "Fuente oficial" en `--accent-ink` si aplica, medio y fecha;
-    sin fecha de la fuente se dice "vista el …", nunca se inventa una;
-  - título `h2` como enlace: el externo abre en pestaña nueva con `rel="noreferrer noopener"`, el interno
-    (`/reformas`) navega dentro de la app;
-  - el extracto de la propia fuente, como texto; los conteos de una reforma; "Por qué aparece: …" con los términos.
-- Ningún color de verificación (§3) se usa en noticias: una nota no es una cita verificada.
-- Al final, `h2` "Fuentes": tabla (fuente, leída, resultado en palabras). Una fuente que rechaza la lectura se dice
-  "La fuente rechazó la lectura" y no se insiste.
+- A "Noticias" entry at the end of the sidebar tools (§11.1), with a newspaper icon.
+- An `h1` header "Noticias", the explanation of how items are chosen (fixed rules, never the model) and "Actualizado: …".
+- Filters as buttons with `aria-pressed` (Todas · Cambios a la legislación · Tribunales · Prensa). The active one is
+  marked with a border and an `--accent-ink` underline, never with pure `--accent` (§6).
+- Each item is a card (`--surface`, `--line` border, `--radius`):
+  - first line: a neutral badge of the type, a "Fuente oficial" badge in `--accent-ink` if applicable, outlet and date;
+    with no date from the source it says "vista el …", one is never invented;
+  - an `h2` title as a link: an external one opens in a new tab with `rel="noreferrer noopener"`, an internal one
+    (`/reformas`) navigates within the app;
+  - the source's own excerpt, as text; the counts of a reform; "Por qué aparece: …" with the terms.
+- No verification colour (§3) is used in news: an item is not a verified citation.
+- At the end, an `h2` "Fuentes": a table (source, read, result in words). A source that rejects the reading says
+  "La fuente rechazó la lectura" and is not insisted on.
 
-### 9.9 Hoja de puntos clave (ADR-028, 2026-11-17)
-- En el asunto, `h3` "Hoja de puntos clave" después de "Trabajo del asunto": la explicación (solo cita lo que el
-  asunto ya citó; las preguntas y temas son razonamiento del asistente), el selector de modelo compacto (§9.6) y el
-  botón "Generar hoja de puntos clave". Mientras corre, la etapa en palabras (`role="status"`).
-- "Última hoja": fecha · autor · estado, y "Abrir para imprimir o guardar en PDF". Una hoja rechazada no muestra
-  texto del modelo: dice por qué en palabras del sistema (sin fuentes en el asunto / no se pudo verificar).
-- La hoja (`/asuntos/hoja`) es una página carta: rótulo "HOJA DE PUNTOS CLAVE" en `--accent-ink`, título del asunto,
-  "Generada el … por … · modelo …"; cuerpo a dos columnas con las cuatro secciones (Puntos clave, Riesgos, Preguntas
-  para el cliente, Temas a revisar); citas como números `[n]` en superíndice; los renglones de razonamiento en
-  cursiva con ◇ (nunca con el aspecto de una cita); al pie, "Fuentes citadas" numeradas, la leyenda de verificación y
+### 9.9 Key-points sheet (ADR-028, 2026-11-17)
+- In the matter, an `h3` "Hoja de puntos clave" after "Trabajo del asunto": the explanation (it cites only what the
+  matter has already cited; the questions and topics are the assistant's reasoning), the compact model selector (§9.6) and the
+  "Generar hoja de puntos clave" button. While it runs, the stage in words (`role="status"`).
+- "Última hoja": date · author · status, and "Abrir para imprimir o guardar en PDF". A rejected sheet shows no
+  model text: it says why in the system's words (no sources in the matter / could not be verified).
+- The sheet (`/asuntos/hoja`) is a letter-size page: the label "HOJA DE PUNTOS CLAVE" in `--accent-ink`, the matter's title,
+  "Generada el … por … · modelo …"; a two-column body with the four sections (Puntos clave, Riesgos, Preguntas
+  para el cliente, Temas a revisar); citations as superscript `[n]` numbers; reasoning lines in
+  italic with ◇ (never looking like a citation); at the foot, numbered "Fuentes citadas", the verification legend and
   "no sustituye el criterio profesional".
-- Al imprimir: sin barra lateral ni botones, fondo blanco, 9 pt, márgenes de 12 mm. La prueba de navegador genera el
-  PDF y exige UNA página.
+- When printing: no sidebar or buttons, white background, 9 pt, 12 mm margins. The browser test generates the
+  PDF and requires ONE page.
 
-### 9.6 Modelo de una conversación (ADR-024, 2026-11-09)
-- Al crear (Conversar, Investigación, Argumentar): `fieldset` "Modelo" con una tarjeta-radio por modelo USABLE
-  (configurado en el servidor y permitido por el despacho); se oculta si solo hay uno. Cada tarjeta: nombre,
-  insignia de ubicación ("En este equipo" verde §3; "Externo · Anthropic" en `--accent-ink`), "predeterminado"
-  si aplica, una línea de para qué sirve y la línea de medición: "Medido (fecha, N casos): respondió X de las
+### 9.6 Model of a conversation (ADR-024, 2026-11-09)
+- On creation (Conversar, Investigación, Argumentar): a "Modelo" `fieldset` with one radio card per USABLE model
+  (configured on the server and allowed by the firm); hidden if there is only one. Each card: name,
+  a location badge ("En este equipo" green §3; "Externo · Anthropic" in `--accent-ink`), "predeterminado"
+  if applicable, a line on what it is for and the measurement line: "Medido (fecha, N casos): respondió X de las
   preguntas con fuente · rechazó Y de las que no la tienen · citas válidas · segundos típicos (casos aún sin
-  revisión de abogado)" o "Sin medir". No se muestra recall de recuperación (es igual para todos los modelos).
-  Nunca "recomendado" ni estrellas: la medición habla. Tarjeta elegida: borde `--primary`, fondo `--primary-soft`.
-- Un modelo externo muestra, ANTES de enviar nada, un aviso con borde izquierdo 3 px `--accent`: qué sale del
-  equipo (pregunta, historial, fragmentos; en Argumentar también hechos y argumentos) y a quién. La nota de
-  privacidad del caso cambia a su versión "externo"; nunca se dice "no sale de este equipo" si sale.
-- Conversación abierta: chip "Modelo: …" junto al ámbito (fijo, como jurisdicción y perfil); el externo, en
-  `--accent-ink` con "· externo".
-- Ajustes › "Modelos externos": casilla "Permitir que el despacho use Claude (Anthropic)" con su explicación;
-  solo la cambia un administrador (los demás la ven deshabilitada con "Solo un administrador…"); si el servidor
-  no tiene clave, se dice que Claude no está disponible aunque se permita.
-- Errores en palabras: "El despacho no permite modelos externos…", "Ese modelo no está configurado…", "El
+  revisión de abogado)" or "Sin medir". Retrieval recall is not shown (it is the same for every model).
+  Never "recommended" or stars: the measurement speaks. Chosen card: `--primary` border, `--primary-soft` background.
+- An external model shows, BEFORE anything is sent, a notice with a 3 px `--accent` left border: what leaves the
+  machine (question, history, fragments; in Argumentar also facts and arguments) and to whom. The case's privacy
+  note changes to its "external" version; it never says "no sale de este equipo" if it does leave.
+- Open conversation: a "Modelo: …" chip next to the scope (fixed, like jurisdiction and profile); the external one in
+  `--accent-ink` with "· externo".
+- Ajustes › "Modelos externos": a checkbox "Permitir que el despacho use Claude (Anthropic)" with its explanation;
+  only an administrator changes it (others see it disabled with "Solo un administrador…"); if the server
+  has no key, it says Claude is unavailable even if allowed.
+- Errors in words: "El despacho no permite modelos externos…", "Ese modelo no está configurado…", "El
   proveedor del modelo externo rechazó la solicitud…".
 
-### 9.7 Documentos del despacho (ADR-025, 2026-11-14)
-- Entrada en el riel, en Herramientas, después de Leyes. Página de herramienta (§9): formulario de carga
-  arriba, lista debajo.
-- Formulario: archivo, nombre (así aparece en las citas), tipo (lista cerrada), idioma, asunto (si hay) y
-  ámbito (catálogo cerrado; por omisión el último ámbito usado). Dos frases que nunca se omiten: quién lo verá
-  (todo el despacho / solo los miembros del asunto) y qué se guarda ("El archivo original no se guarda…").
-  El botón queda deshabilitado sin archivo.
-- Lista: una tarjeta por documento con nombre, insignia de estado con forma + icono + texto (◷ Procesando ·
-  ✓ Listo · N partes citables · ⌕ No se pudo procesar; tonos de §9.2, nunca solo color), tipo, asunto o
-  "Todo el despacho", fecha y quién lo subió. Un fallo dice la causa en lenguaje llano y qué hacer (p. ej.
-  PDF escaneado → OCR o Word); nunca una clave interna.
-- "Ver el texto extraído": las partes citables en orden, en la tipografía de norma (§2), con la advertencia
-  de revisarlo antes de confiar; cada nombre abre el visor. "Preguntar sobre este documento" abre Conversar
-  en su asunto. "Eliminar" (solo quien lo subió o un admin) pide confirmación en la misma tarjeta y dice
-  qué se pierde.
-- Visor (§11.4) para un documento del despacho: insignia "Documento del despacho" en lugar de
-  Vigente/No vigente y "Sección completa" en lugar de "Artículo completo".
-- Mientras algo se procesa la lista se actualiza sola y el final se anuncia (`role=status`).
+### 9.7 The firm's documents (ADR-025, 2026-11-14)
+- An entry in the rail, under Herramientas, after Leyes. A tool page (§9): an upload form
+  at the top, the list below.
+- Form: file, name (as it appears in citations), type (closed list), language, matter (if any) and
+  scope (closed catalog; by default the last scope used). Two sentences that are never omitted: who will see it
+  (the whole firm / only the matter's members) and what is stored ("El archivo original no se guarda…").
+  The button stays disabled without a file.
+- List: one card per document with name, a status badge with shape + icon + text (◷ Procesando ·
+  ✓ Listo · N partes citables · ⌕ No se pudo procesar; tones of §9.2, never colour alone), type, matter or
+  "Todo el despacho", date and who uploaded it. A failure states the cause in plain language and what to do (e.g.
+  scanned PDF → OCR or Word); never an internal key.
+- "Ver el texto extraído": the citable parts in order, in the statute typography (§2), with the warning
+  to review it before trusting it; each name opens the viewer. "Preguntar sobre este documento" opens Conversar
+  in its matter. "Eliminar" (only the uploader or an admin) asks for confirmation on the same card and says
+  what is lost.
+- Viewer (§11.4) for a firm document: a "Documento del despacho" badge instead of
+  Vigente/No vigente and "Sección completa" instead of "Artículo completo".
+- While something is processing the list updates itself and the end is announced (`role=status`).
 
-## 10. Estilo OPB (v2, 2026-11-08): cómo se aplica
+## 10. OPB style (v2, 2026-11-08): how it is applied
 
-Referencia de estructura: Library-RAG (misma familia de producto). Todo vive en la sección 4 de `globals.css`.
-- **Barra superior:** banda `--nav-bg` con una línea superior de 3 px en degradado azul → oro; wordmark en
-  Fraunces blanco con "AI" en cursiva `--accent-light`; las páginas son pastillas (activa: fondo blanco al 14 % y
-  subrayado oro de 2 px); **idioma, tema y "Cerrar sesión" van en el panel "Ajustes"** (diálogo lateral nativo,
-  borde superior oro), a todo ancho de pantalla.
-- **Títulos:** h1/h2 en Fraunces 300 color `--primary`; la palabra clave en cursiva `--accent-ink`. Etiquetas
-  ("eyebrow"): 11 px, mayúsculas, tracking amplio, `--accent-ink`, precedidas por una regla oro de 24 px.
-- **Inicio:** héroe azul con textura de rejilla de 48 px y un resplandor oro, etiqueta, título con cursiva y
-  texto `#D3E3F4`; tarjetas blancas con borde superior `--primary` (hover: oro) y título en Fraunces; "Cómo
-  funciona" como pasos numerados en círculos azules.
-- **Espacios de trabajo:** historial y fuentes en rieles `--surface-2`; elemento activo en `--primary-soft`.
-  El turno del usuario es una **burbuja a la derecha** (`--primary-soft`, esquinas 16/4 px); la respuesta se lee
-  como documento a la izquierda. El composer es una caja redondeada con sombra suave y el botón principal en
-  **oro** con texto `--on-accent`; los ejemplos son pastillas.
-- **Tarjetas:** `--surface`, borde `--line`, radio 14 px, sombra suave; las de acción llevan borde superior de
-  3 px (`--primary` o `--accent`). Tablas: encabezado azul con etiquetas en mayúsculas y filas alternas.
-- **Pie:** franja `--nav-bg`, texto `#B8C7D8`.
-- **Respuestas (2026-11-09):** el texto del asistente va en Plus Jakarta Sans (1 rem, interlineado 1.7, ≤ 72 ch);
-  la serif queda SOLO para el texto de normas (visor de fuentes, Leyes). Así se distingue a simple vista "lo que
-  dice la ley" de "lo que explica el asistente".
-- **Citas en línea:** dentro de una respuesta, la cita es una pastilla compacta en sans (0.8125 rem, peso 600, ✓,
-  `--verified`), sin romper el renglón (excepción de WCAG 2.5.8 para objetivos en línea); en el panel de fuentes
-  conserva el tamaño táctil completo. El `cite_id` en mono sigue en el tooltip y en el visor (§3.1).
-- **Fechas:** siempre en el idioma de la interfaz y la zona horaria del usuario ("8 nov 2026, 19:31").
-- **Selector de asunto:** solo aparece si el usuario tiene asuntos abiertos; en la barra de la conversación va en
-  una fila (etiqueta + selector).
-- Las marcas de §3 conservan forma, ícono y rótulo; solo cambian sus colores a la paleta OPB (verde verificada,
-  morado razonamiento, pizarra sin respaldo).
+Structure reference: Library-RAG (the same product family). Everything lives in section 4 of `globals.css`.
+- **Top bar:** a `--nav-bg` band with a 3 px top line in a blue → gold gradient; wordmark in white
+  Fraunces with "AI" in `--accent-light` italic; the pages are pills (active: white background at 14 % and
+  a 2 px gold underline); **language, theme and "Cerrar sesión" go in the "Ajustes" panel** (a native side dialog,
+  gold top border), at any screen width.
+- **Headings:** h1/h2 in Fraunces 300 colour `--primary`; the key word in `--accent-ink` italic. Labels
+  ("eyebrow"): 11 px, uppercase, wide tracking, `--accent-ink`, preceded by a 24 px gold rule.
+- **Start page:** a blue hero with a 48 px grid texture and a gold glow, label, title with italic and
+  `#D3E3F4` text; white cards with a `--primary` top border (hover: gold) and a Fraunces title; "Cómo
+  funciona" as numbered steps in blue circles.
+- **Workspaces:** history and sources in `--surface-2` rails; the active item in `--primary-soft`.
+  The user's turn is a **bubble on the right** (`--primary-soft`, 16/4 px corners); the answer reads
+  like a document on the left. The composer is a rounded box with a soft shadow and the main button in
+  **gold** with `--on-accent` text; the examples are pills.
+- **Cards:** `--surface`, `--line` border, 14 px radius, soft shadow; action cards carry a 3 px top border
+  (`--primary` or `--accent`). Tables: a blue header with uppercase labels and alternating rows.
+- **Footer:** a `--nav-bg` strip, text `#B8C7D8`.
+- **Answers (2026-11-09):** the assistant's text is in Plus Jakarta Sans (1 rem, line height 1.7, ≤ 72 ch);
+  the serif is kept ONLY for statute text (source viewer, Leyes). This distinguishes at a glance "what
+  the law says" from "what the assistant explains".
+- **Inline citations:** inside an answer, the citation is a compact sans pill (0.8125 rem, weight 600, ✓,
+  `--verified`), without breaking the line (the WCAG 2.5.8 exception for inline targets); in the sources panel
+  it keeps the full touch size. The mono `cite_id` stays in the tooltip and in the viewer (§3.1).
+- **Dates:** always in the interface language and the user's time zone ("8 nov 2026, 19:31").
+- **Matter selector:** appears only if the user has open matters; in the conversation bar it goes in
+  one row (label + selector).
+- The marks of §3 keep their shape, icon and label; only their colours change to the OPB palette (verified green,
+  reasoning purple, unsupported slate).
 
-## 11. Mesa única + Estudio (v3, 2026-11-13, elegida por el product owner)
+## 11. Single desk + Studio (v3, 2026-11-13, chosen by the product owner)
 
-Propuestas comparadas en el lienzo "Legal AI · Propuestas de UI" (A Estudio, B Expediente, C Mesa única).
-Decisión: **C para inicio y navegación, A para la vista de la respuesta**; de B, la franja de verificación y el
-pasaje resaltado en el visor. B completa queda como un futuro modo "verificar respuesta". Sustituye a §8.0
-(inicio), §8.1 (barra superior), §8.4 (panel de fuentes) y a las partes de §10 que hablan de la barra superior,
-del inicio y de las citas en línea; el resto de §8–§10 sigue vigente.
+Proposals compared on the "Legal AI · Propuestas de UI" canvas (A Estudio, B Expediente, C Mesa única).
+Decision: **C for the start page and navigation, A for the answer view**; from B, the verification strip and the
+highlighted passage in the viewer. The full B remains as a future "verify answer" mode. It replaces §8.0
+(start page), §8.1 (top bar), §8.4 (sources panel) and the parts of §10 that speak of the top bar,
+the start page and inline citations; the rest of §8–§10 remains in force.
 
-### 11.1 Navegación lateral
-- Riel `--nav-bg` a la izquierda (16 rem; ≤ 64 rem pasa arriba como banda que se envuelve). Arriba el wordmark;
-  luego **Inicio**, el grupo "Trabajo" (Conversar · Investigación · Argumentar, sangrados, abren su historial) y
-  las herramientas (Leyes · Verificar · Asuntos · Reformas); al pie, "Ajustes" (diálogo de §10).
-- Cada enlace ≥ 44 px, ícono de trazo + texto; activo: fondo blanco al 12 %, peso 600, `aria-current="page"`.
-  En `/login` no hay riel: solo la banda con el wordmark y "Ajustes".
+### 11.1 Side navigation
+- A `--nav-bg` rail on the left (16 rem; ≤ 64 rem it moves to the top as a band that wraps). At the top the wordmark;
+  then **Inicio**, the "Trabajo" group (Conversar · Investigación · Argumentar, indented, they open their history) and
+  the tools (Leyes · Verificar · Asuntos · Reformas); at the foot, "Ajustes" (the dialog of §10).
+- Each link ≥ 44 px, a stroke icon + text; active: white background at 12 %, weight 600, `aria-current="page"`.
+  There is no rail on `/login`: only the band with the wordmark and "Ajustes".
 
-### 11.2 Inicio = una sola caja
-- Héroe azul con rejilla de 48 px: etiqueta, `h1` "¿Qué necesita *resolver* hoy?" y una tarjeta blanca con:
-  modo (grupo de radios en pastillas: **Preguntar · Investigar a fondo · Argumentar un caso**), el texto (su
-  etiqueta cambia con el modo: pregunta / pregunta de investigación / hechos del caso), el ámbito en una línea con
-  "Cambiar" (§8.0), el asunto (si hay) y el modelo en su forma compacta (selector + aviso de §9.6 si es
-  externo), y el botón oro "Preguntar → / Investigar → / Preparar el caso →".
-- Enviar abre el espacio de ese modo y **ahí** corre el turno (Preguntar, Investigar) o se precarga el formulario
-  del caso con los hechos (Argumentar: falta la parte, que se elige allí). El texto viaja en `sessionStorage`,
-  una sola vez, nunca en la URL.
-- Debajo: el aviso de reformas (§9.4) y "Continuar donde se quedó": hasta 6 tarjetas del trabajo reciente de los
-  tres tipos, cada una con su rótulo (Pregunta / Investigación / Caso, borde superior azul / oro / morado),
-  título y "N mensajes · fecha".
+### 11.2 Start page = a single box
+- A blue hero with a 48 px grid: label, an `h1` "¿Qué necesita *resolver* hoy?" and a white card with:
+  mode (a radio group as pills: **Preguntar · Investigar a fondo · Argumentar un caso**), the text (its
+  label changes with the mode: question / research question / facts of the case), the scope on one line with
+  "Cambiar" (§8.0), the matter (if any) and the model in its compact form (selector + the notice of §9.6 if
+  external), and the gold button "Preguntar → / Investigar → / Preparar el caso →".
+- Sending opens the workspace of that mode and the turn runs **there** (Preguntar, Investigar) or the case form
+  is preloaded with the facts (Argumentar: the party is missing, which is chosen there). The text travels in `sessionStorage`,
+  once, never in the URL.
+- Below: the reform notice (§9.4) and "Continuar donde se quedó": up to 6 cards of recent work of the
+  three kinds, each with its label (Pregunta / Investigación / Caso, blue / gold / purple top border),
+  title and "N mensajes · fecha".
 
-### 11.3 Respuesta (Estudio)
-- Columna de lectura centrada (≤ 46 rem); respuesta en sans 1.0625 rem, interlineado 1.75. El turno del usuario
-  sigue como burbuja a la derecha (§10).
-- **Citas en línea = números**: un botón pequeño en superíndice (`--accent-ink` sobre oro claro, nombre accesible
-  "Fuente N: {cita}, verificada") que abre el visor. El número es el de la fuente en la conversación entera
-  (orden de primera aparición), el mismo del panel. En el PDF del expediente siguen la cita y su nota (§8.5).
-- **Franja de verificación** sobre cada respuesta: "✓ N citas comprobadas contra el texto de la ley" (verde
-  verificada) y, si hay marcas de §3, "· M párrafos de análisis propio, sin respaldo normativo". Cuenta solo lo
-  que el sistema comprobó; nunca "N de M afirmaciones" (el sistema no sabe cuántas afirmaciones hay).
-- Acciones bajo la respuesta: "Copiar con citas" (texto + lista numerada de fuentes).
-- **Panel de fuentes:** tarjetas numeradas (número en oro claro, cita en `--primary` 600, extracto del texto en
-  la serif legal, máx. 4 renglones, y "Abrir texto completo"). Investigación conserva su lista por expediente.
+### 11.3 Answer (Studio)
+- A centred reading column (≤ 46 rem); the answer in sans 1.0625 rem, line height 1.75. The user's turn
+  stays a bubble on the right (§10).
+- **Inline citations = numbers**: a small superscript button (`--accent-ink` on light gold, accessible name
+  "Fuente N: {cita}, verificada") that opens the viewer. The number is that of the source in the whole conversation
+  (order of first appearance), the same as the panel's. In the file's PDF the citation and its note remain (§8.5).
+- **Verification strip** above each answer: "✓ N citas comprobadas contra el texto de la ley" (verified
+  green) and, if there are marks of §3, "· M párrafos de análisis propio, sin respaldo normativo". It counts only what
+  the system verified; never "N of M claims" (the system does not know how many claims there are).
+- Actions under the answer: "Copiar con citas" (text + a numbered list of sources).
+- **Sources panel:** numbered cards (number in light gold, citation in `--primary` 600, an excerpt of the text in
+  the legal serif, max 4 lines, and "Abrir texto completo"). Investigación keeps its list per file.
 
-### 11.4 Visor de fuentes (de B)
-- El pasaje citado se resalta con fondo oro claro (`--accent` al 22 % sobre `--surface`) dentro del artículo completo y el visor se
-  desplaza hasta él al abrirse.
+### 11.4 Source viewer (from B)
+- The cited passage is highlighted with a light-gold background (`--accent` at 22 % over `--surface`) inside the whole article and the viewer
+  scrolls to it when opened.
