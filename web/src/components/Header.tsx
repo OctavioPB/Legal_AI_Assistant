@@ -10,7 +10,7 @@ import type { Theme } from "@/lib/theme";
 import { ThemeToggle } from "./ThemeToggle";
 
 const WORK = ["conversar", "investigacion", "argumentar"] as const;
-const TOOLS = ["leyes", "documentos", "verificar", "asuntos", "reformas"] as const;
+const TOOLS = ["leyes", "documentos", "verificar", "asuntos", "reformas", "noticias"] as const;
 
 // Stroke icons (decorative: every link has its visible text). Brand.md 11.1.
 const ICON: Record<string, string> = {
@@ -23,6 +23,7 @@ const ICON: Record<string, string> = {
   verificar: "M5 12l5 5L20 7",
   asuntos: "M3 7h18v12H3z M8 7V4h8v3",
   reformas: "M12 4a8 8 0 1 1 0 16a8 8 0 0 1 0-16z M12 8v4l3 2",
+  noticias: "M4 5h13v14H6a2 2 0 0 1-2-2z M17 9h3v8a2 2 0 0 1-2 2 M7 9h7 M7 13h7 M7 16h4",
   settings: "M12 9a3 3 0 1 1 0 6a3 3 0 0 1 0-6z M12 3v3 M12 18v3 M3 12h3 M18 12h3",
 };
 

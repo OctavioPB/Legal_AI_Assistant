@@ -105,6 +105,13 @@ es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
     `app/ingestion/corpus.py`. El verificador de escritos aún no reconoce por nombre las leyes aprobadas así
     (se buscan y se citan en las conversaciones, pero "art. 5 de la Ley General de Aguas" en un escrito sale como
     ley no identificada hasta que se agregue su nombre a la gramática).
+  - **Noticias** (`/noticias`, ADR-027): un feed de hasta 30 notas jurídicas que se actualiza en la misma revisión
+    diaria. Entran las reformas que cargó el vigilante, las leyes nuevas y las reformas recientes del índice
+    oficial, los comunicados de la Suprema Corte y notas de prensa (Nexos "El juego de la Corte"; de El
+    Financiero y La Jornada solo las que mencionan términos jurídicos). Se ordenan con reglas fijas (fuente
+    oficial primero, términos jurídicos, fecha); el modelo no interviene y cada nota se muestra con las palabras
+    de su fuente y su enlace. A mano: `uv run python -m app.news.pipeline` (`--dry-run` muestra el feed sin
+    guardarlo). Si en la semana hubo pocas noticias jurídicas, el feed muestra menos de 30: no se rellena.
   - Al iniciar la demo se revisa en segundo plano si la última revisión tiene más de 20 h.
   - Revisión diaria (03:00, o al encender el equipo): `dev-up.ps1 -ScheduleReforms`; quitarla:
     `-UnscheduleReforms`. A mano: `dev-up.ps1 -WatchReforms -IfStaleHours 0` (`-DryRun` no escribe nada).

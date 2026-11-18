@@ -71,6 +71,15 @@ const STUBS = {
   ],
   reforms: { changes: [{ id: "c1", official_id: "LFT", title: "Ley Federal del Trabajo", old_version: "2026.05.14", new_version: "2026.10.01", published_on: "2026-10-01", detected_at: "2026-11-08T09:00:00Z", counts: { amended: 2, added: 2, derogated: 1, removed: 1, unchanged: 30 } }],
     checks: [{ official_id: "LFT", checked_at: "2026-11-08T09:00:00Z", outcome: "ingested", http_status: 200, detail: null }, { official_id: "CC_NL", checked_at: "2026-11-08T09:00:00Z", outcome: "skipped", http_status: null, detail: "inbox" }] },
+  // ADR-027: the shared legal news feed (sample data)
+  news: { refreshed_at: "2026-11-17T09:00:00Z", items: [
+    { id: "n1", kind: "court", title: "La Suprema Corte resuelve un amparo en revisión [ejemplo]", url: "https://www.internet2.scjn.gob.mx/red2/comunicados/comunicado.asp?id=1", outlet: "Suprema Corte de Justicia de la Nación · Comunicado 1", official: true, published_at: null, first_seen_at: "2026-11-17T09:00:00Z", excerpt: null, terms: ["Suprema Corte", "amparo"], facts: {}, score: 6.5 },
+    { id: "n2", kind: "reform", title: "Ley Federal del Trabajo", url: "/reformas?c=c1", outlet: "Vigilante de reformas", official: true, published_at: "2026-10-01T12:00:00Z", first_seen_at: "2026-11-08T09:00:00Z", excerpt: null, terms: ["ley"], facts: { counts: { amended: 2, added: 2 } }, score: 5.1 },
+    { id: "n3", kind: "press", title: "Decidirá la Corte si atrae un litigio [ejemplo]", url: "https://www.jornada.com.mx/ejemplo", outlet: "La Jornada", official: false, published_at: "2026-11-16T08:00:00Z", first_seen_at: "2026-11-17T09:00:00Z", excerpt: "Extracto publicado por la fuente. [texto de ejemplo]", terms: ["Suprema Corte", "juicio"], facts: {}, score: 4.2 },
+  ], sources: [
+    { source_id: "scjn", outlet: "Suprema Corte de Justicia de la Nación", official: true, checked_at: "2026-11-17T09:00:00Z", outcome: "collected" },
+    { source_id: "jornada_politica", outlet: "La Jornada", official: false, checked_at: "2026-11-17T09:00:00Z", outcome: "blocked" },
+  ] },
   "reforms/alerts": [{ where: "matter_source", target_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", target_title: "Pérez vs. ACME", kind: null, matter_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", cite_id: "MX-FED-LFT-ART47-FRACII-v2026.05.14", citation_string: "Ley Federal del Trabajo, art. 47, fracc. II", change: "amended", published_on: "2026-10-01", current_cite_id: "MX-FED-LFT-ART47-FRACII-v2026.10.01" }],
 };
 const POSTS = {
@@ -141,7 +150,7 @@ await page.getByLabel("Mensaje").fill("");
 
 // ---- the three workspaces (ADR-016, Brand.md 8) ----------------------------------------------
 const nav = page.getByRole("navigation", { name: "Secciones" });
-check("the side rail links home, the three workspaces and the tools (Brand.md 11.1)", (await nav.getByRole("link").allInnerTexts()).join("|") === "Inicio|Conversar|Investigación|Argumentar|Leyes|Documentos|Verificar|Asuntos|Reformas");
+check("the side rail links home, the three workspaces and the tools (Brand.md 11.1)", (await nav.getByRole("link").allInnerTexts()).join("|") === "Inicio|Conversar|Investigación|Argumentar|Leyes|Documentos|Verificar|Asuntos|Reformas|Noticias");
 check("the open workspace is aria-current", (await nav.getByRole("link", { name: "Conversar" }).getAttribute("aria-current")) === "page");
 check("an empty history says so", (await page.locator(".history").innerText()).includes("Aún no hay conversaciones"));
 await nav.getByRole("link", { name: "Investigación" }).click();
@@ -200,6 +209,13 @@ check("work starts inside the matter from its own links", (await page.getByRole(
 await page.goto(`${BASE}/reformas`);
 await page.locator(".alert-list").waitFor();
 check("Reformas lists the affected work and every source check", (await page.locator(".alert-list").innerText()).includes("Pérez vs. ACME") && (await page.locator(".checks tbody tr").count()) === 2);
+await page.goto(`${BASE}/noticias`);
+await page.locator(".news-list").waitFor();
+check("Noticias lists the feed with its kind, source and why it is there", (await page.locator(".news-item").count()) === 3 && (await page.locator(".news-list").innerText()).includes("Por qué aparece"));
+check("an external news link opens without a referrer", (await page.locator('.news-item a[href^="https://"]').evaluateAll((as) => as.every((a) => a.rel.includes("noreferrer") && a.target === "_blank"))));
+await page.getByRole("button", { name: "Prensa" }).click();
+check("the news filter shows only the chosen kind", (await page.locator(".news-item").count()) === 1);
+check("a refused news source is said in words", (await page.locator("table.checks").innerText()).includes("La fuente rechazó la lectura"));
 await page.goto(`${BASE}/conversar`);
 
 // Language, theme and sign-out live in the "Ajustes" side panel (Brand.md 10): open it, choose, close.
@@ -306,6 +322,7 @@ await tabReachesEverything("/leyes?ley=LFT&p=d.tsegundo.civ.art47", "Leyes");
 await tabReachesEverything("/verificar", "Verificar");
 await tabReachesEverything(`/asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b`, "Asuntos");
 await tabReachesEverything("/reformas", "Reformas");
+await tabReachesEverything("/noticias", "Noticias");
 await page.goto(`${BASE}/conversar`);
 
 // ---- phone width: the rail becomes a band that stays small, settings behind one button (11.1) --
@@ -348,7 +365,7 @@ for (const p of ["conversar", "investigacion", "argumentar"]) {
   await axe(`${p} (dark)`);
   await pick("Claro");
 }
-for (const [p, ready] of [["leyes?ley=LFT&p=d.tsegundo.civ.art47", "#law-node-title"], ["verificar", ".verify-form"], ["documentos", ".file-list"], ["asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", "#matter-title"], ["reformas", ".alert-list"]]) {
+for (const [p, ready] of [["leyes?ley=LFT&p=d.tsegundo.civ.art47", "#law-node-title"], ["verificar", ".verify-form"], ["documentos", ".file-list"], ["asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", "#matter-title"], ["reformas", ".alert-list"], ["noticias", ".news-list"]]) {
   await page.goto(`${BASE}/${p}`);
   await page.locator(ready).waitFor();
   await axe(`${p.split("?")[0]} (light)`);

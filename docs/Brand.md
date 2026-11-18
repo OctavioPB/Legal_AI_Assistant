@@ -308,6 +308,21 @@ Mismo marco que §8 (barra, tokens, tipografía, tono); ninguna herramienta usa 
 - El visor de fuentes (§3.5) muestra, si aplica, "Esta disposición cambió después de citarse (…)" en
   `--accent-ink` con la versión vigente en mono.
 
+### 9.8 Noticias (ADR-027, 2026-11-17)
+- Entrada "Noticias" al final de las herramientas de la barra lateral (§11.1), con ícono de periódico.
+- Encabezado `h1` "Noticias", la explicación de cómo se eligen (reglas fijas, nunca el modelo) y "Actualizado: …".
+- Filtros como botones con `aria-pressed` (Todas · Cambios a la legislación · Tribunales · Prensa). El activo se
+  marca con borde y subrayado `--accent-ink`, nunca con `--accent` puro (§6).
+- Cada nota es una tarjeta (`--surface`, borde `--line`, `--radius`):
+  - primera línea: insignia neutra del tipo, insignia "Fuente oficial" en `--accent-ink` si aplica, medio y fecha;
+    sin fecha de la fuente se dice "vista el …", nunca se inventa una;
+  - título `h2` como enlace: el externo abre en pestaña nueva con `rel="noreferrer noopener"`, el interno
+    (`/reformas`) navega dentro de la app;
+  - el extracto de la propia fuente, como texto; los conteos de una reforma; "Por qué aparece: …" con los términos.
+- Ningún color de verificación (§3) se usa en noticias: una nota no es una cita verificada.
+- Al final, `h2` "Fuentes": tabla (fuente, leída, resultado en palabras). Una fuente que rechaza la lectura se dice
+  "La fuente rechazó la lectura" y no se insiste.
+
 ### 9.6 Modelo de una conversación (ADR-024, 2026-11-09)
 - Al crear (Conversar, Investigación, Argumentar): `fieldset` "Modelo" con una tarjeta-radio por modelo USABLE
   (configurado en el servidor y permitido por el despacho); se oculta si solo hay uno. Cada tarjeta: nombre,

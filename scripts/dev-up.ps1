@@ -220,13 +220,21 @@ function Invoke-ReformWatch {
         Start-Process -FilePath (Get-Command ollama).Source -ArgumentList "serve" -WindowStyle Hidden | Out-Null
         for ($i = 0; $i -lt 30 -and -not $up; $i++) { Start-Sleep -Seconds 2; $up = Test-Http "$OllamaUrl/api/version" }
     }
-    if (-not $up) { Log "Ollama no responde (el embedder es necesario para cargar una reforma): se omite"; return }
-    $cmdline = "uv run python -m app.ingestion.watch"
-    if ($IfStaleHours -gt 0) { $cmdline += " --if-stale $IfStaleHours" }
-    if ($DryRun) { $cmdline += " --dry-run" }
     $env:PYTHONIOENCODING = "utf-8"
-    cmd /c "$cmdline >> `"$log`" 2>&1"
-    Log "fin (código $LASTEXITCODE)"
+    if (-not $up) {
+        Log "Ollama no responde (el embedder es necesario para cargar una reforma): se omite la revisión de leyes"
+    } else {
+        $cmdline = "uv run python -m app.ingestion.watch"
+        if ($IfStaleHours -gt 0) { $cmdline += " --if-stale $IfStaleHours" }
+        if ($DryRun) { $cmdline += " --dry-run" }
+        cmd /c "$cmdline >> `"$log`" 2>&1"
+        Log "leyes: fin (código $LASTEXITCODE)"
+    }
+    # ADR-027: noticias (no usa el modelo; después del vigilante, para incluir las reformas del día)
+    $news = "uv run python -m app.news.pipeline"
+    if ($DryRun) { $news += " --dry-run" }
+    cmd /c "$news >> `"$log`" 2>&1"
+    Log "noticias: fin (código $LASTEXITCODE)"
 }
 
 function Update-ReformTask {

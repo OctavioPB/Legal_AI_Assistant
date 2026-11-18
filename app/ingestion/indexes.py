@@ -52,7 +52,7 @@ class IndexSpec:
     grammar: Literal["mx", "us"]
 
 
-class _Rows(HTMLParser):
+class TableRows(HTMLParser):
     """Table rows as lists of cells (text, hrefs)."""
 
     def __init__(self) -> None:
@@ -117,7 +117,7 @@ def parse_diputados(body: bytes, base_url: str) -> list[IndexEntry]:
     """Cámara de Diputados, "Leyes Federales Vigentes": one row per law with its number, its title
     followed by "DOF dd/mm/yyyy" (publication) and an optional note, the last reform ("DOF
     dd/mm/yyyy", "Sin reforma", "... Sentencia SCJN") and the links (pdf/KEY.pdf)."""
-    p = _Rows()
+    p = TableRows()
     p.feed(decode_html(body))
     out: dict[str, IndexEntry] = {}
     for row in p.rows:

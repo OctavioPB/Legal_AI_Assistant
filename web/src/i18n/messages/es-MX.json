@@ -20,7 +20,8 @@
     "work": "Trabajo",
     "tools": "Herramientas",
     "reformas": "Reformas",
-    "documentos": "Documentos"
+    "documentos": "Documentos",
+    "noticias": "Noticias"
   },
   "lang": {
     "es-MX": "Español",
@@ -658,6 +659,47 @@
       "busy": "Hay demasiadas solicitudes. Espere un momento e inténtelo de nuevo.",
       "matter": "El asunto ya no está disponible. Elija otro o súbalo sin asunto.",
       "generic": "No se pudo subir el documento. Inténtelo de nuevo."
+    }
+  },
+  "news": {
+    "title": "Noticias",
+    "intro": "Cambios a la legislación, criterios de la Suprema Corte y notas de prensa sobre asuntos jurídicos. Se eligen con reglas fijas (fuente oficial primero, términos jurídicos y fecha), no con el modelo, y cada nota se muestra con las palabras de su fuente.",
+    "refreshed": "Actualizado: {when}",
+    "never": "Todavía no hay noticias. El feed se actualiza cada día junto con la revisión de reformas.",
+    "loadError": "No fue posible cargar las noticias. Intente de nuevo.",
+    "show": "Mostrar",
+    "filter": {
+      "all": "Todas",
+      "law": "Cambios a la legislación",
+      "court": "Tribunales",
+      "press": "Prensa"
+    },
+    "none": "Ninguna nota de este tipo por ahora.",
+    "kind": {
+      "reform": "Reforma cargada",
+      "new_law": "Ley nueva",
+      "recent_reform": "Reforma reciente",
+      "court": "Suprema Corte",
+      "press": "Prensa"
+    },
+    "official": "Fuente oficial",
+    "seen": "vista el {date}",
+    "why": "Por qué aparece: {terms}",
+    "lastReform": "Última reforma: {text}",
+    "openSource": "Abrir en la fuente",
+    "openInApp": "Ver qué cambió",
+    "sources": "Fuentes",
+    "sourcesHelp": "Lista cerrada de fuentes. Si una rechaza la lectura automática, se anota y no se insiste. De la prensa solo se guardan título, medio, fecha, enlace y el extracto que publica la propia fuente.",
+    "source": "Fuente",
+    "checkedAt": "Leída",
+    "result": "Resultado",
+    "notYet": "Sin leer todavía",
+    "outcome": {
+      "collected": "Leída",
+      "unchanged": "Sin cambios",
+      "blocked": "La fuente rechazó la lectura",
+      "failed": "Error al leer",
+      "skipped": "Se reintenta en la siguiente revisión"
     }
   }
 }

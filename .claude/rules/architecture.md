@@ -377,6 +377,34 @@ below are the original one-liners and are Accepted.
   monterrey.gob.mx and leginfo; state and municipal indexes (Periódico Oficial de NL, Gaceta Municipal de
   Monterrey) one at a time, each after that review.
 
+- ADR-027 (Accepted 2026-11-17, every option chosen by the product owner): A legal news feed of 30 items, from official
+  sources and press, chosen by fixed rules, shown in the sources' own words. Amends ADR-017 (a) again: the job
+  that may reach the network now also reads a closed list of news sources, and for the first time some are NOT
+  official (press). Options asked: sources (official + press / official only / press only), relevance (fixed rules
+  / rules + local model / model only), text shown (source's own / plus a model summary marked unverified).
+  Decision: official + press, fixed rules, source's own text. (1) Sources (`app/news/sources.py`): internal (the
+  reforms the watcher recorded; the official index's new laws and reforms of the last `news_recent_days`), SCJN
+  press-release listing, and three RSS feeds (Nexos "El juego de la Corte"; El Financiero and La Jornada Política,
+  which only contribute items that name legal terms). Checked 2026-11-17 and left out: Google News RSS (its
+  robots.txt disallows our client), Proceso and El Economista (403), DOF (no answer), Gaceta Parlamentaria (403).
+  Same rules as the watcher: https, robots.txt, one request, conditional GET, a block recorded as `news:<id>` and
+  never evaded; RSS with a DTD/entities is refused before parsing. (2) Relevance (`app/news/score.py`): source
+  weight (official 2.5-3, legal blog 1.5, general press 1) + legal terms from a closed catalog on folded text
+  (capped at 3; "iniciativa" only in its legislative sense) + recency (half-life `news_half_life_days`); the same
+  story from two sources once (title similarity across sources only: one index lists distinct laws with
+  near-identical titles); at most `news_max_per_source` per source; the matched terms are stored and shown
+  ("Por qué aparece"). (3) Text: title, outlet, date and the summary the feed itself publishes, clipped to
+  `news_excerpt_chars`; no article body is fetched, nothing is generated, so the zero-hallucination contract is
+  untouched (the model is not involved). (4) Storage: `news_items` under the public corpus tenant (one feed for
+  every firm, written only by `corpus_ingestor`, the API reads it: `GET /news`); an item that leaves the top
+  `news_feed_size` is retired (`in_feed = false`), never deleted; an item keeps the day it was first seen.
+  (5) Runs after the reform watcher in the daily task (`dev-up.ps1 -WatchReforms`), also when Ollama is down (it
+  needs no model). Consequences: press outlets appear inside a legal product, labelled as press and never as
+  sources of an answer; their terms of use are the firm's to review; the feed shows official items above press by
+  construction, so a slow news week shows fewer than 30 items rather than filler. Pending: a person reviews the
+  terms of use of each press source; a source of legislative proposals (initiatives) that allows automated
+  reading (the Gaceta Parlamentaria refuses it).
+
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →
 hybrid search (prefiltered) → RRF → rerank → τ check → parent expansion → prompt composer →

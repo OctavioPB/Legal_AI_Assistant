@@ -184,6 +184,7 @@ def overview(p: PrincipalDep, st: StateDep) -> Overview:
                 "WHERE d.official_id = s.official_id AND d.valid_to IS NULL "
                 "ORDER BY d.ingested_at DESC LIMIT 1) AS title "
                 "FROM source_checks s WHERE s.official_id NOT LIKE 'index:%' "
+                "AND s.official_id NOT LIKE 'news:%' "
                 "ORDER BY s.official_id, s.checked_at DESC"
             )
         ).all()

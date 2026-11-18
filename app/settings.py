@@ -81,6 +81,13 @@ class Settings(BaseSettings):
     # ADR-026: California's archive is read by byte ranges; the first run reads every section of
     # the code once (~2 700 requests for the Labor Code), later runs only the changed ones.
     leginfo_max_requests: int = 4_000
+    # ADR-027: the legal news feed (fixed rules, no model)
+    news_feed_size: int = 30
+    news_recent_days: int = 30  # reforms and index changes older than this are not news
+    news_half_life_days: float = 7.0  # recency bonus halves every week
+    news_min_press_terms: float = 1.0  # legal-term weight a general outlet's item needs
+    news_excerpt_chars: int = 280  # the source's own summary, clipped
+    news_max_per_source: int = 10  # no single source fills the feed (official index, SCJN)
     # Retrieval experiments (golden protocol, 2026-11-08). Off by default until measured:
     # lexical_match "any" ORs the query lexemes (websearch_to_tsquery ANDs them: a natural question
     # matched nothing); rerank_breadcrumb scores breadcrumb + text, as the chunks were embedded.

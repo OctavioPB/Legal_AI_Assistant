@@ -358,6 +358,14 @@ def seed_lineage(
             ),
             {"t": tenant},
         )
+        conn.execute(  # ADR-027: a news item
+            text(
+                "INSERT INTO news_items (tenant_id, source_id, kind, title, url, outlet, score, "
+                "official) VALUES (:t, 'scjn', 'court', 'Comunicado', "
+                "'https://example.invalid/c1', 'SCJN', 1.0, true)"
+            ),
+            {"t": tenant},
+        )
 
 
 def search_like_retrieval(conn: Connection, query: str, k: int = 50) -> list[dict[str, object]]:

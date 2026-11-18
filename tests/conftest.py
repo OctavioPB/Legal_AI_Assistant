@@ -105,7 +105,7 @@ def clean_data(admin_engine: Engine) -> Iterator[None]:
         conn.execute(
             text(
                 "TRUNCATE client_files, cite_lineage, corpus_changes, source_checks, corpus_sources, "
-                "corpus_index_entries, chunks, doc_nodes, documents, "
+                "corpus_index_entries, news_items, chunks, doc_nodes, documents, "
                 "matter_sources, matter_notes, verification_reports, messages, conversations, "
                 "matter_members, matters, dossiers, tenant_model_policy, sessions, users, audit_log "
                 "RESTART IDENTITY"

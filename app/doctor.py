@@ -242,7 +242,8 @@ def check_reforms(conn: Connection, tau_path: Path | None = None) -> list[Check]
         conn.execute(
             text(
                 "SELECT official_id FROM (SELECT DISTINCT ON (official_id) official_id, outcome "
-                "FROM source_checks ORDER BY official_id, checked_at DESC) x "
+                "FROM source_checks WHERE official_id NOT LIKE 'news:%' "
+                "ORDER BY official_id, checked_at DESC) x "
                 "WHERE outcome IN ('blocked','failed') ORDER BY official_id"
             )
         )
@@ -265,9 +266,26 @@ def check_reforms(conn: Connection, tau_path: Path | None = None) -> list[Check]
     return out
 
 
+def check_news(conn: Connection) -> list[Check]:
+    """ADR-027: the news feed was refreshed recently (it runs with the daily reform watcher). Press
+    sources are not legal sources: one of them failing is reported here, never as a blocked law."""
+    last = conn.execute(
+        text(
+            "SELECT max(refreshed_at) AS at, now() - max(refreshed_at) > make_interval(days => :d) "
+            "AS old FROM news_items"
+        ),
+        {"d": WATCH_STALE_DAYS},
+    ).one()
+    if last.at is None:
+        return [Check("news feed refreshed (ADR-027)", "WARN",
+                      "never: python -m app.news.pipeline (runs with dev-up.ps1 -WatchReforms)")]  # fmt: skip
+    return [Check("news feed refreshed (ADR-027)", "WARN" if last.old else "PASS",
+                  f"last refresh {last.at:%Y-%m-%d %H:%M}")]  # fmt: skip
+
+
 DB_CHECKS: tuple[Callable[[Connection], list[Check]], ...] = (
     check_extensions, check_roles, check_rls, check_behaviour, check_search_config, check_generations,
-    check_reforms,
+    check_reforms, check_news,
 )  # fmt: skip
 
 

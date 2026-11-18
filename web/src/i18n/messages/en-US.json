@@ -20,7 +20,8 @@
     "work": "Work",
     "tools": "Tools",
     "reformas": "Amendments",
-    "documentos": "Documents"
+    "documentos": "Documents",
+    "noticias": "News"
   },
   "lang": {
     "es-MX": "Español",
@@ -658,6 +659,47 @@
       "busy": "Too many requests. Wait a moment and try again.",
       "matter": "The matter is no longer available. Choose another or upload it without a matter.",
       "generic": "The document could not be uploaded. Try again."
+    }
+  },
+  "news": {
+    "title": "News",
+    "intro": "Changes to legislation, Supreme Court decisions and press items on legal matters. They are chosen by fixed rules (official sources first, legal terms and date), not by the model, and each item is shown in its source's own words.",
+    "refreshed": "Updated: {when}",
+    "never": "No news yet. The feed is updated every day together with the reform check.",
+    "loadError": "The news could not be loaded. Please try again.",
+    "show": "Show",
+    "filter": {
+      "all": "All",
+      "law": "Changes to legislation",
+      "court": "Courts",
+      "press": "Press"
+    },
+    "none": "No items of this kind for now.",
+    "kind": {
+      "reform": "Reform loaded",
+      "new_law": "New law",
+      "recent_reform": "Recent reform",
+      "court": "Supreme Court",
+      "press": "Press"
+    },
+    "official": "Official source",
+    "seen": "seen on {date}",
+    "why": "Why it is here: {terms}",
+    "lastReform": "Last reform: {text}",
+    "openSource": "Open at the source",
+    "openInApp": "See what changed",
+    "sources": "Sources",
+    "sourcesHelp": "A closed list of sources. If one refuses automated reading, that is recorded and not retried. From the press only the title, outlet, date, link and the source's own summary are kept.",
+    "source": "Source",
+    "checkedAt": "Read",
+    "result": "Result",
+    "notYet": "Not read yet",
+    "outcome": {
+      "collected": "Read",
+      "unchanged": "No changes",
+      "blocked": "The source refused reading",
+      "failed": "Error reading",
+      "skipped": "Retried at the next check"
     }
   }
 }

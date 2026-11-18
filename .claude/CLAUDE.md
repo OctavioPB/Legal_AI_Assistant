@@ -72,6 +72,7 @@ uv run python -m app.demo                          # demo firm + user (random pa
 uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate the refusal threshold from the probe sets
 uv run pytest -m live                              # real local models (Ollama must be running)
 uv run python -m app.ingestion.watch [--only LFT] [--dry-run] [--check-urls] [--if-stale 20] [--no-indexes]   # reform watcher (ADR-017/026; the ONLY job with network: official URLs of corpus.py + indexes.py)
+uv run python -m app.news.pipeline [--dry-run]     # ADR-027: legal news feed (30 items, fixed rules, sources' own text); runs after the watcher in -WatchReforms
 uv run python -m app.ingestion.discover list [--status new] [--search aguas] | approve DIP_FED:LGAg --domain environmental --by NAME | dismiss ...   # ADR-026: laws found in official indexes; approval = operator only
 powershell -File scripts/dev-up.ps1 -ScheduleReforms | -UnscheduleReforms | -WatchReforms [-DryRun]   # daily 03:00 Windows task / run the reform check now
 # firm documents (ADR-025): uploaded from the web (/documentos) -> POST /files; no CLI. One background thread, status in `client_files`

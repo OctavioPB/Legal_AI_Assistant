@@ -572,3 +572,28 @@ export const listAlerts = () => json<Alert[]>("reforms/alerts");
 export const getReforms = () => json<ReformOverview>("reforms");
 export const getDiscovery = () => json<Discovery>("reforms/indexes");
 export const getReformDetail = (id: string) => json<LineageRow[]>(`reforms/${encodeURIComponent(id)}`);
+
+// ---- legal news (ADR-027) ------------------------------------------------------------------------
+/** One item of the shared feed. Title and excerpt are the source's own words (never generated). */
+export interface NewsItem {
+  id: string;
+  kind: "reform" | "new_law" | "recent_reform" | "court" | "press";
+  title: string;
+  url: string; // https:// (the source) or /reformas?c=... (inside the app)
+  outlet: string;
+  official: boolean;
+  published_at: string | null; // null: the source gives no date (first_seen_at is shown)
+  first_seen_at: string;
+  excerpt: string | null;
+  terms: string[];
+  facts: { counts?: Record<string, number>; last_reform?: string | null; note?: string | null };
+  score: number;
+}
+
+export interface NewsFeed {
+  refreshed_at: string | null;
+  items: NewsItem[];
+  sources: { source_id: string; outlet: string; official: boolean; checked_at: string | null; outcome: string | null }[];
+}
+
+export const getNews = () => json<NewsFeed>("news");

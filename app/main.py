@@ -21,6 +21,7 @@ from app.api.laws import router as laws_router
 from app.api.matters import router as matters_router
 from app.api.models import register_model_errors
 from app.api.models import router as models_router
+from app.api.news import router as news_router
 from app.api.reforms import router as reforms_router
 from app.api.routes import register_errors, router
 from app.api.verify import router as verify_router
@@ -172,7 +173,7 @@ def create_app(state: AppState | None = None) -> FastAPI:
     app.include_router(router)
     app.include_router(conversations_router)
     for r in (matters_router, laws_router, verify_router, reforms_router, models_router,
-              files_router):  # fmt: skip
+              files_router, news_router):  # fmt: skip
         app.include_router(r)
     register_errors(app)
     register_model_errors(app)

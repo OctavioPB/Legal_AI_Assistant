@@ -1393,6 +1393,58 @@ main {
   }
 }
 
+/* ---- Noticias (ADR-027, Brand.md 9.8) ---------------------------------------------------------- */
+.news-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.news-filters [aria-pressed="true"] {
+  border-color: var(--accent-ink);
+  box-shadow: inset 0 -2px 0 var(--accent-ink);
+}
+.news-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.news-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--space-3) var(--space-4);
+}
+.news-item p {
+  margin: var(--space-1) 0;
+}
+.news-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.news-kind {
+  border-color: var(--border);
+  color: inherit;
+}
+.news-official {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+.news-title {
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  margin: var(--space-1) 0;
+  overflow-wrap: anywhere;
+}
+.news-excerpt {
+  overflow-wrap: anywhere;
+}
+
 /* ---- 4. Brand overrides (keep LAST): the OPB skin, Brand.md v2 ----------------------------- */
 /* Typography: Plus Jakarta Sans for UI, Fraunces 300 for titles (italic gold-ink on the key word),
    Source Serif 4 stays for statute text, JetBrains Mono for identifiers. */
