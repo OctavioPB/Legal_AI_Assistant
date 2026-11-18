@@ -80,6 +80,9 @@ const STUBS = {
     { source_id: "scjn", outlet: "Suprema Corte de Justicia de la Nación", official: true, checked_at: "2026-11-17T09:00:00Z", outcome: "collected" },
     { source_id: "jornada_politica", outlet: "La Jornada", official: false, checked_at: "2026-11-17T09:00:00Z", outcome: "blocked" },
   ] },
+  // ADR-028: the key-points sheet of the sample matter
+  "matters/0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b/cheatsheets": [{"id":"5f0c1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b","matter_id":"0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b","created_at":"2026-11-17T10:00:00Z","created_by_name":"Ana","language":"es","model_profile":"gemma","status":"answered","content":"## PUNTOS CLAVE\n- La falta de probidad u honradez del trabajador es causa de rescisión sin responsabilidad para el patrón [cite: MX-FED-LFT-ART47-FRACII-v2026.10.01].\n- El trabajador puede pedir la reinstalación o la indemnización de tres meses de salario [cite: MX-FED-LFT-ART48-v2026.10.01].\n- La causa debe acreditarse con hechos concretos ocurridos durante las labores [cite: MX-FED-LFT-ART47-FRACII-v2026.10.01].\n## RIESGOS\n- La contraparte sostendrá que el despido fue injustificado y pedirá la reinstalación [cite: MX-FED-LFT-ART48-v2026.10.01].\n- [razonamiento estratégico] No hay constancia escrita del aviso de rescisión entregado al trabajador.\n## PREGUNTAS PARA EL CLIENTE\n- [razonamiento estratégico] ¿En qué fecha exacta ocurrió la falta y quién la presenció?\n- [razonamiento estratégico] ¿Se entregó al trabajador el aviso por escrito con la causa del despido?\n- [razonamiento estratégico] ¿Existen registros de asistencia, correos o videos de ese día?\n## TEMAS A REVISAR\n- [razonamiento estratégico] Confirmar el plazo de prescripción para la acción del trabajador.\n- [razonamiento estratégico] Reunir recibos de nómina y el contrato individual de trabajo.","citations":[{"cite_id":"MX-FED-LFT-ART47-FRACII-v2026.10.01","citation_string":"Ley Federal del Trabajo, art. 47, fracc. II"},{"cite_id":"MX-FED-LFT-ART48-v2026.10.01","citation_string":"Ley Federal del Trabajo, art. 48"}],"material":{"conversations":2,"notes":1,"saved_sources":1,"sources":2,"material_chars":3000}}],
+  "matters/0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b/cheatsheets/5f0c1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b": {"id":"5f0c1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b","matter_id":"0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b","created_at":"2026-11-17T10:00:00Z","created_by_name":"Ana","language":"es","model_profile":"gemma","status":"answered","content":"## PUNTOS CLAVE\n- La falta de probidad u honradez del trabajador es causa de rescisión sin responsabilidad para el patrón [cite: MX-FED-LFT-ART47-FRACII-v2026.10.01].\n- El trabajador puede pedir la reinstalación o la indemnización de tres meses de salario [cite: MX-FED-LFT-ART48-v2026.10.01].\n- La causa debe acreditarse con hechos concretos ocurridos durante las labores [cite: MX-FED-LFT-ART47-FRACII-v2026.10.01].\n## RIESGOS\n- La contraparte sostendrá que el despido fue injustificado y pedirá la reinstalación [cite: MX-FED-LFT-ART48-v2026.10.01].\n- [razonamiento estratégico] No hay constancia escrita del aviso de rescisión entregado al trabajador.\n## PREGUNTAS PARA EL CLIENTE\n- [razonamiento estratégico] ¿En qué fecha exacta ocurrió la falta y quién la presenció?\n- [razonamiento estratégico] ¿Se entregó al trabajador el aviso por escrito con la causa del despido?\n- [razonamiento estratégico] ¿Existen registros de asistencia, correos o videos de ese día?\n## TEMAS A REVISAR\n- [razonamiento estratégico] Confirmar el plazo de prescripción para la acción del trabajador.\n- [razonamiento estratégico] Reunir recibos de nómina y el contrato individual de trabajo.","citations":[{"cite_id":"MX-FED-LFT-ART47-FRACII-v2026.10.01","citation_string":"Ley Federal del Trabajo, art. 47, fracc. II"},{"cite_id":"MX-FED-LFT-ART48-v2026.10.01","citation_string":"Ley Federal del Trabajo, art. 48"}],"material":{"conversations":2,"notes":1,"saved_sources":1,"sources":2,"material_chars":3000}},
   "reforms/alerts": [{ where: "matter_source", target_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", target_title: "Pérez vs. ACME", kind: null, matter_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", cite_id: "MX-FED-LFT-ART47-FRACII-v2026.05.14", citation_string: "Ley Federal del Trabajo, art. 47, fracc. II", change: "amended", published_on: "2026-10-01", current_cite_id: "MX-FED-LFT-ART47-FRACII-v2026.10.01" }],
 };
 const POSTS = {
@@ -216,6 +219,18 @@ check("an external news link opens without a referrer", (await page.locator('.ne
 await page.getByRole("button", { name: "Prensa" }).click();
 check("the news filter shows only the chosen kind", (await page.locator(".news-item").count()) === 1);
 check("a refused news source is said in words", (await page.locator("table.checks").innerText()).includes("La fuente rechazó la lectura"));
+await page.goto(`${BASE}/asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b`);
+await page.locator(".sheet-latest").waitFor();
+check("a matter offers its key-points sheet and links the latest one", (await page.locator(".sheet-section").innerText()).includes("Generar hoja de puntos clave") && (await page.getByRole("link", { name: "Abrir para imprimir o guardar en PDF" }).count()) === 1);
+await page.goto(`${BASE}/asuntos/hoja?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b&h=5f0c1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b`);
+await page.locator(".sheet").waitFor();
+check("the sheet shows its four sections, numbered citations and the cited sources", (await page.locator(".sheet-block").count()) === 4 && (await page.locator(".sheet-cite").first().innerText()) === "[1]" && (await page.locator(".sheet-foot ol li").count()) === 2);
+check("reasoning lines are marked, never styled as citations", (await page.locator(".sheet-reasoning").count()) === 6 && (await page.locator(".sheet-reasoning .sheet-cite").count()) === 0);
+{
+  const pdf = await page.pdf({ format: "Letter", printBackground: false });
+  const pages = (Buffer.from(pdf).toString("latin1").match(/\/Type\s*\/Page[^s]/g) || []).length;
+  check("the sheet prints on ONE letter page", pages === 1, `${pages} pages`);
+}
 await page.goto(`${BASE}/conversar`);
 
 // Language, theme and sign-out live in the "Ajustes" side panel (Brand.md 10): open it, choose, close.
@@ -323,6 +338,7 @@ await tabReachesEverything("/verificar", "Verificar");
 await tabReachesEverything(`/asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b`, "Asuntos");
 await tabReachesEverything("/reformas", "Reformas");
 await tabReachesEverything("/noticias", "Noticias");
+await tabReachesEverything("/asuntos/hoja?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b&h=5f0c1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b", "the key-points sheet");
 await page.goto(`${BASE}/conversar`);
 
 // ---- phone width: the rail becomes a band that stays small, settings behind one button (11.1) --
@@ -365,7 +381,7 @@ for (const p of ["conversar", "investigacion", "argumentar"]) {
   await axe(`${p} (dark)`);
   await pick("Claro");
 }
-for (const [p, ready] of [["leyes?ley=LFT&p=d.tsegundo.civ.art47", "#law-node-title"], ["verificar", ".verify-form"], ["documentos", ".file-list"], ["asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", "#matter-title"], ["reformas", ".alert-list"], ["noticias", ".news-list"]]) {
+for (const [p, ready] of [["leyes?ley=LFT&p=d.tsegundo.civ.art47", "#law-node-title"], ["verificar", ".verify-form"], ["documentos", ".file-list"], ["asuntos?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", "#matter-title"], ["reformas", ".alert-list"], ["noticias", ".news-list"], ["asuntos/hoja?m=0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b&h=5f0c1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b", ".sheet"]]) {
   await page.goto(`${BASE}/${p}`);
   await page.locator(ready).waitFor();
   await axe(`${p.split("?")[0]} (light)`);

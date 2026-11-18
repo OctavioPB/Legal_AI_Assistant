@@ -32,7 +32,7 @@ _ELLIPSIS = re.compile(r"\[?\s*(?:\.\.\.|…)\s*\]?")
 
 # Workflows whose answers may carry [razonamiento estratégico] instead of a citation (prompts.md):
 # the opposing counsel (adversarial) and the user's own advocate (argumentar, ADR-016).
-STRATEGIC_WORKFLOWS = frozenset({"adversarial", "argumentar"})
+STRATEGIC_WORKFLOWS = frozenset({"adversarial", "argumentar", "hoja_clave"})  # + ADR-028
 
 # Template tokens a model copies from a prompt. Compared after upper-casing.
 _PLACEHOLDERS = {"CITE_ID", "X", "ID", "XXX", "...", "…", "N/A", "NA", "NONE", ""} | {

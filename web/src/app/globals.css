@@ -1445,6 +1445,123 @@ main {
   overflow-wrap: anywhere;
 }
 
+/* ---- Hoja de puntos clave (ADR-028, Brand.md 9.9) ------------------------------------------- */
+.sheet-latest {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+.refusal-note {
+  border-left: 3px solid var(--border);
+  padding-left: var(--space-3);
+}
+.sheet-page {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+.sheet-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.sheet {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.sheet-head h1 {
+  font-size: 1.375rem;
+  margin: 0;
+}
+.sheet-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  color: var(--accent-ink);
+  margin: 0;
+}
+.sheet-meta {
+  font-size: 0.8125rem;
+  margin: var(--space-1) 0 var(--space-3);
+}
+.sheet-body {
+  columns: 2 22rem;
+  column-gap: var(--space-6);
+}
+.sheet-block {
+  break-inside: avoid;
+  margin-bottom: var(--space-3);
+}
+.sheet-block h2,
+.sheet-foot h2 {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--line);
+  margin: 0 0 var(--space-1);
+}
+.sheet-block ul {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+.sheet-block li {
+  margin-bottom: var(--space-1);
+}
+.sheet-reasoning {
+  font-style: italic;
+  list-style: none;
+  margin-left: calc(-1 * var(--space-3));
+}
+.sheet-cite {
+  font-size: 0.7em;
+}
+.sheet-foot {
+  border-top: 1px solid var(--line);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  font-size: 0.75rem;
+}
+.sheet-foot ol {
+  columns: 2 18rem;
+  margin: 0 0 var(--space-1);
+  padding-left: var(--space-4);
+}
+.sheet-foot p {
+  margin: var(--space-1) 0;
+}
+@media print {
+  @page {
+    size: letter;
+    margin: 12mm;
+  }
+  .sheet-page {
+    max-width: none;
+    padding: 0;
+  }
+  .sheet {
+    border: 0;
+    padding: 0;
+    font-size: 9pt;
+    line-height: 1.3;
+    background: #fff;
+    color: #000;
+  }
+  .sheet-head h1 {
+    font-size: 14pt;
+  }
+  .sheet-foot {
+    font-size: 7.5pt;
+  }
+  .app-content,
+  .app-shell {
+    display: block;
+  }
+}
+
 /* ---- 4. Brand overrides (keep LAST): the OPB skin, Brand.md v2 ----------------------------- */
 /* Typography: Plus Jakarta Sans for UI, Fraunces 300 for titles (italic gold-ink on the key word),
    Source Serif 4 stays for statute text, JetBrains Mono for identifiers. */

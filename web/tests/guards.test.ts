@@ -24,7 +24,7 @@ const tsx = walk(SRC, [".tsx"]);
 const sources = walk(SRC, [".ts", ".tsx", ".css"]);
 
 // Keys looked up with a computed name (t(`persona.${code}`), reason keys from the server, ...).
-const DYNAMIC_PREFIXES = ["lang.", "theme.", "workspace.persona.", "workspace.country.", "workspace.stage.", "workspace.error.", "refusal.reason.", "mark.", "login.error.", "workbench.case.side.", "nav.", "verify.status.", "verify.statusHelp.", "verify.quote.", "verify.modes.", "verify.errors.", "reforms.change.", "reforms.where.", "reforms.outcome.", "reforms.discovery.status.", "news.kind.", "news.filter.", "news.outcome.", "matters.role.", "home.", "workbench.model.name.", "workbench.model.summary.", "files.kinds.", "files.status.", "files.failed.", "files.errors.", "files.languages."];
+const DYNAMIC_PREFIXES = ["lang.", "theme.", "workspace.persona.", "workspace.country.", "workspace.stage.", "workspace.error.", "refusal.reason.", "mark.", "login.error.", "workbench.case.side.", "nav.", "verify.status.", "verify.statusHelp.", "verify.quote.", "verify.modes.", "verify.errors.", "reforms.change.", "reforms.where.", "reforms.outcome.", "reforms.discovery.status.", "news.kind.", "news.filter.", "news.outcome.", "cheatsheet.status.", "cheatsheet.stage.", "matters.role.", "home.", "workbench.model.name.", "workbench.model.summary.", "files.kinds.", "files.status.", "files.failed.", "files.errors.", "files.languages."];
 
 describe("catalog parity (es-MX / en-US)", () => {
   it("has the same keys, no empty values and the same placeholders", () => {

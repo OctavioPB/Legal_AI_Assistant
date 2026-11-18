@@ -45,6 +45,7 @@ TENANT_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "matters": ("tenant_id", ("private", "matter_root")),
     "matter_members": ("tenant_id", ("private",)),
     "matter_notes": ("tenant_id", ("private", "matter_child")),
+    "matter_cheatsheets": ("tenant_id", ("private", "matter_child")),
     "matter_sources": ("tenant_id", ("private", "matter_child")),
     "verification_reports": ("tenant_id", ("private", "personal")),
     "tenant_model_policy": ("tenant_id", ("private",)),
@@ -380,7 +381,7 @@ def test_matter_membership_is_the_only_way_to_share(
     # the matter, its note, its source, its conversation and its report; NOT the owner's private case
     assert seen == {
         "conversations": 1, "messages": 0, "matters": 1, "matter_notes": 1, "matter_sources": 1,
-        "verification_reports": 1,
+        "matter_cheatsheets": 1, "verification_reports": 1,
     }, seen  # fmt: skip
     with tenant_transaction(app_engine, tenant_a, user_id=colleague) as conn:
         title = conn.execute(text("SELECT title FROM conversations")).scalar_one()

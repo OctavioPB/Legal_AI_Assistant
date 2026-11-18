@@ -701,5 +701,35 @@
       "failed": "Error reading",
       "skipped": "Retried at the next check"
     }
+  },
+  "cheatsheet": {
+    "section": "Key-points sheet",
+    "intro": "A one-page summary for the hearing or trial, built from this matter's conversations, notes and sources. It may cite only sources the matter already cited, and every legal point is checked against their text. The questions for the client and the topics to review are the assistant's reasoning, without normative support.",
+    "generate": "Generate key-points sheet",
+    "stage": {
+      "collecting": "Gathering the matter's material…",
+      "generating": "Drafting and verifying the sheet…"
+    },
+    "error": "The sheet could not be generated. Please try again.",
+    "latest": "Latest sheet",
+    "open": "Open to print or save as PDF",
+    "history": "Earlier sheets",
+    "status": {
+      "answered": "Verified",
+      "refused": "No sheet: the system refused it"
+    },
+    "meta": "{when} · {name}",
+    "none": "This matter has no sheets yet.",
+    "noSources": "This matter has not cited any source yet. Work first in a conversation of the matter or save sources to it.",
+    "refused": "The system did not deliver the sheet because it could not verify every point against the matter's sources. Try again or extend the matter's work.",
+    "title": "Key-points sheet",
+    "generated": "Generated on {when} by {name} · model {model}",
+    "print": "Print or save PDF",
+    "back": "Back to the matter",
+    "sources": "Cited sources",
+    "legend": "Every legal point was checked against the text of the cited source. Items marked ◇ are the assistant's reasoning, without normative support: review them, and confirm with the client what is asked.",
+    "disclaimer": "A support tool; it does not replace the lawyer's professional judgment.",
+    "notFound": "This sheet does not exist or you have no access to it.",
+    "loading": "Loading the sheet…"
   }
 }

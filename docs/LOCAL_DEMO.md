@@ -74,6 +74,13 @@ es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
 - **Verificar** (`/verificar`): pegue o suba un escrito (PDF con texto) y revise cada artículo citado: si existe,
   si está vigente, si la cita textual coincide. **El escrito no se guarda**; solo el reporte (referencias y
   resultados). Las leyes no cargadas se reportan como tales, nunca se adivinan.
+- **Hoja de puntos clave** (dentro de un asunto, ADR-028): "Generar hoja de puntos clave" lee las conversaciones,
+  notas y fuentes guardadas del asunto y escribe una hoja de una página con Puntos clave, Riesgos, Preguntas para
+  el cliente y Temas a revisar. Solo puede citar fuentes que el asunto ya citó, y pasa por la misma verificación
+  que una respuesta: si un punto no se puede verificar, el sistema la rechaza en lugar de entregarla. Las preguntas
+  y los temas van marcados con ◇ (razonamiento del asistente, sin respaldo normativo). "Abrir para imprimir o
+  guardar en PDF" abre la hoja tamaño carta; use "Guardar como PDF" del navegador. Con el modelo local tarda de
+  uno a varios minutos. Un asunto sin fuentes citadas no produce hoja.
 - **Asuntos** (`/asuntos`): carpeta por asunto con conversaciones, investigaciones, casos, verificaciones, fuentes
   guardadas y notas; solo la ven su responsable y los colegas que agregue (aislamiento en la base, ADR-018).
 - **Documentos** (`/documentos`): suba un contrato, un escrito, una resolución o una norma que no esté cargada
