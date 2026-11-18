@@ -1,0 +1,178 @@
+{
+  "id": "E2E-LAB-01",
+  "authored_by": "ai-draft",
+  "reviewed_by": null,
+  "note": "Los 'puntos esperados' y 'artículos esperados' son un BORRADOR del equipo técnico redactado con IA a partir del texto de la LFT y la CPEUM cargadas. El abogado revisor los corrige o los aprueba; solo entonces sirven como referencia.",
+  "matter": {
+    "title": "Martínez Solís vs. Distribuidora Ficticia del Norte (CASO FICTICIO E2E-LAB-01)",
+    "client_ref": "EXP-LAB-2026-014",
+    "description": "Representamos a la trabajadora (actora). Auxiliar de facturación desde el 1 de marzo de 2019, salario diario de $650.00, jornada real de 54 horas semanales (el contrato fija 45). Embarazada desde agosto de 2026 (lo informó con constancia del IMSS). Despedida verbalmente el 3 de octubre de 2026 por supuesta alteración de facturas de gastos; no recibió aviso escrito. No le pagaron vacaciones, prima vacacional ni aguinaldo proporcional.",
+    "notes": [
+      "Pruebas de la trabajadora: recibos de nómina de 2026, constancia de embarazo del IMSS de agosto de 2026, mensajes de WhatsApp del supervisor del 3 de octubre de 2026 y el contrato individual.",
+      "Hoy es 17 de noviembre de 2026: han pasado 45 días desde el despido."
+    ]
+  },
+  "file": {
+    "title": "Contrato individual de trabajo",
+    "kind": "contrato",
+    "path": "contrato.txt"
+  },
+  "chat": [
+    {
+      "id": "C1",
+      "question": "¿Qué requisitos debe cumplir el patrón para rescindir la relación de trabajo por faltas de probidad, y qué consecuencia tiene que no le haya entregado a la trabajadora el aviso escrito?",
+      "expected_articles": [
+        "LFT art. 47, fracc. II",
+        "LFT art. 47, párrafos finales (aviso)"
+      ],
+      "expected_points": [
+        "La falta de probidad u honradez durante las labores es causa de rescisión sin responsabilidad para el patrón (art. 47, fracc. II).",
+        "El patrón debe dar aviso escrito que refiera claramente la conducta y la fecha en que se cometió.",
+        "El aviso se entrega personalmente al trabajador en el momento del despido o se comunica al Tribunal dentro de los 5 días hábiles siguientes.",
+        "La falta de aviso por sí sola presume que la separación no fue justificada, salvo prueba en contrario.",
+        "La prescripción de las acciones derivadas del despido no corre hasta que el trabajador reciba personalmente el aviso."
+      ]
+    },
+    {
+      "id": "C2",
+      "question": "¿En qué plazo debe la trabajadora ejercer su acción por despido injustificado y desde cuándo corre?",
+      "expected_articles": [
+        "LFT art. 518",
+        "LFT art. 47 (prescripción y aviso)"
+      ],
+      "expected_points": [
+        "Las acciones de los trabajadores separados del trabajo prescriben en dos meses.",
+        "El plazo corre a partir del día siguiente a la fecha de la separación.",
+        "Si no se entregó el aviso, la prescripción no comienza a correr hasta que el trabajador lo reciba personalmente (art. 47)."
+      ]
+    },
+    {
+      "id": "C3",
+      "question": "¿Qué protección tiene una trabajadora embarazada frente al despido?",
+      "expected_articles": [
+        "LFT art. 133, fracc. XV",
+        "LFT art. 170",
+        "CPEUM art. 123, apartado A, fracc. V"
+      ],
+      "expected_points": [
+        "Está prohibido al patrón despedir a una trabajadora o coaccionarla para que renuncie por estar embarazada (art. 133, fracc. XV).",
+        "Las madres trabajadoras tienen derechos específicos: descanso pre y posnatal con salario íntegro y conservación del empleo (art. 170).",
+        "La Constitución protege a la mujer durante el embarazo (art. 123, A, fracc. V)."
+      ]
+    },
+    {
+      "id": "C4",
+      "question": "¿Cuántos días de vacaciones le corresponden a la trabajadora por su antigüedad y qué prima vacacional, y cómo se pagan si la relación terminó antes de cumplir el año?",
+      "expected_articles": [
+        "LFT art. 76",
+        "LFT art. 79",
+        "LFT art. 80"
+      ],
+      "expected_points": [
+        "Tras la reforma de 2023, el primer año corresponden 12 días y aumentan 2 por año hasta 20; a partir del sexto año aumentan 2 por cada 5 años de servicio.",
+        "Con más de 7 años cumplidos (marzo de 2026), le corresponden 22 días.",
+        "Si la relación termina antes de cumplir el año, se paga la parte proporcional de vacaciones (art. 79).",
+        "La prima vacacional es de al menos 25% de los salarios de las vacaciones (art. 80)."
+      ]
+    },
+    {
+      "id": "C5",
+      "question": "¿Qué debe hacerse antes de presentar la demanda laboral? ¿Hay alguna excepción que aplique a este caso?",
+      "expected_articles": [
+        "LFT arts. 684-A a 684-E",
+        "LFT art. 685 Ter"
+      ],
+      "expected_points": [
+        "Antes de demandar se debe agotar la instancia conciliatoria prejudicial ante el Centro de Conciliación competente.",
+        "Están exceptuados de la conciliación prejudicial, entre otros, los conflictos por discriminación en el empleo por motivos de embarazo (art. 685 Ter).",
+        "La solicitud de conciliación suspende/interrumpe el plazo de prescripción mientras dura el procedimiento."
+      ]
+    },
+    {
+      "id": "C6",
+      "question": "Según el contrato individual del asunto, ¿qué jornada y qué salario se pactaron, y cómo se compara con la jornada que realmente trabajaba?",
+      "expected_articles": [
+        "Contrato individual (documento del despacho): cláusulas TERCERA y CUARTA",
+        "LFT arts. 61, 66-68"
+      ],
+      "expected_points": [
+        "Salario diario de $650.00 pagadero por semana vencida (cláusula TERCERA).",
+        "Jornada pactada de 45 horas semanales (cláusula CUARTA).",
+        "Trabajaba 54 horas: 9 horas semanales por encima de lo pactado; la LFT fija la jornada máxima diurna en 8 horas (art. 61) y regula el pago del tiempo extraordinario (arts. 66-68)."
+      ]
+    }
+  ],
+  "research": {
+    "id": "I1",
+    "question": "Prestaciones e indemnizaciones que puede reclamar una trabajadora despedida injustificadamente con 7 años de antigüedad: indemnización constitucional, salarios vencidos, prima de antigüedad, vacaciones, prima vacacional, aguinaldo proporcional y horas extraordinarias.",
+    "expected_articles": [
+      "CPEUM art. 123, A, fracc. XXII",
+      "LFT arts. 48, 50, 162, 76, 79, 80, 87, 66-68, 784"
+    ],
+    "expected_points": [
+      "Indemnización de tres meses de salario o reinstalación, a elección del trabajador (art. 48; CPEUM 123-A-XXII).",
+      "Salarios vencidos desde el despido hasta por 12 meses; después, intereses del 2% mensual sobre 15 meses de salario (art. 48).",
+      "Prima de antigüedad de 12 días de salario por año de servicio, con el tope de salario del art. 486 (art. 162).",
+      "Vacaciones y prima vacacional proporcionales (arts. 76, 79, 80).",
+      "Aguinaldo de al menos 15 días, proporcional al tiempo trabajado en el año (art. 87).",
+      "Horas extra: las primeras 9 semanales se pagan al doble y el excedente al triple (arts. 67 y 68).",
+      "Corresponde al patrón probar la duración de la jornada y el pago de prestaciones cuando exista controversia (art. 784)."
+    ]
+  },
+  "case": {
+    "title": "Martínez Solís: despido injustificado de trabajadora embarazada",
+    "side": "actor",
+    "facts": "La trabajadora, auxiliar de facturación desde el 1 de marzo de 2019 con salario diario de $650.00, fue despedida verbalmente el 3 de octubre de 2026 por su supervisor, quien le atribuyó haber alterado facturas de gastos de viaje. No se le entregó aviso escrito ni se comunicó el despido al Tribunal. Desde agosto de 2026 la empresa sabía que estaba embarazada por la constancia del IMSS que ella entregó. Ella niega haber alterado documentos. Trabajaba 54 horas semanales sin pago de tiempo extra.",
+    "claim": "Que se declare injustificado el despido y se condene al pago de la indemnización constitucional, salarios vencidos, prima de antigüedad, vacaciones, prima vacacional, aguinaldo proporcional y horas extraordinarias.",
+    "rounds": [
+      {
+        "id": "A1",
+        "action": "strengthen",
+        "text": "El despido es injustificado: no se le entregó el aviso escrito que exige la ley, la empresa sabía de su embarazo y no hay prueba de que haya alterado facturas."
+      },
+      {
+        "id": "A2",
+        "action": "attack",
+        "text": "El despido es injustificado: no se le entregó el aviso escrito que exige la ley, la empresa sabía de su embarazo y no hay prueba de que haya alterado facturas."
+      }
+    ],
+    "expected_points": [
+      "Fortalecer: la falta de aviso presume el despido injustificado (art. 47); el despido por embarazo está prohibido (art. 133-XV); la carga de probar la causa de rescisión es del patrón (art. 784).",
+      "Atacar (contraparte): la falta de probidad es causa de rescisión (art. 47-II) y la presunción admite prueba en contrario; podría ofrecer pruebas de la alteración o reinstalar."
+    ]
+  },
+  "verify": {
+    "title": "Escrito inicial de demanda (extracto, ficticio)",
+    "path": "escrito.txt",
+    "seeded": [
+      {
+        "ref": "LFT art. 47 (párrafo sobre la falta de aviso), con cita textual",
+        "expected": "vigente; la cita textual coincide"
+      },
+      {
+        "ref": "LFT art. 48, con cita textual",
+        "expected": "vigente; la cita textual NO coincide: el escrito copia un texto anterior a la reforma de 2019 (el vigente dice «ante la Autoridad Conciliadora, o ante el Tribunal si no existe arreglo conciliatorio»). Error no intencional del equipo técnico, detectado por el verificador en la corrida del 17-11-2026; esperado corregido después de leer el texto vigente."
+      },
+      {
+        "ref": "LFT art. 76, con cita textual del texto ANTERIOR a 2023 ('seis días')",
+        "expected": "vigente; la cita textual NO coincide (el texto vigente dice doce días)"
+      },
+      {
+        "ref": "LFT arts. 162 y 68",
+        "expected": "vigentes"
+      },
+      {
+        "ref": "LFT art. 133, fracc. XV y CPEUM art. 123, A, fracc. XXII",
+        "expected": "vigentes"
+      },
+      {
+        "ref": "Ley del Seguro Social, art. 15",
+        "expected": "fuera del acervo cargado (no se inventa nada)"
+      },
+      {
+        "ref": "LFT art. 47 Bis 9",
+        "expected": "no existe en la LFT cargada"
+      }
+    ]
+  }
+}

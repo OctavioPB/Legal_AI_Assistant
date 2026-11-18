@@ -150,6 +150,15 @@ de `.presentation-credentials` (ignorado por git; solo el hash está en la base)
 comando con `--reset-password`. Al ser otro despacho, sirve para mostrar el aislamiento: lo que vea uno no lo ve
 `demo`. Todo es local: la cuenta solo existe en el Postgres de este equipo.
 
+## Caso de ejemplo para revisión (E2E-LAB-01)
+En el despacho `demo` está el asunto **«Martínez Solís vs. Distribuidora Ficticia del Norte (CASO FICTICIO
+E2E-LAB-01)»**: un despido laboral corrido por todas las herramientas (seis consultas, una investigación, dos
+rondas de Argumentar, una verificación, el contrato del despacho y la hoja de puntos clave). Sirve para mostrar la
+aplicación con un caso completo, o para que un abogado lo recorra en pantalla mientras califica el paquete de
+revisión. Qué contiene, qué salió y cómo repetirlo: [EVALUACION-E2E.md](EVALUACION-E2E.md). Para crearlo de nuevo
+en otro equipo: `uv run python -m evals.e2e.run_case laboral_01 --credentials .demo-credentials --keep`, con la API
+en marcha (unos 17 minutos con el modelo local).
+
 ## Qué esperar
 - Una consulta con respuesta tarda **1.5–4 minutos**: el modelo de redacción (26B) corre en gran parte en
   RAM porque la GPU tiene 8 GB, y una respuesta se genera una vez y, si el validador la rechaza, se

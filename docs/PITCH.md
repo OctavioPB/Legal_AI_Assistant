@@ -163,6 +163,10 @@ ingenuo por el doble paso de validación — en este dominio, ese sobrecosto *es
   Medido sobre 25 casos redactados por IA, aún sin revisión de abogados: recall@8 1.00, fuga
   jurisdiccional 0, negativa correcta 5/5, falsa negativa 1/20 con el modelo local. Diseño en
   `docs/LegalAI-System-Architecture.md`, decisiones en el registro de ADR, avance en `PLAN.md`.
+- **Caso completo listo para revisión (2026-11-17):** un despido laboral ficticio corrido por todas las
+  herramientas, con un paquete para que un abogado califique cada respuesta contra el texto completo de lo citado
+  (`docs/EVALUACION-E2E.md`). La primera corrida ya mostró lo que solo un abogado puede juzgar: citas reales y
+  verificadas a artículos que no rigen el caso.
 - **Falta para cerrar la demo:** revisión del conjunto de evaluación por abogados (hasta entonces
   las compuertas no cuentan), OCR para documentos escaneados y medir el perfil remoto opcional.
 - **Después:** calculadora de términos procesales, plantillas de escritos, jurisprudencia y el
