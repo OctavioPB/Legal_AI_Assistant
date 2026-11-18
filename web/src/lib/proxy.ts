@@ -67,6 +67,10 @@ export const ALLOWED: Route[] = [
   r("DELETE", `matters/${UUID_RE}`),
   r("POST", `matters/${UUID_RE}/(members|notes|sources)`),
   r("DELETE", `matters/${UUID_RE}/(members|notes|sources)/${UUID_RE}`),
+  // ADR-028: the key-points sheet of a matter (members only, enforced by RLS)
+  r("GET", `matters/${UUID_RE}/cheatsheets`),
+  r("GET", `matters/${UUID_RE}/cheatsheets/${UUID_RE}`),
+  r("POST", `matters/${UUID_RE}/cheatsheets/stream`, { stream: true }),
   // feature 2 (ADR-019): the brief verifier
   r("POST", "verify"),
   r("POST", "verify/pdf", { body: "pdf", query: { title: text(200), matter_id: uuid } }),

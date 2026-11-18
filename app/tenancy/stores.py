@@ -45,6 +45,7 @@ POSTGRES_ERASE_ORDER: tuple[str, ...] = (
     "doc_nodes",
     "documents",
     "matter_sources",
+    "matter_cheatsheets",
     "matter_notes",
     "verification_reports",
     "messages",

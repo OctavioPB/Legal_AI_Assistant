@@ -268,6 +268,14 @@ def seed_product_rows(app_engine: Engine, tenant: uuid.UUID) -> tuple[uuid.UUID,
             ),
             {"t": tenant, "m": matter, "u": user},
         )
+        conn.execute(  # ADR-028: a key-points sheet of the matter
+            text(
+                "INSERT INTO matter_cheatsheets (tenant_id, matter_id, created_by, language, "
+                "model_profile, status, content) VALUES (:t, :m, :u, 'es', 'gemma', 'answered', "
+                "'Hoja privilegiada')"
+            ),
+            {"t": tenant, "m": matter, "u": user},
+        )
         conn.execute(
             text(
                 "INSERT INTO conversations (tenant_id, user_id, matter_id, kind, title, language, "

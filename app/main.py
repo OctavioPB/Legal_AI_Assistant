@@ -14,6 +14,7 @@ import yaml
 from fastapi import FastAPI
 from sqlalchemy import create_engine
 
+from app.api.cheatsheets import router as cheatsheets_router
 from app.api.conversations import router as conversations_router
 from app.api.deps import AppState, WorkerJobs
 from app.api.files import router as files_router
@@ -173,7 +174,7 @@ def create_app(state: AppState | None = None) -> FastAPI:
     app.include_router(router)
     app.include_router(conversations_router)
     for r in (matters_router, laws_router, verify_router, reforms_router, models_router,
-              files_router, news_router):  # fmt: skip
+              files_router, news_router, cheatsheets_router):  # fmt: skip
         app.include_router(r)
     register_errors(app)
     register_model_errors(app)

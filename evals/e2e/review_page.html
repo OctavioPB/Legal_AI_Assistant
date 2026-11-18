@@ -1,0 +1,422 @@
+<title>Revisión E2E-LAB-01</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a printed review packet on screen. Sticky index of items at the left, one card per answer;
+   statute text in an inset "gaceta" block; grades sit under each answer, never beside it. */
+:root {
+  --ink: #13233a; --muted: #55657a; --paper: #f6f7f9; --card: #ffffff; --line: #d9e1ea;
+  --navy: #003366; --gold: #c8982a; --gold-ink: #8a6512; --law: #eef3f8; --mark: #f5efe0;
+  --ok: #1f7a4d; --warn: #9a5b00; --bad: #b3261e; --focus: #336699;
+  --fd: "Fraunces", Georgia, "Times New Roman", serif;
+  --fb: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ink: #e6ecf3; --muted: #9fb0c3; --paper: #0d1724; --card: #132235; --line: #24384f;
+  --navy: #9cc2e8; --gold: #e2bd62; --gold-ink: #e8c46a; --law: #182b42; --mark: #2a2617;
+  --ok: #5fcf96; --warn: #f0b45c; --bad: #ff8a80; --focus: #9cc2e8; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --ink: #e6ecf3; --muted: #9fb0c3; --paper: #0d1724; --card: #132235; --line: #24384f;
+  --navy: #9cc2e8; --gold: #e2bd62; --gold-ink: #e8c46a; --law: #182b42; --mark: #2a2617;
+  --ok: #5fcf96; --warn: #f0b45c; --bad: #ff8a80; --focus: #9cc2e8; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--paper); color: var(--ink); font: 15px/1.6 var(--fb); }
+.wrap { max-width: 78rem; margin: 0 auto; padding-block: 1.5rem 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--fd); font-weight: 600; text-wrap: balance; line-height: 1.2; color: var(--navy) }
+h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin: .2rem 0 .4rem }
+h2 { font-size: 1.35rem; margin: 0 0 .5rem }
+h3 { font-size: 1.05rem; margin: 1.2rem 0 .4rem; font-family: var(--fb); font-weight: 700; color: var(--ink) }
+.eyebrow { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-ink); font-weight: 600 }
+.muted { color: var(--muted) } .small { font-size: .85rem }
+a { color: var(--navy) } :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
+.banner { border: 1px solid var(--gold); background: var(--mark); border-radius: 10px; padding: .75rem 1rem; margin: 1rem 0 }
+.grid { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 1.5rem; align-items: start }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr) } .index { position: static !important } }
+.index { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 1rem); background: var(--card);
+  border: 1px solid var(--line); border-radius: 10px; padding: .75rem }
+.index ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .15rem }
+.index a { display: flex; justify-content: space-between; gap: .5rem; text-decoration: none; color: var(--ink);
+  padding: .3rem .45rem; border-radius: 6px; font-size: .88rem }
+.index a:hover { background: var(--law) }
+.dot { width: .6rem; height: .6rem; border-radius: 50%; border: 1.5px solid var(--muted); flex: none; margin-top: .45rem }
+.dot.done { background: var(--ok); border-color: var(--ok) } .dot.part { background: var(--gold); border-color: var(--gold) }
+.progress { height: .4rem; background: var(--law); border-radius: 99px; overflow: hidden; margin: .5rem 0 .25rem }
+.progress > i { display: block; height: 100%; background: var(--navy); width: 0 }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem 1.4rem; margin-bottom: 1.5rem; min-width: 0 }
+.meta { display: flex; flex-wrap: wrap; gap: .4rem; margin: .3rem 0 .8rem }
+.chip { font-size: .78rem; border: 1px solid var(--line); border-radius: 99px; padding: .05rem .6rem; white-space: nowrap }
+.chip.ok { border-color: var(--ok); color: var(--ok) } .chip.bad { border-color: var(--bad); color: var(--bad) }
+.chip.warn { border-color: var(--warn); color: var(--warn) }
+.q { font-family: var(--fd); font-size: 1.08rem; font-style: italic; margin: .2rem 0 1rem; max-width: 65ch }
+.answer { border-left: 3px solid var(--navy); padding: .2rem 0 .2rem 1rem; max-width: 72ch }
+.answer h4 { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; margin: 1rem 0 .3rem; color: var(--gold-ink) }
+.answer ul { margin: .2rem 0; padding-left: 1.2rem } .answer p { margin: .4rem 0 }
+.reason { background: var(--mark); border-radius: 6px; padding: .1rem .4rem; font-style: italic }
+.reason::before { content: "◇ "; font-style: normal; color: var(--gold-ink) }
+sup.c a { font-weight: 700; text-decoration: none; font-size: .78em; padding: 0 .1rem }
+.refusal { border: 1px dashed var(--muted); border-radius: 8px; padding: .75rem 1rem; color: var(--muted) }
+details.src { border: 1px solid var(--line); border-radius: 8px; margin: .5rem 0; background: var(--card) }
+details.src > summary { cursor: pointer; padding: .5rem .75rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline }
+details.src > summary b { font-family: var(--fd) }
+.law { background: var(--law); border-radius: 6px; padding: .6rem .8rem; margin: .4rem .75rem; white-space: pre-wrap; font-size: .9rem; max-height: 22rem; overflow: auto }
+.lawlabel { margin: .5rem .75rem 0; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted) }
+.ask { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .9rem; padding: .4rem .75rem .65rem; font-size: .9rem }
+.ask legend, .ask .lbl { font-weight: 600; margin-right: .3rem }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0 }
+label.opt { display: inline-flex; align-items: center; gap: .25rem; cursor: pointer }
+table { border-collapse: collapse; width: 100%; font-size: .9rem }
+.tablewrap { overflow-x: auto }
+th, td { border-bottom: 1px solid var(--line); padding: .45rem .5rem; text-align: left; vertical-align: top }
+th { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.rubric { display: grid; gap: .35rem; margin-top: .4rem }
+.rrow { display: grid; grid-template-columns: minmax(0, 15rem) 1fr; gap: .5rem; align-items: center }
+@media (max-width: 560px) { .rrow { grid-template-columns: minmax(0, 1fr) } }
+.scale { display: flex; gap: .3rem; flex-wrap: wrap }
+.scale label { border: 1px solid var(--line); border-radius: 6px; width: 2.2rem; height: 2rem; display: grid; place-items: center; cursor: pointer; font-variant-numeric: tabular-nums }
+.scale input { position: absolute; opacity: 0; pointer-events: none }
+.scale input:checked + span { color: var(--card) } .scale label:has(input:checked) { background: var(--navy); border-color: var(--navy) }
+.scale label:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px }
+textarea, input[type=text] { width: 100%; font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: .5rem .6rem }
+textarea { min-height: 4.5rem; resize: vertical }
+.grades { border-top: 2px solid var(--gold); margin-top: 1.2rem; padding-top: .3rem }
+.savebar { position: sticky; bottom: calc(env(safe-area-inset-bottom, 0px) + .75rem); display: flex; justify-content: flex-end; pointer-events: none; z-index: 5 }
+.savebar span { pointer-events: auto; background: var(--card); border: 1px solid var(--line); border-radius: 99px; padding: .3rem .9rem; font-size: .85rem; box-shadow: 0 2px 10px rgb(0 0 0 / .08) }
+button { font: inherit; border: 1px solid var(--navy); background: var(--navy); color: var(--card); border-radius: 8px; padding: .45rem .9rem; cursor: pointer }
+button.quiet { background: transparent; color: var(--navy) }
+pre.brief { white-space: pre-wrap; background: var(--law); padding: .8rem 1rem; border-radius: 8px; font-size: .88rem; max-height: 28rem; overflow: auto }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .75rem 1.25rem }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important } }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Paquete de revisión para abogado · caso ficticio</p>
+    <h1 id="title">Revisión E2E-LAB-01</h1>
+    <p class="muted" id="sub"></p>
+    <div class="banner" role="note">
+      <strong>Qué le pedimos.</strong> Que juzgue, como abogado laboralista, las respuestas que dio el sistema en un caso
+      inventado bajo la Ley Federal del Trabajo. Cada respuesta trae el <em>texto completo</em> de las disposiciones que
+      cita. Revise si cada cita dice lo que se le atribuye, califique con la rúbrica y corrija los «puntos esperados»,
+      que son un <strong>borrador redactado con IA</strong> por el equipo técnico. Sus calificaciones se guardan solas.
+    </div>
+    <div id="status" class="small muted" role="status">Cargando…</div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <p class="small muted" id="progressText"></p>
+  </header>
+
+  <div class="grid">
+    <nav class="index" aria-label="Contenido">
+      <ol id="index"></ol>
+    </nav>
+    <main id="main">
+      <section class="card" id="caso" aria-labelledby="caso-h">
+        <h2 id="caso-h">El caso</h2>
+        <div id="caseBody"></div>
+      </section>
+    </main>
+  </div>
+  <div class="savebar"><span id="saved" role="status">Sin cambios</span></div>
+</div>
+
+<script>
+const DATA = /*REVIEW_DATA*/null;
+const $ = (s, el = document) => el.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") n.className = v; else if (k === "text") n.textContent = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null) n.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return n;
+};
+
+// ---- grades: one document per reviewer, saved as they go ------------------------------------------
+let grades = { items: {}, verify: {}, general: {} };
+let docRef = null, canSave = false, pending = null, writing = false, dirty = false;
+const LOCAL = "e2e-lab-01-draft";
+try { const d = JSON.parse(localStorage.getItem(LOCAL) || "null"); if (d && d.items) grades = d; } catch {}
+const g = (id) => (grades.items[id] ??= { rubric: {}, sources: {}, points: {} });
+
+function setSaved(msg) { $("#saved").textContent = msg; }
+function changed() {
+  dirty = true;
+  try { localStorage.setItem(LOCAL, JSON.stringify(grades)); } catch {}
+  renderProgress();
+  if (!canSave) { setSaved("Guardado solo en este navegador"); return; }
+  setSaved("Guardando…");
+  clearTimeout(pending);
+  pending = setTimeout(flush, 1200);
+}
+async function flush() {
+  if (writing || !docRef || !dirty) return;
+  writing = true; dirty = false;
+  try {
+    await docRef.set({ grades, progress: progress().done, total: progress().total, updatedAt: new Date().toISOString() });
+    setSaved(dirty ? "Guardando…" : "Guardado");
+  } catch (e) {
+    if (e && e.code === "invalid_argument") { canSave = false; setSaved("No se pudo guardar: su acceso es de solo lectura"); showReadOnly(); }
+    else { dirty = true; setSaved("No se pudo guardar; se reintentará"); }
+  } finally { writing = false; if (dirty && canSave) pending = setTimeout(flush, 1500); }
+}
+
+function progress() {
+  const items = DATA ? DATA.items : [];
+  let done = 0;
+  for (const it of items) { const r = g(it.id).rubric; if (["exact", "faith", "complete", "useful"].every((k) => r[k])) done++; }
+  const vDone = DATA && DATA.verify.findings.length && DATA.verify.findings.every((_, i) => grades.verify[i]?.ok) ? 1 : 0;
+  const gDone = grades.general.trust ? 1 : 0;
+  return { done: done + vDone + gDone, total: items.length + 2 };
+}
+function renderProgress() {
+  const p = progress();
+  $("#bar").style.width = `${Math.round((100 * p.done) / Math.max(1, p.total))}%`;
+  $("#progressText").textContent = `${p.done} de ${p.total} secciones calificadas`;
+  for (const it of DATA.items) {
+    const r = g(it.id).rubric, n = ["exact", "faith", "complete", "useful"].filter((k) => r[k]).length;
+    const dot = $(`#dot-${it.id}`); if (dot) dot.className = `dot ${n === 4 ? "done" : n ? "part" : ""}`;
+  }
+}
+
+// ---- controls ------------------------------------------------------------------------------------
+function radios(name, options, current, onPick, cls = "") {
+  return el("span", { class: cls }, options.map(([v, label]) => el("label", { class: "opt" },
+    el("input", { type: "radio", name, value: v, checked: current === v, onchange: () => onPick(v) }), label)));
+}
+function scale(name, current, onPick) {
+  return el("span", { class: "scale", role: "radiogroup" }, [1, 2, 3, 4, 5].map((v) => el("label", { title: String(v) },
+    el("input", { type: "radio", name, value: String(v), checked: String(current) === String(v), onchange: () => onPick(String(v)) }),
+    el("span", { text: String(v) }))));
+}
+function textarea(id, value, onInput, placeholder) {
+  return el("textarea", { id, placeholder, oninput: (e) => onInput(e.target.value) }, value || "");
+}
+
+// ---- answer rendering (text only: model output is data) ------------------------------------------
+const CITE = /\[\s*cite\s*:\s*([^\]\[]+)\]/gi;
+const TAG = /\[(razonamiento estratégico|análisis propio)\]/gi;
+function inline(line, numbers, itemId) {
+  const out = []; let last = 0;
+  for (const m of line.matchAll(CITE)) {
+    if (m.index > last) out.push(document.createTextNode(line.slice(last, m.index)));
+    const ids = m[1].split(/[;,]/).map((s) => s.trim()).filter(Boolean);
+    out.push(el("sup", { class: "c" }, "[", ids.map((id, i) => [i ? ", " : "", numbers[id]
+      ? el("a", { href: `#src-${itemId}-${numbers[id]}`, title: id, text: String(numbers[id]) })
+      : el("span", { title: "cita no reconocida", text: "?" })]), "]"));
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) out.push(document.createTextNode(line.slice(last)));
+  return out;
+}
+function renderAnswer(text, numbers, itemId) {
+  const box = el("div", { class: "answer" });
+  let list = null, label = false;
+  for (const raw of text.split("\n")) {
+    const line = raw.trim();
+    if (!line) { list = null; label = false; continue; }
+    const h = /^#{1,4}\s+(.*)$/.exec(line);
+    if (h) { box.append(el("h4", { text: h[1].replace(/\*\*/g, "") })); list = null; label = false; continue; }
+    if (/^[\s*_]*\[(razonamiento estratégico|análisis propio)\][\s*_]*$/i.test(line)) { label = true; continue; }
+    const li = /^(?:[-*•]|\d+[.)])\s+(.*)$/.exec(line);
+    const body = (li ? li[1] : line).replace(/\*\*/g, "");
+    const marked = label || TAG.test(body); TAG.lastIndex = 0;
+    const content = el("span", { class: marked ? "reason" : "" }, inline(body.replace(TAG, "").trim(), numbers, itemId));
+    if (li) { if (!list) { list = el("ul"); box.append(list); } list.append(el("li", {}, content)); }
+    else { list = null; box.append(el("p", {}, content)); }
+  }
+  return box;
+}
+
+// ---- sections ------------------------------------------------------------------------------------
+function caseSection() {
+  const m = DATA.matter, c = DATA.case, body = $("#caseBody");
+  body.replaceChildren();
+  body.append(
+    el("p", {}, el("strong", { text: m.title }), " · ", m.client_ref),
+    el("p", { text: m.description }),
+    el("ul", {}, m.notes.map((n) => el("li", { text: n }))),
+    el("h3", { text: "Planteamiento en Argumentar" }),
+    el("p", { class: "small" }, el("strong", { text: "Hechos: " }), c.facts),
+    el("p", { class: "small" }, el("strong", { text: "Pretensión: " }), c.claim),
+    el("p", { class: "small muted", text: DATA.note }),
+    el("p", { class: "small muted", text: `Corrida del ${new Date(DATA.started_at).toLocaleString("es-MX")} · modelo ${modelName()} · versión del sistema ${(DATA.git?.commit || "").slice(0, 10)}${DATA.git?.dirty ? " (con cambios sin publicar)" : ""}.` }),
+  );
+  if (DATA.file) body.append(el("p", { class: "small muted", text: `Documento del despacho «${DATA.file.title}»: ${DATA.file.status === "ready" ? "procesado" : DATA.file.status}${DATA.file.chunk_count ? `, ${DATA.file.chunk_count} partes citables` : ""}.` }));
+}
+function modelName() {
+  const first = DATA.items.find((i) => i.auto.model);
+  return first ? first.auto.model : "local";
+}
+
+function itemSection(it) {
+  const s = g(it.id), a = it.auto;
+  const numbers = Object.fromEntries(it.sources.map((x) => [x.cite_id, x.n]));
+  const card = el("section", { class: "card", id: `it-${it.id}`, "aria-labelledby": `h-${it.id}` });
+  card.append(el("p", { class: "eyebrow", text: it.title.split(" · ")[0] }), el("h2", { id: `h-${it.id}`, text: it.title }));
+  const chips = [
+    el("span", { class: `chip ${a.status === "answered" ? "ok" : "warn"}`, text: a.status === "answered" ? "Respondió" : "El sistema rechazó" }),
+    a.seconds != null ? el("span", { class: "chip", text: `${Math.round(a.seconds)} s` }) : null,
+    a.attempts ? el("span", { class: `chip ${a.regenerated ? "warn" : ""}`, text: a.regenerated ? "Regenerada una vez" : "Primer intento" }) : null,
+    el("span", { class: "chip", text: `${it.sources.length} fuente(s) citada(s)` }),
+  ];
+  card.append(el("div", { class: "meta" }, chips));
+  if (a.regenerated && a.first_attempt_problems.length)
+    card.append(el("p", { class: "small muted", text: `El validador rechazó el primer intento: ${a.first_attempt_problems.join("; ")}.` }));
+  card.append(el("p", { class: "q", text: it.question }));
+  if (it.answer) card.append(renderAnswer(it.answer, numbers, it.id));
+  else card.append(el("div", { class: "refusal" }, el("strong", { text: "Sin respuesta. " }),
+    `El sistema no encontró fundamento suficiente o no pudo verificar su respuesta (${a.refusal_reason || "rechazo"}). Un rechazo es una salida válida: indique abajo si debió responder.`));
+
+  if (it.sources.length) {
+    card.append(el("h3", { text: "Fuentes citadas, texto completo" }));
+    for (const src of it.sources) {
+      const d = el("details", { class: "src", id: `src-${it.id}-${src.n}`, open: it.sources.length <= 3 });
+      d.append(el("summary", {}, el("b", { text: `[${src.n}] ${src.citation_string}` }),
+        el("span", { class: "small muted", text: `${src.document_title || ""} · versión ${src.version_label || "—"}${src.is_public === false ? " · documento del despacho" : ""}` })));
+      d.append(el("p", { class: "lawlabel", text: "Unidad citada" }), el("div", { class: "law", text: src.unit_text || "(no disponible)" }));
+      if (src.article_text && src.article_text !== src.unit_text)
+        d.append(el("p", { class: "lawlabel", text: `Artículo completo${src.article_label ? ` · ${src.article_label}` : ""}` }), el("div", { class: "law", text: src.article_text }));
+      d.append(el("fieldset", { class: "ask" }, el("legend", { text: "¿Esta fuente dice lo que la respuesta le atribuye?" }),
+        radios(`src-${it.id}-${src.n}`, [["yes", "Sí"], ["partial", "En parte"], ["no", "No"], ["na", "No sé"]], s.sources[src.cite_id],
+          (v) => { s.sources[src.cite_id] = v; changed(); })));
+      card.append(d);
+    }
+  }
+
+  const grades_ = el("div", { class: "grades" }, el("h3", { text: "Su calificación" }));
+  if (it.expected_points.length) {
+    grades_.append(el("p", { class: "small muted", text: "Puntos que el equipo técnico esperaba ver (borrador redactado con IA). Indique si el sistema los cubrió y si el punto en sí es correcto." }));
+    const tb = el("tbody");
+    it.expected_points.forEach((p, i) => {
+      const pt = (s.points[i] ??= {});
+      tb.append(el("tr", {}, el("td", { text: p }),
+        el("td", {}, radios(`said-${it.id}-${i}`, [["yes", "Sí"], ["partial", "En parte"], ["no", "No"]], pt.said, (v) => { pt.said = v; changed(); })),
+        el("td", {}, radios(`ok-${it.id}-${i}`, [["yes", "Correcto"], ["no", "Corregir"]], pt.correct, (v) => { pt.correct = v; changed(); }))));
+    });
+    grades_.append(el("div", { class: "tablewrap" }, el("table", {}, el("thead", {}, el("tr", {}, el("th", { text: "Punto esperado" }), el("th", { text: "¿Lo dijo el sistema?" }), el("th", { text: "¿El punto es correcto?" }))), tb)));
+  }
+  if (!it.answer) grades_.append(el("fieldset", { class: "ask" }, el("legend", { text: "¿El rechazo fue correcto?" }),
+    radios(`ref-${it.id}`, [["yes", "Sí, faltaba fundamento"], ["no", "No, debió responder"]], s.refusalOk, (v) => { s.refusalOk = v; changed(); })));
+  const rows = [["exact", "Exactitud jurídica"], ["faith", "Fidelidad a las fuentes"], ["complete", "Completitud"], ["useful", "Utilidad práctica"]];
+  grades_.append(el("p", { class: "small muted", text: "1 = muy deficiente · 5 = como lo haría un abogado con experiencia. Si el sistema rechazó, califique el rechazo." }),
+    el("div", { class: "rubric" }, rows.map(([k, label]) => el("div", { class: "rrow" }, el("span", { class: "lbl", text: label }),
+      scale(`${k}-${it.id}`, s.rubric[k], (v) => { s.rubric[k] = v; changed(); })))));
+  grades_.append(el("fieldset", { class: "ask" }, el("legend", { text: "¿Contiene un error que podría perjudicar al cliente?" }),
+    radios(`harm-${it.id}`, [["no", "No"], ["yes", "Sí"]], s.harm, (v) => { s.harm = v; changed(); })));
+  grades_.append(el("label", { class: "small", for: `c-${it.id}`, text: "Comentarios y correcciones (incluya aquí cómo redactaría los puntos esperados que marcó para corregir)" }),
+    textarea(`c-${it.id}`, s.comments, (v) => { s.comments = v; changed(); }, "Escriba aquí…"));
+  card.append(grades_);
+  return card;
+}
+
+function verifySection() {
+  const v = DATA.verify, card = el("section", { class: "card", id: "it-verify", "aria-labelledby": "h-verify" });
+  card.append(el("p", { class: "eyebrow", text: "Verificar" }), el("h2", { id: "h-verify", text: "Verificador de escritos" }),
+    el("p", { class: "small muted", text: "El verificador no usa el modelo: extrae las referencias del escrito, comprueba que existan y estén vigentes y compara las citas textuales. Al escrito le sembramos errores a propósito." }));
+  if (v.text) card.append(el("details", {}, el("summary", { text: "Ver el escrito revisado" }), el("pre", { class: "brief", text: v.text })));
+  card.append(el("h3", { text: "Lo que sembramos" }), el("div", { class: "tablewrap" }, el("table", {},
+    el("thead", {}, el("tr", {}, el("th", { text: "Referencia" }), el("th", { text: "Resultado esperado" }))),
+    el("tbody", {}, v.seeded.map((x) => el("tr", {}, el("td", { text: x.ref }), el("td", { text: x.expected })))))));
+  const STATUS = { vigente: "Vigente", no_vigente: "No vigente", no_existe: "No existe", fuera_del_corpus: "Fuera del acervo", ambigua: "Ambigua", ley_no_identificada: "Ley no identificada" };
+  const QUOTE = { coincide: "Coincide", no_coincide: "No coincide", sin_cita: "—" };
+  const tb = el("tbody");
+  (v.findings || []).forEach((f, i) => {
+    const r = (grades.verify[i] ??= {});
+    tb.append(el("tr", {}, el("td", { text: f.ref }), el("td", { text: STATUS[f.status] || f.status }),
+      el("td", { text: f.quote ? (QUOTE[f.quote] || f.quote) : "—" }),
+      el("td", {}, radios(`v-${i}`, [["yes", "Sí"], ["no", "No"]], r.ok, (x) => { r.ok = x; changed(); }))));
+  });
+  card.append(el("h3", { text: "Lo que reportó el sistema" }), el("div", { class: "tablewrap" }, el("table", {},
+    el("thead", {}, el("tr", {}, el("th", { text: "Referencia" }), el("th", { text: "Estado" }), el("th", { text: "Cita textual" }), el("th", { text: "¿Correcto?" }))), tb)));
+  card.append(el("label", { class: "small", for: "c-verify", text: "Comentarios" }),
+    textarea("c-verify", grades.verify.comments, (x) => { grades.verify.comments = x; changed(); }, "Escriba aquí…"));
+  return card;
+}
+
+function generalSection() {
+  const G = grades.general, card = el("section", { class: "card", id: "it-general", "aria-labelledby": "h-general" });
+  card.append(el("p", { class: "eyebrow", text: "Cierre" }), el("h2", { id: "h-general", text: "Valoración general" }),
+    el("fieldset", { class: "ask" }, el("legend", { text: "¿Confiaría en este sistema como apoyo para preparar un caso así?" }),
+      radios("trust", [["yes", "Sí"], ["reservas", "Con reservas"], ["no", "No"]], G.trust, (v) => { G.trust = v; changed(); })),
+    el("div", { class: "two" },
+      el("div", {}, el("label", { class: "small", for: "rev-name", text: "Nombre de quien revisa (opcional)" }),
+        el("input", { type: "text", id: "rev-name", value: G.name || "", maxlength: "120", oninput: (e) => { G.name = e.target.value; changed(); } })),
+      el("div", {}, el("label", { class: "small", for: "rev-ced", text: "Cédula profesional (opcional)" }),
+        el("input", { type: "text", id: "rev-ced", value: G.cedula || "", maxlength: "40", oninput: (e) => { G.cedula = e.target.value; changed(); } }))),
+    el("label", { class: "small", for: "c-general", text: "Comentarios generales: qué le faltaría al sistema para usarlo en su práctica" }),
+    textarea("c-general", G.comments, (v) => { G.comments = v; changed(); }, "Escriba aquí…"),
+    el("p", {}, el("button", { type: "button", class: "quiet", onclick: copyGrades, text: "Copiar mis calificaciones" }), " ",
+      el("span", { class: "small muted", id: "copied", role: "status" })));
+  return card;
+}
+
+async function copyGrades() {
+  const txt = JSON.stringify({ case: DATA.case_id, run: DATA.run_file, grades }, null, 1);
+  try { await navigator.clipboard.writeText(txt); $("#copied").textContent = "Copiadas. Puede pegarlas en un correo."; }
+  catch { const t = el("textarea", { class: "small", readonly: true }, txt); $("#copied").replaceWith(t); t.select(); }
+}
+function showReadOnly() {
+  $("#status").textContent = "Esta vista no puede guardar en línea (acceso de solo lectura o sin sesión). Sus calificaciones se conservan en este navegador; al terminar use «Copiar mis calificaciones» y envíelas por correo.";
+}
+
+// ---- owner: the reviews received ----------------------------------------------------------------
+async function reviewsPanel(db, user) {
+  const host = el("section", { class: "card", id: "it-received", "aria-labelledby": "h-received" },
+    el("p", { class: "eyebrow", text: "Para el equipo" }), el("h2", { id: "h-received", text: "Revisiones recibidas" }));
+  const tbody = el("tbody"), empty = el("p", { class: "small muted", text: "Todavía nadie ha guardado una revisión." });
+  host.append(empty, el("div", { class: "tablewrap" }, el("table", {}, el("thead", {}, el("tr", {}, el("th", { text: "Revisor" }), el("th", { text: "Avance" }), el("th", { text: "Última actualización" }))), tbody)));
+  $("#main").prepend(host);
+  db.collection("reviews").onSnapshot(async (snap) => {
+    const ids = snap.docs.map((d) => d.id);
+    const ps = ids.length ? await user.profiles(ids) : {};
+    tbody.replaceChildren(...snap.docs.map((d) => { const x = d.data() || {};
+      return el("tr", {}, el("td", { text: (x.grades?.general?.name) || ps[d.id]?.name || "Alguien" }),
+        el("td", { text: `${x.progress ?? 0} de ${x.total ?? "—"}` }),
+        el("td", { text: x.updatedAt ? new Date(x.updatedAt).toLocaleString("es-MX") : "—" })); }));
+    empty.hidden = snap.size > 0;
+  }, () => {});
+}
+
+// ---- boot ------------------------------------------------------------------------------------------
+function build() {
+  $("#title").textContent = `Revisión ${DATA.case_id}`;
+  $("#sub").textContent = DATA.matter.title;
+  caseSection();
+  const idx = $("#index");
+  idx.append(el("li", {}, el("a", { href: "#caso" }, "El caso")));
+  for (const it of DATA.items) {
+    $("#main").append(itemSection(it));
+    idx.append(el("li", {}, el("a", { href: `#it-${it.id}` }, el("span", { text: it.title }), el("span", { class: "dot", id: `dot-${it.id}` }))));
+  }
+  $("#main").append(verifySection(), generalSection());
+  idx.append(el("li", {}, el("a", { href: "#it-verify" }, "Verificador")), el("li", {}, el("a", { href: "#it-general" }, "Valoración general")));
+  renderProgress();
+}
+
+async function connect() {
+  const db = window.claude ? await window.claude.use("db") : null;
+  const user = window.claude ? await window.claude.use("user") : null;
+  const uid = user ? await user.id() : null;
+  if (!db || !uid) { showReadOnly(); return; }
+  docRef = db.doc(`reviews/${uid}`);
+  const timer = setTimeout(() => { $("#status").textContent = "No se ha podido conectar con el almacén todavía; sus calificaciones se conservan en este navegador."; }, 10000);
+  let first = true;
+  docRef.onSnapshot((snap) => {
+    if (!snap.metadata.fromCache) clearTimeout(timer);
+    if (!first) return; first = false;
+    const saved = snap.exists ? snap.data()?.grades : null;
+    if (saved && saved.items) { grades = structuredClone(saved); $("#main").querySelectorAll(".card:not(#caso):not(#it-received)").forEach((n) => n.remove()); $("#index").replaceChildren(); build(); }
+    canSave = true;
+    $("#status").textContent = "Sus calificaciones se guardan solas en este documento mientras avanza.";
+    setSaved(saved ? "Revisión anterior cargada" : "Sin cambios");
+    if (dirty) changed();
+  }, () => { clearTimeout(timer); showReadOnly(); });
+  if (await user.isOwner()) reviewsPanel(db, user);
+}
+
+if (!DATA) { $("#status").textContent = "Este archivo es la plantilla: falta insertar los datos de la corrida (evals/e2e/review.py)."; }
+else { build(); connect(); }
+</script>

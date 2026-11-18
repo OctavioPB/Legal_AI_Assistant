@@ -701,5 +701,35 @@
       "failed": "Error al leer",
       "skipped": "Se reintenta en la siguiente revisión"
     }
+  },
+  "cheatsheet": {
+    "section": "Hoja de puntos clave",
+    "intro": "Un resumen de una página para la audiencia o el juicio, hecho con las conversaciones, notas y fuentes de este asunto. Solo puede citar fuentes que el asunto ya citó, y cada punto jurídico se verifica contra su texto. Las preguntas para el cliente y los temas a revisar son razonamiento del asistente, sin respaldo normativo.",
+    "generate": "Generar hoja de puntos clave",
+    "stage": {
+      "collecting": "Reuniendo el material del asunto…",
+      "generating": "Redactando y verificando la hoja…"
+    },
+    "error": "No fue posible generar la hoja. Intente de nuevo.",
+    "latest": "Última hoja",
+    "open": "Abrir para imprimir o guardar en PDF",
+    "history": "Hojas anteriores",
+    "status": {
+      "answered": "Verificada",
+      "refused": "Sin hoja: el sistema la rechazó"
+    },
+    "meta": "{when} · {name}",
+    "none": "Todavía no hay hojas de este asunto.",
+    "noSources": "Este asunto todavía no ha citado ninguna fuente. Trabaje primero en una conversación del asunto o guarde fuentes en él.",
+    "refused": "El sistema no entregó la hoja porque no pudo verificar todos sus puntos contra las fuentes del asunto. Vuelva a intentarlo o amplíe el trabajo del asunto.",
+    "title": "Hoja de puntos clave",
+    "generated": "Generada el {when} por {name} · modelo {model}",
+    "print": "Imprimir o guardar PDF",
+    "back": "Volver al asunto",
+    "sources": "Fuentes citadas",
+    "legend": "Cada punto jurídico se verificó contra el texto de la fuente citada. Lo marcado con ◇ es razonamiento del asistente, sin respaldo normativo: revíselo, y confirme con el cliente lo que se le pregunta.",
+    "disclaimer": "Herramienta de apoyo; no sustituye el criterio profesional del abogado.",
+    "notFound": "Esta hoja no existe o no tiene acceso a ella.",
+    "loading": "Cargando la hoja…"
   }
 }

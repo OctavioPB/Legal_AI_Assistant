@@ -102,6 +102,15 @@ Read these with their limits:
   proves provenance, not that a paraphrase is faithful. That check is still human.
 - The remote Claude profile has not been measured.
 
+**End-to-end case for lawyer review** ([docs/EVALUACION-E2E.md](docs/EVALUACION-E2E.md)). A fictional
+labor case under Mexican law (a pregnant worker dismissed verbally, without written notice) run through
+every tool with the local model, then packaged for a practising lawyer to grade each answer against the
+full text of every cited article. First run, 2026-11-17: 8 of 9 answers delivered; the brief verifier
+caught every seeded error and one the team made by accident; the key-points sheet was refused (the
+model cited units it was not shown). Reading the answers showed several citations to real articles that
+do not apply to the case (for example a two-year limitation period where the law gives two months).
+The validator cannot catch these: it proves provenance, not legal fit. The lawyer's review is pending.
+
 Two changes worth reading as examples of the method:
 
 - **ADR-022.** Explicit references are resolved by a citation grammar instead of ranked.
@@ -173,7 +182,10 @@ migrations, with the production roles.
 - Scanned PDFs are not read (no OCR).
 - Case law is not loaded; the corpus is statutes.
 - An answer takes 1.5 to 4 minutes with the local 26B model on an 8 GB GPU.
-- The refusal threshold was calibrated on statute text with AI-drafted probe sets.
+- The refusal threshold was calibrated on statute text with AI-drafted probe sets; a question about a
+  firm's own contract fell just under it in the end-to-end case.
+- A citation can be real and verified yet point to an article that does not govern the case. Only a
+  lawyer's review catches that today ([docs/EVALUACION-E2E.md](docs/EVALUACION-E2E.md)).
 - Designed but not built: Celery workers, a deployed LiteLLM proxy, tracing, an NLI judge.
 
 This is a research tool for lawyers. It does not replace professional judgment.

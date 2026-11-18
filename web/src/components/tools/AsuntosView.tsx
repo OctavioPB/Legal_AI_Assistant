@@ -24,6 +24,7 @@ import {
 } from "@/lib/api";
 import { useDateTime } from "@/lib/format";
 import { SourceViewer } from "../SourceViewer";
+import { CheatsheetSection } from "./Cheatsheet";
 
 const PAGE_OF: Record<Conversation["kind"], string> = { chat: "conversar", research: "investigacion", case: "argumentar" };
 
@@ -293,6 +294,8 @@ function MatterPanel({ id, onBack, onChanged }: { id: string; onBack: () => void
           </>
         )}
       </section>
+
+      <CheatsheetSection matterId={id} open={d.matter.status === "open"} />
 
       <section aria-labelledby="matter-sources">
         <h3 id="matter-sources">{t("sources")}</h3>

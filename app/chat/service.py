@@ -39,6 +39,7 @@ WORKFLOW_ALIAS: dict[str, AliasName] = {
     "conversar": "drafting-primary",
     "adversarial": "adversarial-primary",
     "argumentar": "adversarial-primary",
+    "hoja_clave": "drafting-primary",  # ADR-028
 }
 MAX_QUERY_CHARS = 4000
 CaseSide = Literal["actor", "demandado", "defensa", "acusacion", "tercero"]

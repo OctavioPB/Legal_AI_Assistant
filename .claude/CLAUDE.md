@@ -72,6 +72,7 @@ uv run python -m app.demo                          # demo firm + user (random pa
 uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate the refusal threshold from the probe sets
 uv run pytest -m live                              # real local models (Ollama must be running)
 uv run python -m app.ingestion.watch [--only LFT] [--dry-run] [--check-urls] [--if-stale 20] [--no-indexes]   # reform watcher (ADR-017/026; the ONLY job with network: official URLs of corpus.py + indexes.py)
+uv run python -m evals.e2e.run_case laboral_01 --credentials .demo-credentials [--keep] && uv run python -m evals.e2e.review evals/e2e/runs/<run>.json   # end-to-end case + lawyer review packet (docs/EVALUACION-E2E.md)
 uv run python -m app.news.pipeline [--dry-run]     # ADR-027: legal news feed (30 items, fixed rules, sources' own text); runs after the watcher in -WatchReforms
 uv run python -m app.ingestion.discover list [--status new] [--search aguas] | approve DIP_FED:LGAg --domain environmental --by NAME | dismiss ...   # ADR-026: laws found in official indexes; approval = operator only
 powershell -File scripts/dev-up.ps1 -ScheduleReforms | -UnscheduleReforms | -WatchReforms [-DryRun]   # daily 03:00 Windows task / run the reform check now
@@ -175,3 +176,4 @@ Measured on a sibling local-RAG project (same zero-hallucination contract). Trea
 - `docs/Brand.md` — fuente de verdad de UI/Frontend (obligatoria para todo PR de UI)
 - `docs/ROADMAP.md` — features futuros fuera de scope (con anti-roadmap)
 - `docs/PITCH.md` — propósito de la solución + spec de ingeniería
+- `docs/EVALUACION-E2E.md` — casos de extremo a extremo y su revisión por abogados (E2E-LAB-01)

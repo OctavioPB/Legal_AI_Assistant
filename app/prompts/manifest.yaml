@@ -20,6 +20,9 @@ layers:
     adversarial:
       version: v3
       sha256: b7c10570f23fc65072ee4c53780f5c31e522c439a80c80d968b3a8adbc74cbdb
+    hoja_clave:
+      version: v1
+      sha256: 6078b7d9e35a72d44b8027eb2ca8a8ba51cd6f5e237d7e794b8f4e13dbb76b70
   persona:
     general:
       version: v1

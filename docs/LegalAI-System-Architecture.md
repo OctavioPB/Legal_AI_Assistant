@@ -755,6 +755,11 @@ Propiedades del diseño:
 
 ## 11. Golden Dataset y Evaluación
 
+> **Implementación (2026-11-17).** Además del golden hay casos de extremo a extremo (`evals/e2e/`). Cada uno recorre
+> la aplicación completa sobre un asunto ficticio y produce un paquete para que un abogado califique cada salida
+> contra el texto completo de lo citado. El primero, E2E-LAB-01 (laboral), y lo que encontró están en
+> [EVALUACION-E2E.md](EVALUACION-E2E.md). Los puntos que el abogado apruebe pasan al golden con `reviewed_by`.
+
 ### 11.1 Estructura
 
 Formato JSONL versionado en `evals/golden/`, un registro por caso:
@@ -916,6 +921,11 @@ Honestidad explícita sobre lo que este diseño **no** resuelve:
 - **Cita válida no es paráfrasis fiel.** El validador (incluida la cita textual) prueba
   procedencia: puede pasar una cita correcta con un resumen invertido. El NLI y la revisión humana
   reducen, no eliminan, ese riesgo.
+  > **Implementación (2026-11-17).** El caso E2E-LAB-01 lo mostró con casos concretos
+  > ([EVALUACION-E2E.md](EVALUACION-E2E.md)): respuestas verificadas que citan artículos reales que no rigen el
+  > caso. Por ejemplo, el plazo de dos años del art. 519 en lugar de los dos meses del art. 518, o el art. 51
+  > (rescisión por el trabajador) como requisito para el patrón. Está pendiente la revisión del abogado, que
+  > convertirá esos casos en golden.
 - **La ventana de entrada del embedder acota la recuperación vectorial.** Texto de un chunk más
   allá de ella no se "ve"; se mide y se registra, no se supone.
 - **Documentos del despacho (ADR-025).** Un PDF escaneado no se lee (sin OCR); de un `.docx` no se leen

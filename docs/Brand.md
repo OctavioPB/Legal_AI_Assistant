@@ -323,6 +323,20 @@ Mismo marco que §8 (barra, tokens, tipografía, tono); ninguna herramienta usa 
 - Al final, `h2` "Fuentes": tabla (fuente, leída, resultado en palabras). Una fuente que rechaza la lectura se dice
   "La fuente rechazó la lectura" y no se insiste.
 
+### 9.9 Hoja de puntos clave (ADR-028, 2026-11-17)
+- En el asunto, `h3` "Hoja de puntos clave" después de "Trabajo del asunto": la explicación (solo cita lo que el
+  asunto ya citó; las preguntas y temas son razonamiento del asistente), el selector de modelo compacto (§9.6) y el
+  botón "Generar hoja de puntos clave". Mientras corre, la etapa en palabras (`role="status"`).
+- "Última hoja": fecha · autor · estado, y "Abrir para imprimir o guardar en PDF". Una hoja rechazada no muestra
+  texto del modelo: dice por qué en palabras del sistema (sin fuentes en el asunto / no se pudo verificar).
+- La hoja (`/asuntos/hoja`) es una página carta: rótulo "HOJA DE PUNTOS CLAVE" en `--accent-ink`, título del asunto,
+  "Generada el … por … · modelo …"; cuerpo a dos columnas con las cuatro secciones (Puntos clave, Riesgos, Preguntas
+  para el cliente, Temas a revisar); citas como números `[n]` en superíndice; los renglones de razonamiento en
+  cursiva con ◇ (nunca con el aspecto de una cita); al pie, "Fuentes citadas" numeradas, la leyenda de verificación y
+  "no sustituye el criterio profesional".
+- Al imprimir: sin barra lateral ni botones, fondo blanco, 9 pt, márgenes de 12 mm. La prueba de navegador genera el
+  PDF y exige UNA página.
+
 ### 9.6 Modelo de una conversación (ADR-024, 2026-11-09)
 - Al crear (Conversar, Investigación, Argumentar): `fieldset` "Modelo" con una tarjeta-radio por modelo USABLE
   (configurado en el servidor y permitido por el despacho); se oculta si solo hay uno. Cada tarjeta: nombre,

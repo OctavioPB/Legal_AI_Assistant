@@ -597,3 +597,36 @@ export interface NewsFeed {
 }
 
 export const getNews = () => json<NewsFeed>("news");
+
+// ---- key-points sheet of a matter (ADR-028) ------------------------------------------------------
+export interface Cheatsheet {
+  id: string;
+  matter_id: string;
+  created_at: string;
+  created_by_name: string | null;
+  language: "es" | "en";
+  model_profile: string;
+  status: "answered" | "refused";
+  content: string | null; // validated by the system; legal points cite, reasoning lines are marked
+  refusal_reason: string | null; // a catalog key, never model text
+  citations: Citation[];
+  material: Record<string, number>;
+}
+
+const sheetsPath = (matter: string) => `${matterPath(matter)}/cheatsheets`;
+export const listCheatsheets = (matter: string) => json<Cheatsheet[]>(sheetsPath(matter));
+export const getCheatsheet = (matter: string, id: string) => json<Cheatsheet>(`${sheetsPath(matter)}/${encodeURIComponent(id)}`);
+
+export async function generateCheatsheet(
+  matter: string,
+  body: { language: "es" | "en"; model_profile?: string },
+  onStage: (stage: string) => void,
+): Promise<Cheatsheet> {
+  const res = await send(`${sheetsPath(matter)}/stream`, "POST", body);
+  for await (const ev of readSse(res)) {
+    if (ev.event === "stage") onStage(String(ev.data));
+    else if (ev.event === "result") return ev.data as Cheatsheet;
+    else if (ev.event === "error") throw new ApiError(500, (ev.data as { code?: string }).code ?? "error");
+  }
+  throw new ApiError(502, "stream_ended");
+}

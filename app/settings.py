@@ -88,6 +88,13 @@ class Settings(BaseSettings):
     news_min_press_terms: float = 1.0  # legal-term weight a general outlet's item needs
     news_excerpt_chars: int = 280  # the source's own summary, clipped
     news_max_per_source: int = 10  # no single source fills the feed (official index, SCJN)
+    # ADR-028: key-points sheet of a matter (its own cited sources only; one page)
+    cheatsheet_conversations_max: int = 12  # newest conversations of the matter read
+    cheatsheet_turns_per_conversation: int = 3  # last exchanges of each, in the USER turn
+    cheatsheet_material_chars: int = 14_000  # clip of the whole material (matter first)
+    cheatsheet_max_sources: int = 24  # most-cited units shown to the model
+    # drop earlier answers' [cite: ...] markers from the material (measured, see PLAN 2026-11-17)
+    cheatsheet_strip_material_cites: bool = True
     # Retrieval experiments (golden protocol, 2026-11-08). Off by default until measured:
     # lexical_match "any" ORs the query lexemes (websearch_to_tsquery ANDs them: a natural question
     # matched nothing); rerank_breadcrumb scores breadcrumb + text, as the chunks were embedded.
