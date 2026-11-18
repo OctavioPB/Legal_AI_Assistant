@@ -119,6 +119,12 @@ es por usuario y se guarda en el Postgres local; se puede renombrar y eliminar.
     oficial primero, términos jurídicos, fecha); el modelo no interviene y cada nota se muestra con las palabras
     de su fuente y su enlace. A mano: `uv run python -m app.news.pipeline` (`--dry-run` muestra el feed sin
     guardarlo). Si en la semana hubo pocas noticias jurídicas, el feed muestra menos de 30: no se rellena.
+  - **Canario diario en GitHub (ADR-029).** Además de la carga en este equipo, GitHub revisa cada día, sin
+    escribir nada, que las fuentes oficiales y de noticias respondan y que sus lectores sigan entendiéndolas
+    (`.github/workflows/etl-canary.yml`). Si una falla, abre o comenta el issue «ETL canario: fuentes con
+    problemas»; cuando todo vuelve a responder, lo cierra. A mano: `uv run --no-project --isolated python -m
+    app.ingestion.canary`. Una fuente que bloquea direcciones de centros de datos puede salir bloqueada en
+    GitHub y funcionar aquí.
   - Al iniciar la demo se revisa en segundo plano si la última revisión tiene más de 20 h.
   - Revisión diaria (03:00, o al encender el equipo): `dev-up.ps1 -ScheduleReforms`; quitarla:
     `-UnscheduleReforms`. A mano: `dev-up.ps1 -WatchReforms -IfStaleHours 0` (`-DryRun` no escribe nada).

@@ -1,0 +1,70 @@
+# ETL canary (ADR-017/026/027): every day, are the official sources and the news feeds still there, and
+# do our readers still understand them? It READS only: no database, no model, no secrets. The loading
+# itself runs on the machine that holds the database (dev-up.ps1 -WatchReforms, daily Windows task).
+#
+# Same rules as the watcher: https, robots.txt honoured, one request per source, a refusal recorded and
+# never evaded. Standard library only, so nothing is installed (`uv run --no-project --isolated`).
+# A failing run opens (or comments on) one tracking issue; a clean run closes it.
+name: ETL canary
+
+on:
+  schedule:
+    - cron: "23 10 * * *" # 04:23 in Mexico City, after the local watcher's 03:00 run
+  workflow_dispatch:
+
+concurrency:
+  group: etl-canary
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  ISSUE_TITLE: "ETL canario: fuentes con problemas"
+
+jobs:
+  canary:
+    name: Official sources and news feeds
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Read every source with the real readers
+        id: canary
+        continue-on-error: true
+        env:
+          PYTHONIOENCODING: utf-8
+        run: uv run --no-project --isolated --python 3.12 python -m app.ingestion.canary --report canary.md --json canary.json
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: etl-canary
+          path: |
+            canary.md
+            canary.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Summary, and the tracking issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ steps.canary.outcome }}
+        run: |
+          [ -f canary.md ] || printf '## Canario ETL\n\nEl canario no produjo reporte (ver el log del paso anterior).\n' > canary.md
+          cat canary.md >> "$GITHUB_STEP_SUMMARY"
+          num=$(gh issue list --state open --search "\"$ISSUE_TITLE\" in:title" --json number --jq '.[0].number // empty')
+          if [ "$OUTCOME" != "success" ]; then
+            if [ -n "$num" ]; then gh issue comment "$num" --body-file canary.md
+            else gh issue create --title "$ISSUE_TITLE" --body-file canary.md; fi
+            exit 1
+          fi
+          if [ -n "$num" ]; then
+            gh issue close "$num" --comment "Todas las fuentes responden y se leen bien de nuevo ($(date -u +'%Y-%m-%d %H:%M') UTC)."
+          fi

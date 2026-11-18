@@ -430,6 +430,22 @@ below are the original one-liners and are Accepted.
   1 system refusal. Fewer sheets, no wrong citation: the contract's choice. Pending: lawyer-reviewed golden cases for this workflow; whether
   the 6/4/6/4 line limits are the right shape for a trial (lawyer feedback).
 
+- ADR-029 (Accepted 2026-11-17, option chosen by the product owner): A daily ETL canary on GitHub; the loading stays on
+  the machine with the database. Options asked: (A) canary on GitHub-hosted runners that reads every source and
+  never writes; (B) a self-hosted runner on the demo machine that runs the real watcher and news pipeline under
+  GitHub's schedule; (C) both. Decision: A. `app/ingestion/canary.py` (standard library only, with the same readers as
+  the ETL: `net`, `indexes`, `leginfo`, `app.news.sources`) runs daily in `.github/workflows/etl-canary.yml` with
+  `uv run --no-project --isolated`, so nothing is installed and no secret exists. For every law of the registry it
+  sends a HEAD (California: the listing plus a HEAD of the newest archive, never the archive); for every official
+  index and network news source it sends one GET parsed by the real reader. robots.txt is honoured once per host;
+  every outcome is named (ok / blocked / robots / unreachable / layout); a failing run opens or comments one
+  tracking issue, a clean one closes it. Amends ADR-017 (a): the official URLs are now also read, once a day, from
+  GitHub's (US) addresses. That is still read-only and one request each, but a source that blocks data-centre
+  addresses shows as blocked there while it works from the demo machine; the report says so. Consequences: a
+  layout change or a block is seen within a day even when the demo machine is off; the ETL itself (writes,
+  embeddings) is unchanged. Tested by `tests/test_canary.py` (each outcome, one request per source, robots once per
+  host, stdlib-only import, workflow without secrets).
+
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →
 hybrid search (prefiltered) → RRF → rerank → τ check → parent expansion → prompt composer →
