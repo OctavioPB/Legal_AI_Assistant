@@ -1,137 +1,136 @@
-# ROADMAP.md — Legal AI Assistant: implementaciones futuras
+# ROADMAP.md — Legal AI Assistant: future work
 
-Todo lo listado aquí está **fuera del scope de la demo** (ver PLAN.md) pero fue considerado
-en el diseño: la arquitectura actual (perímetro Postgres/RLS, `cite_id` inmutable, árbol
-`ltree`, aliases de modelo, golden dataset) es la base sobre la que cada ítem se apoya.
-Cada feature indica qué pieza existente lo habilita, para evitar rediseños.
+Everything listed here is **outside the scope of the demo** (see PLAN.md) but was considered
+in the design: the current architecture (Postgres/RLS perimeter, immutable `cite_id`, `ltree`
+tree, model aliases, golden dataset) is the base each item builds on.
+Each feature says which existing piece enables it, to avoid redesigns.
 
-Criterio de ordenamiento: valor para el abogado practicante ÷ esfuerzo, con el candado de
-que nada entra si degrada los dos gates duros (citation precision = 1.00, leakage = 0.00).
+Ordering criterion: value to the practising lawyer ÷ effort, with the lock that
+nothing enters if it degrades the two hard gates (citation precision = 1.00, leakage = 0.00).
 
 ---
 
-## Horizonte 1 — Post-demo inmediato (0–6 meses): profundizar el flujo diario
+## Horizon 1 — Immediately after the demo (0–6 months): deepen the daily workflow
 
-**R1.1 · Monitoreo de reformas (DOF + gacetas estatales) con alertas por dossier.** *(Núcleo hecho 2026-11-08,
-WS9.T04/ADR-017: vigilante de las URL oficiales de diputados.gob.mx + bandeja local, linaje por unidad citable y
-alertas por conversación/fuente/reporte. Falta: DOF diario y gacetas estatales como fuentes, notificación fuera de
-la app.)*
-Pipeline programado que detecta publicaciones nuevas, las ingesta y —clave— cruza los
-`cite_id` reformados contra los dossiers activos de cada tenant: *"El art. 76 LFT citado en
-tu expediente X fue reformado el 14-06; la versión que citaste ya no está vigente"*. Es la
-feature de mayor retención posible para un abogado: convierte el corpus fresco (hoy un riesgo
-operativo, ver Limitaciones §12 del blueprint) en un producto. Habilitado por: versionado
-`is_current` + `cite_id` inmutable ya existentes.
+**R1.1 · Reform monitoring (DOF + state gazettes) with alerts per dossier.** *(Core done 2026-11-08,
+WS9.T04/ADR-017: a watcher of the official diputados.gob.mx URLs + a local inbox, lineage per citable unit and
+alerts per conversation/source/report. Missing: the daily DOF and state gazettes as sources, notification outside
+the app.)*
+A scheduled pipeline that detects new publications, ingests them and — the key point — cross-checks the reformed
+`cite_id`s against each tenant's active dossiers: *"Art. 76 LFT, cited in
+your file X, was reformed on 14-06; the version you cited is no longer in force"*. It is the highest-retention
+feature possible for a lawyer: it turns the fresh corpus (today an operational risk, see Limitations §12 of the
+blueprint) into a product. Enabled by: the existing `is_current` versioning + immutable `cite_id`.
 
-**R1.2 · Calculadora de términos procesales por jurisdicción.**
-Plazos (contestación, apelación, ofrecimiento de pruebas) calculados desde el código procesal
-de la jurisdicción activa, con calendario de días inhábiles por tribunal. Determinista, no
-generativo — pero cada plazo se muestra con su `[cite:]` al artículo procesal. Los términos
-son la causa #1 de responsabilidad profesional; una calculadora citable es defendible ante
-el cliente y el colegio.
+**R1.2 · Procedural-deadline calculator per jurisdiction.**
+Deadlines (answer, appeal, evidence offering) computed from the procedural code
+of the active jurisdiction, with a calendar of non-working days per court. Deterministic, not
+generative — but each deadline is shown with its `[cite:]` to the procedural article. Deadlines
+are the #1 cause of professional liability; a citable calculator is defensible before
+the client and the bar association.
 
-**R1.3 · Verificador de citas de documentos externos.** *(Hecho para leyes 2026-11-08, WS9.T02/ADR-019;
-jurisprudencia y tesis pendientes de corpus.)*
-Subir el escrito de la contraparte (o el propio antes de presentarlo) y validar cada cita
-normativa/jurisprudencial contra el corpus: existe, está vigente, dice lo que se le atribuye.
-Es el pipeline de validación actual (WS5) apuntado hacia adentro de un PDF ajeno — reuso casi
-directo del citation validator + retrieval. Caso de uso post-*Mata v. Avianca* con demanda
-obvia: detectar alucinaciones de la IA del contrario.
+**R1.3 · Citation verifier for external documents.** *(Done for statutes 2026-11-08, WS9.T02/ADR-019;
+case law and theses pending a corpus.)*
+Upload the opposing party's brief (or your own before filing it) and validate each
+statutory/case-law citation against the corpus: it exists, it is in force, it says what is attributed to it.
+It is the current validation pipeline (WS5) pointed inward at someone else's PDF — almost direct reuse of the
+citation validator + retrieval. Use case after *Mata v. Avianca*, with an obvious demand: detect the
+hallucinations of the other side's AI.
 
-**R1.4 · Plantillas de escritos por materia y tribunal (drafting asistido).**
-Demanda laboral, contestación, amparo indirecto: esqueletos por persona/jurisdicción donde el
-Dossier Builder puebla el capítulo de derecho con citas verificadas y el abogado redacta
-hechos. Estrictamente asistivo: el sistema nunca "presenta", solo pre-llena con trazabilidad.
+**R1.4 · Brief templates per subject and court (assisted drafting).**
+Labor complaint, answer, indirect amparo: skeletons per persona/jurisdiction where the
+Dossier Builder fills the law chapter with verified citations and the lawyer writes the
+facts. Strictly assistive: the system never "files", it only pre-fills with traceability.
 
-**R1.5 · Colaboración por asunto (matter-level).** *(Primer paso hecho 2026-11-08, WS9.T03/ADR-018: asuntos
-con miembros bajo RLS, notas y fuentes guardadas. 2026-11-14, ADR-025: documentos del despacho por asunto, con
-el sub-scoping de RLS por matter que este punto pedía. Faltan papeles socio/asociado/pasante, comentarios sobre
-fragmentos y versiones del dossier.)*
-Permisos por expediente dentro del tenant (socio/asociado/pasante), comentarios sobre
-fragmentos citados, historial de versiones del dossier. Habilitado por: `dossiers` +
-`audit_log` existentes; requiere sub-scoping de RLS por matter (política adicional, no
-rediseño).
+**R1.5 · Matter-level collaboration.** *(First step done 2026-11-08, WS9.T03/ADR-018: matters
+with members under RLS, notes and saved sources. 2026-11-14, ADR-025: firm documents per matter, with
+the per-matter RLS sub-scoping this item asked for. Missing: partner/associate/intern roles, comments on
+fragments and dossier versions.)*
+Permissions per file within the tenant (partner/associate/intern), comments on cited
+fragments, dossier version history. Enabled by: the existing `dossiers` +
+`audit_log`; requires per-matter RLS sub-scoping (an additional policy, not a
+redesign).
 
-**R1.6 · Backlog de lagunas del corpus a partir de los refusals.**
-Cada `<insuficiente>` por falta de fuente se agrega en un reporte de "temas pedidos que el
-corpus no cubre" (deduplicado por tema, con conteo y jurisdicción), que alimenta la cola de
-ingesta y el monitoreo de R1.1. Convierte la negativa en señal de producto. Lección de
-Library-RAG (detector de lagunas): los embeddings solo preseleccionan temas parecidos (coseno
-0.41–0.81 para el mismo tema reformulado vs 0.31–0.73 para temas vecinos); la fusión de temas la
-decide un paso aparte, no el coseno. Habilitado por: `audit_log` + payload estructurado del refusal.
+**R1.6 · Corpus-gap backlog built from refusals.**
+Every `<insuficiente>` caused by a missing source is added to a report of "requested topics the
+corpus does not cover" (deduplicated by topic, with a count and the jurisdiction), which feeds the ingestion
+queue and the R1.1 monitoring. It turns the refusal into a product signal. Lesson from
+Library-RAG (gap detector): embeddings only preselect similar topics (cosine
+0.41–0.81 for the same topic reworded vs 0.31–0.73 for neighbouring topics); merging topics is
+decided by a separate step, not by cosine. Enabled by: `audit_log` + the structured refusal payload.
 
-## Horizonte 2 — Consolidación (6–18 meses): inteligencia sobre el corpus
+## Horizon 2 — Consolidation (6–18 months): intelligence over the corpus
 
-**R2.1 · Citator mexicano (grafo de vigencia y contradicción).**
-Grafo dirigido sobre `cite_id`s: qué tesis interrumpe/sustituye a cuál, qué jurisprudencia
-por contradicción resolvió qué criterios encontrados, qué artículos remiten a cuáles
-("salvo lo dispuesto en..."). Equivalente funcional de Shepard's/KeyCite, inexistente en
-México a este nivel. Habilitado por: `doc_nodes` + detección de reformas del normalizador;
-requiere extracción de relaciones (tarea LLM `cheap-utility` en batch) y una tabla de aristas.
-Es probablemente el foso competitivo más profundo de todo el roadmap.
+**R2.1 · Mexican citator (graph of validity and contradiction).**
+A directed graph over `cite_id`s: which thesis interrupts/replaces which, which case law
+by contradiction resolved which conflicting criteria, which articles refer to which
+("except as provided in..."). The functional equivalent of Shepard's/KeyCite, nonexistent in
+Mexico at this level. Enabled by: `doc_nodes` + the normalizer's reform detection;
+requires relation extraction (a batch `cheap-utility` LLM task) and an edge table.
+It is probably the deepest competitive moat in the whole roadmap.
 
-**R2.2 · Knowledge graph de remisiones normativas.**
-Navegación "este artículo remite a estos 4; es remitido por estos 12" y expansión automática
-del contexto de retrieval con remisiones de primer grado (hoy el parent expansion solo sube
-en el árbol; esto expande lateralmente). Mejora directa de recall en preguntas complejas.
+**R2.2 · Knowledge graph of statutory cross-references.**
+Navigation "this article refers to these 4; it is referred to by these 12" and automatic expansion
+of the retrieval context with first-degree cross-references (today parent expansion only goes up
+the tree; this expands laterally). A direct recall improvement on complex questions.
 
-**R2.3 · Analytics de criterios por órgano jurisdiccional.**
-Tendencias de resolución por tribunal colegiado/sala sobre el corpus público de sentencias:
-qué criterios aplica cada órgano, con qué frecuencia concede amparos por materia. Restricción
-ética explícita: agregados por órgano, nunca perfiles de juzgadores individuales orientados a
-forum shopping — la línea se documenta en Brand.md/términos de uso.
+**R2.3 · Analytics of criteria per judicial body.**
+Resolution trends per collegiate court/chamber over the public corpus of judgments:
+which criteria each body applies, how often it grants amparo per subject. Explicit ethical
+restriction: aggregates per body, never profiles of individual judges aimed at
+forum shopping — the line is documented in Brand.md/terms of use.
 
-**R2.4 · Búsqueda sobre audiencias y constancias (ASR).**
-Transcripción de audiencias (con consentimiento/legalidad local) → ingesta como `client_file`
-(la carga de documentos del despacho ya existe, ADR-025; falta ASR y la gramática de turnos)
-con timestamps citables. El chunker jerárquico gana una gramática nueva (turnos de habla);
-todo lo demás (RLS, citas, validador) aplica sin cambios.
+**R2.4 · Search over hearings and records (ASR).**
+Transcription of hearings (with consent/local legality) → ingestion as a `client_file`
+(uploading the firm's documents already exists, ADR-025; ASR and the speaking-turn grammar are missing)
+with citable timestamps. The hierarchical chunker gains a new grammar (speaking turns);
+everything else (RLS, citations, validator) applies unchanged.
 
-**R2.5 · Expansión de jurisdicciones US + integraciones de expediente.**
-Cobertura estatal US más allá de CA; conectores de solo-lectura a Tribunal Virtual (MX) y
-PACER/CM-ECF (US) para traer constancias al matter automáticamente.
+**R2.5 · US jurisdiction expansion + case-file integrations.**
+State coverage in the US beyond CA; read-only connectors to Tribunal Virtual (MX) and
+PACER/CM-ECF (US) to bring records into the matter automatically.
 
-## Horizonte 3 — Plataforma (18+ meses)
+## Horizon 3 — Platform (18+ months)
 
-**R3.1 · Tier enterprise: aislamiento físico y llaves propias.**
-Schema-per-tenant o DB-per-tenant + BYOK (envelope encryption por tenant) + residencia de
-datos configurable. La migración está pre-cableada: `tenant_id` viaja en todas las tablas
+**R3.1 · Enterprise tier: physical isolation and customer-owned keys.**
+Schema-per-tenant or DB-per-tenant + BYOK (envelope encryption per tenant) + configurable data
+residency. The migration is pre-wired: `tenant_id` travels in every table
 (ADR-002).
 
-**R3.2 · Despliegue on-prem / VPC del despacho.**
-Para despachos con prohibición de nube compartida. Requiere que el reranker y embeddings
-tengan variantes self-hosted (ya contemplado: `bge-reranker-v2-m3` como alternativa) y un
-alias de modelo local (p. ej. DeepSeek self-hosted) en LiteLLM.
+**R3.2 · On-prem / firm-VPC deployment.**
+For firms with a ban on shared cloud. Requires the reranker and embeddings
+to have self-hosted variants (already contemplated: `bge-reranker-v2-m3` as an alternative) and a
+local model alias (e.g. self-hosted DeepSeek) in LiteLLM.
 
-**R3.3 · Modelo propio legal-es (destilación).**
-Con el volumen de trazas Langfuse + golden dataset ampliado, destilar un modelo pequeño para
-`cheap-utility` (clasificación, extracción de relaciones del citator) reduce costo del doble
-paso de validación. Nunca para drafting hasta que iguale citation precision del alias actual
-— el router lo decide con datos, no la estrategia.
+**R3.3 · Own legal-es model (distillation).**
+With the volume of Langfuse traces + an expanded golden dataset, distilling a small model for
+`cheap-utility` (classification, citator relation extraction) reduces the cost of the double
+validation pass. Never for drafting until it matches the citation precision of the current alias
+— the router decides it with data, not strategy.
 
-**R3.4 · Expansión LATAM (Colombia, Chile, Argentina).**
-El diseño jurisdiccional (país→nivel→entidad, catálogo cerrado, apilamiento hacia arriba) es
-generalizable a otros sistemas civilistas; el costo real es el normalizador por país (gramática
-nueva) y el corpus. Entrar por países con diario oficial digitalizado y estructurado.
+**R3.4 · LATAM expansion (Colombia, Chile, Argentina).**
+The jurisdiction design (country→level→entity, closed catalog, stacking upward) is
+generalizable to other civil-law systems; the real cost is the per-country normalizer (a new
+grammar) and the corpus. Enter through countries with a digitized, structured official gazette.
 
-**R3.5 · API pública + marketplace de conectores.**
-Exponer retrieval citable y verificación de citas como API para software de gestión de
-despachos (practice management). El citation validator como servicio es vendible por sí solo.
+**R3.5 · Public API + connector marketplace.**
+Expose citable retrieval and citation verification as an API for practice-management
+software. The citation validator as a service is sellable on its own.
 
 ---
 
-## Anti-roadmap (decisiones de NO hacer, para no relitigar)
+## Anti-roadmap (decisions NOT to do, so they are not relitigated)
 
-- **No** chatbot legal para consumidores finales: cambia el perfil de riesgo (asesoría no
-  autorizada) y el diseño entero asume un profesional que valida.
-- **No** "predicción de resultados de juicio" como feature: promesa indefendible con esta
-  evidencia; los analytics de R2.3 se quedan en frecuencias descriptivas.
-- **No** map-reduce / resumen por documento como estrategia de síntesis por defecto: medido en
-  Library-RAG, bajó la fidelidad (0.87 → 0.58) y dejó de abstenerse (ADR-008). Se reabre solo con
-  una corrida golden que gane en fidelidad Y exactitud de negativas.
-- **No** fusión igualitaria de consultas reescritas/traducidas con la original (ADR-009).
-- **No** juez LLM sin calibrar como único verificador de fidelidad: el verificador es código más
-  revisión humana; un juez debe medir su acuerdo con abogados antes de bloquear nada.
-- **No** dejar que el modelo redacte el refusal ni que "explique lo que falta" con sus palabras.
-- **No** relajar el refusal para "parecer más útil": el `<insuficiente>` es contrato de
-  producto (invariante #4 de CLAUDE.md).
+- **No** legal chatbot for end consumers: it changes the risk profile (unauthorized
+  advice) and the whole design assumes a professional who validates.
+- **No** "trial outcome prediction" as a feature: an indefensible promise on this
+  evidence; the R2.3 analytics stay at descriptive frequencies.
+- **No** map-reduce / per-document summarization as the default synthesis strategy: measured in
+  Library-RAG, it lowered fidelity (0.87 → 0.58) and stopped abstaining (ADR-008). Reopened only with
+  a golden run that wins on fidelity AND on refusal accuracy.
+- **No** equal-weight fusion of rewritten/translated queries with the original (ADR-009).
+- **No** uncalibrated LLM judge as the sole fidelity verifier: the verifier is code plus
+  human review; a judge must measure its agreement with lawyers before it blocks anything.
+- **No** letting the model write the refusal or "explain what is missing" in its own words.
+- **No** relaxing the refusal to "seem more useful": `<insuficiente>` is a product contract
+  (invariant #4 in CLAUDE.md).
