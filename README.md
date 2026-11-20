@@ -2,6 +2,20 @@
 
 [![CI](https://github.com/OctavioPB/Legal_AI_Assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/OctavioPB/Legal_AI_Assistant/actions/workflows/ci.yml)
 [![ETL canary](https://github.com/OctavioPB/Legal_AI_Assistant/actions/workflows/etl-canary.yml/badge.svg)](https://github.com/OctavioPB/Legal_AI_Assistant/actions/workflows/etl-canary.yml)
+[![License: proprietary](https://img.shields.io/badge/license-proprietary-lightgrey)](LICENSE)
+[![Academic review](https://img.shields.io/badge/review-EN%20%C2%B7%20ES%20PDF-C8982A)](docs/Thesis.pdf)
+[![Architecture decisions](https://img.shields.io/badge/ADRs-29-003366)](.claude/rules/architecture.md)
+
+[![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](app/main.py)
+[![PostgreSQL 16 + pgvector](https://img.shields.io/badge/PostgreSQL%2016-pgvector%200.8-4169E1?logo=postgresql&logoColor=white)](docker-compose.yml)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](web/package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](web/tsconfig.json)
+[![Ollama: local models](https://img.shields.io/badge/models-local%20%28Ollama%29-1C1C2E?logo=ollama&logoColor=white)](docs/LOCAL_DEMO.md)
+[![uv](https://img.shields.io/badge/deps-uv-DE5FE9?logo=uv&logoColor=white)](https://docs.astral.sh/uv/)
+[![Ruff](https://img.shields.io/badge/lint-ruff-D7FF64?logo=ruff&logoColor=black)](https://docs.astral.sh/ruff/)
+[![mypy strict](https://img.shields.io/badge/types-mypy%20strict-2A6DB2)](pyproject.toml)
+[![Languages: es-MX, en-US](https://img.shields.io/badge/i18n-es--MX%20%C2%B7%20en--US-27B97C)](web/src)
 
 A legal research assistant for law firms in Mexico and the United States that is built so it
 cannot assert law it did not retrieve. Every legal claim in an answer carries a citation that
