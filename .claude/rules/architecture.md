@@ -739,6 +739,10 @@ below are the original one-liners and are Accepted.
   false refusal 2/20 vs 3/20 (McNemar 1 worse / 0 better, p = 1.0), recall, leakage, citation precision and refusal
   accuracy equal; gd2-009 answered on both; the one difference is gd2-024, refused on generation 2 (0/6 runs answered
   there, 5/5 on generation 1), never misattributed since ADR-051. The decision on generation 2 is the owner's again.
+  Owner's choice: find gd2-024's cause first. Found and fixed as ADR-052 (decree dates), built with this fix as
+  generation 3; gd2-024 still declined 5/5 there, so both were rolled back again (see ADR-052). Pending: the model's
+  decline on gd2-024 with a clean, dated context (a prompt/model question for prompt-lab); generations 2 and 3 are
+  kept retired for a re-test.
 
 - ADR-050 (Proposed, 2026-11-26): The law is retrieved as of a date: versions carry valid time separately from the time we
   loaded them, and a session may fix the date of the facts. Context: legal questions are about the version in force on
@@ -791,6 +795,29 @@ below are the original one-liners and are Accepted.
   that it exists; (-) a claim about a decree phrased without a change verb, or naming an article with words, is
   not checked; a wrong claim inside a list the parser cannot read passes as before. Pending: lawyer review of the
   parser on the 430 units; whether option C is still worth measuring.
+
+- ADR-052 (Accepted 2026-11-27 as an option, "date + move headings" chosen by the product owner; measured and NOT adopted
+  yet): A reform decree's heading travels with its own decree, and every transitorio unit carries its decree's
+  publication date. Context: investigating gd2-024 on generation 2 (ADR-049): the two decree fragments in its context
+  carried no date, so the model saw a decree that ADDED art. 15-C (2012) next to one that REPEALED it (2021) with no
+  way to order them, and declined. Cause: each "DECRETO ... / Publicado en el Diario Oficial de la Federación el ..."
+  heading was glued to the PREVIOUS decree's last unit (32 such headings in the LFT, 159 CPEUM, 163 CPF, 59 CCF), so
+  no unit knew its own date and some showed another decree's. Options: (A) date in the label + move the heading lines
+  to their own decree; (B) date only, texts untouched (the stray lines keep showing a wrong date); (C) accept the
+  refusal. Decision: A, as chunker v3 (`normalizer_mx`: the heading block is held and given to the decree's first
+  transitorio unit; if no transitorio unit follows, the block is re-read and stays where it was, so the structure
+  is unchanged; the date labels transitorio units: "Artículo Primero transitorio, decreto DOF 23-04-2021").
+  Evidence: on the real corpus against generation 2, every document's text is covered exactly once (line multiset
+  identical), 16 ids vanish (heading-only units, renumbered split parts; 0 referenced by messages, saved sources,
+  golden or probe sets; 8 in the CPF reform's lineage) and 7 are new; dated transitorio units CPEUM 836/836, CPF
+  617/629, LFT 179/204, CCF 166/186 (a numbered "ARTICULO 1o.-" inside transitorios is read as a paragraph and gets
+  no date: a known limit, in a test). Built with ADR-049 as generation 3 (`golden-20261127T185149Z-after-decree-dates-
+  gen3` vs `golden-20261127T173959Z-after-numstart-gen1`): the conflicting decree left gd2-024's context and the
+  repealing one is at rank 1 with its date, yet the model declined 5/5 (`...-rep-gen3-gd2024-{1..4}`); false refusal
+  3/20 vs 2/20 (McNemar 1 worse / 0 better, p = 1.0), everything else equal. Rolled back to generation 1 and reverted
+  (commits 2217c59, 90f6d10); generation 3 kept retired. Consequences: the parser change is ready and verified; what
+  blocks it is the model's behaviour on one case. Pending: why the drafting model declines gd2-024 on generations 2
+  and 3 (prompt-lab, ad-hoc runs); lawyer review of the date labels.
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →
