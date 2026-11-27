@@ -385,6 +385,14 @@ The same frame as §8 (bar, tokens, typography, tone); no tool uses the model fo
   rescan at 300 ppp or more. The viewer adds the same notice above the text for a firm document read by OCR
   ("compárelo con el original antes de citarlo"). Never a colour alone, never a confidence number without words.
 
+### 9.8 Regime of a citation (ADR-031, 2026-11-26)
+- A matter may declare its labour regime (closed list, a select under the description; "Sin indicar" by default),
+  with one sentence saying what it is for and that the warning does not replace the lawyer's review.
+- A source card of a special-regime LFT article says so in a small muted line ("Régimen especial de la LFT: …").
+- When the article's regime contradicts the matter's, the card shows the notice style of §11.4 instead (`reform-notice`,
+  ⚠ icon, `role=note`): which regime, that it differs from the matter's, and to check that it applies. Never a refusal,
+  never colour alone; the regime name is the law's own chapter title.
+
 ## 10. OPB style (v2, 2026-11-08): how it is applied
 
 Structure reference: Library-RAG (the same product family). Everything lives in section 4 of `globals.css`.

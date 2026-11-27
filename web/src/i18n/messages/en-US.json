@@ -191,7 +191,12 @@
       "title": "Cited sources",
       "empty": "Cited sources will appear here. Select one to read the original text.",
       "open": "Open full text",
-      "loading": "Loading excerpt…"
+      "loading": "Loading excerpt…",
+      "regime": "LFT special regime: {name}",
+      "applicability": {
+        "special_regime": "This article belongs to the special regime «{name}», not the one the matter declares. Check that it applies before relying on it.",
+        "collective_regime": "This article is collective labour law («{name}») and the matter is an individual relationship. Check that it applies before relying on it."
+      }
     },
     "chat": {
       "title": "Chat",
@@ -410,7 +415,15 @@
       "error": "It could not be saved.",
       "saved": "Saved to the matter."
     },
-    "filesIn": "Documents of the matter"
+    "filesIn": "Documents of the matter",
+    "regime": {
+      "label": "Labour regime of the matter",
+      "help": "Optional. If set, the assistant warns when it cites an article of another regime (for example, agricultural work in an ordinary dismissal). The warning does not replace your review.",
+      "none": "Not set",
+      "ordinary": "Ordinary individual employment",
+      "collective": "Collective relations or strike",
+      "special": "Special work: {name}"
+    }
   },
   "laws": {
     "title": "Laws",

@@ -19,6 +19,7 @@ from sqlalchemy import Connection, text
 
 from app.api.deps import PrincipalDep, StateDep
 from app.corpus.lineage import successions
+from app.corpus.regimes import CASE_REGIMES, case_regime_label
 from app.db.session import tenant_transaction
 
 router = APIRouter(prefix="/matters")
@@ -32,6 +33,7 @@ class MatterIn(BaseModel):
     title: str = Field(min_length=1, max_length=TITLE_MAX)
     client_ref: str = Field(default="", max_length=200)
     description: str = Field(default="", max_length=4000)
+    labor_regime: str | None = None  # ADR-031: a code of CASE_REGIMES, or None
 
 
 class MatterPatch(BaseModel):
@@ -41,6 +43,7 @@ class MatterPatch(BaseModel):
     client_ref: str | None = Field(default=None, max_length=200)
     description: str | None = Field(default=None, max_length=4000)
     status: Literal["open", "closed"] | None = None
+    labor_regime: str | None = None  # ADR-031: a code; "" clears it; None leaves it unchanged
 
 
 class MemberIn(BaseModel):
@@ -67,6 +70,7 @@ class MatterOut(BaseModel):
     title: str
     client_ref: str
     description: str
+    labor_regime: str | None = None
     status: Literal["open", "closed"]
     role: Literal["owner", "member"]
     members: int
@@ -124,7 +128,8 @@ class Colleague(BaseModel):
 
 _MATTER_SQL = (
     "SELECT m.id, m.title, coalesce(m.client_ref, '') AS client_ref, "
-    "coalesce(m.description, '') AS description, m.status, m.created_at, m.updated_at, "
+    "coalesce(m.description, '') AS description, m.labor_regime, m.status, m.created_at, "
+    "m.updated_at, "
     "CASE WHEN m.created_by = app_user_id() OR EXISTS (SELECT 1 FROM matter_members o "
     "  WHERE o.matter_id = m.id AND o.user_id = app_user_id() AND o.role = 'owner') "
     "  THEN 'owner' ELSE 'member' END AS role, "
@@ -143,6 +148,7 @@ def _out(r: Any) -> MatterOut:
         title=r.title,
         client_ref=r.client_ref,
         description=r.description,
+        labor_regime=r.labor_regime,
         status=r.status,
         role=r.role,
         members=r.members,
@@ -163,6 +169,26 @@ def _touch(conn: Connection, matter_id: uuid.UUID) -> None:
     conn.execute(text("UPDATE matters SET updated_at = now() WHERE id = :m"), {"m": matter_id})
 
 
+class RegimeOption(BaseModel):
+    code: str
+    label: str | None  # the law's own chapter name; None for ordinary and collective (UI text)
+
+
+def _regime(code: str | None) -> str | None:
+    """ADR-031: a closed list, like jurisdiction; anything else is a 422, never stored."""
+    if code is None or code == "":
+        return None
+    if code not in CASE_REGIMES:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown labor regime")
+    return code
+
+
+@router.get("/regimes", response_model=list[RegimeOption])
+def list_regimes(p: PrincipalDep) -> list[RegimeOption]:
+    """The labour regimes a matter may declare (ADR-031), in the law's order."""
+    return [RegimeOption(code=c, label=case_regime_label(c)) for c in CASE_REGIMES]
+
+
 @router.get("", response_model=list[MatterOut])
 def list_matters(p: PrincipalDep, st: StateDep) -> list[MatterOut]:
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
@@ -178,8 +204,8 @@ def create_matter(body: MatterIn, p: PrincipalDep, st: StateDep) -> MatterOut:
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
         conn.execute(
             text(
-                "INSERT INTO matters (id, tenant_id, created_by, title, client_ref, description) "
-                "VALUES (:id, :t, :u, :title, NULLIF(:ref, ''), NULLIF(:d, ''))"
+                "INSERT INTO matters (id, tenant_id, created_by, title, client_ref, description, "
+                "labor_regime) VALUES (:id, :t, :u, :title, NULLIF(:ref, ''), NULLIF(:d, ''), :lr)"
             ),
             {
                 "id": matter_id,
@@ -188,6 +214,7 @@ def create_matter(body: MatterIn, p: PrincipalDep, st: StateDep) -> MatterOut:
                 "title": body.title.strip(),
                 "ref": body.client_ref.strip(),
                 "d": body.description.strip(),
+                "lr": _regime(body.labor_regime),
             },
         )
         conn.execute(
@@ -295,7 +322,8 @@ def update_matter(
         conn.execute(
             text(
                 "UPDATE matters SET title = :title, client_ref = NULLIF(:ref, ''), "
-                "description = NULLIF(:d, ''), status = :s, updated_at = now() WHERE id = :id"
+                "description = NULLIF(:d, ''), status = :s, labor_regime = :lr, "
+                "updated_at = now() WHERE id = :id"
             ),
             {
                 "id": matter_id,
@@ -303,6 +331,7 @@ def update_matter(
                 "ref": (cur.client_ref if body.client_ref is None else body.client_ref).strip(),
                 "d": (cur.description if body.description is None else body.description).strip(),
                 "s": body.status or cur.status,
+                "lr": cur.labor_regime if body.labor_regime is None else _regime(body.labor_regime),
             },
         )
         return _matter(conn, matter_id)

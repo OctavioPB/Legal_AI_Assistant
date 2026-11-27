@@ -191,7 +191,12 @@
       "title": "Fuentes citadas",
       "empty": "Las fuentes citadas aparecerán aquí. Seleccione una para leer el texto original.",
       "open": "Abrir texto completo",
-      "loading": "Cargando extracto…"
+      "loading": "Cargando extracto…",
+      "regime": "Régimen especial de la LFT: {name}",
+      "applicability": {
+        "special_regime": "Este artículo pertenece al régimen especial «{name}», distinto del que indicó el asunto. Compruebe que aplica antes de usarlo.",
+        "collective_regime": "Este artículo es de derecho colectivo («{name}») y el asunto es de una relación individual. Compruebe que aplica antes de usarlo."
+      }
     },
     "chat": {
       "title": "Conversar",
@@ -410,7 +415,15 @@
       "error": "No se pudo guardar.",
       "saved": "Guardada en el asunto."
     },
-    "filesIn": "Documentos del asunto"
+    "filesIn": "Documentos del asunto",
+    "regime": {
+      "label": "Régimen laboral del asunto",
+      "help": "Opcional. Si lo indica, el asistente avisará cuando cite un artículo de otro régimen (por ejemplo, del trabajo del campo en un despido ordinario). El aviso no sustituye su revisión.",
+      "none": "Sin indicar",
+      "ordinary": "Relación individual ordinaria",
+      "collective": "Relaciones colectivas o huelga",
+      "special": "Trabajo especial: {name}"
+    }
   },
   "laws": {
     "title": "Leyes",

@@ -484,7 +484,7 @@ below are the original one-liners and are Accepted.
   real scanned contract from a firm, a lawyer's check of its extracted text; OCR in the brief verifier; whether 0.6 is
   the right threshold for legal text (tomd measured it on books).
 
-- ADR-031 (Proposed, 2026-11-26): A citation whose legal regime contradicts the case is caught by code, from the law's own
+- ADR-031 (Accepted 2026-11-26 in warning mode, option D chosen by the product owner; C, refusing, stays Proposed): A citation whose legal regime contradicts the case is caught by code, from the law's own
   structure. Context: in E2E-LAB-01 five of eight delivered answers cited real, verified articles that do not govern the
   facts; the validator proves provenance, not applicability (rag.md). Three of the five are visible in the stored
   breadcrumbs (checked 2026-11-26): LFT 283 Ter sits under "TITULO SEXTO Trabajos Especiales › CAPITULO VIII Personas
@@ -501,7 +501,7 @@ below are the original one-liners and are Accepted.
   art. 519 vs 518 both under Prescripción) without the per-article direction tags; some chapter titles were dropped at
   ingestion ("CAPITULO IV" without its name), so the normalizer must keep them first (a chunker change: new generation,
   ADR-006, and a golden run). Pending: owner's choice C or D; lawyer review of the regime catalog for the LFT; a
-  golden category "applicability" with the five E2E-LAB-01 errors as cases. Research: docs/RESEARCH.md §1.
+  golden category "applicability" with the five E2E-LAB-01 errors as cases. Implemented 2026-11-26: `app/corpus/regimes.py` reads the regime from Título and Capítulo of LFT units only (Título Sexto chapters II-XVII are special regimes, labelled with the law's own chapter names taken from data/corpus/text/LFT.txt because the stored breadcrumbs lose some; Capítulo I applies to every special regime; Títulos Séptimo and Octavo are collective law; everything else, and every other law, has no regime; the Constitution's own "Título Sexto" is never confused); `matters.labor_regime` (migration 0014, closed list `CASE_REGIMES`, `GET /matters/regimes`) and every answer's citations carry `regime`, `regime_label` and `applicability` (`special_regime` / `collective_regime`), shown next to the source in Brand.md's notice style. Evidence: over the real stored breadcrumbs of the 19 units cited by E2E-LAB-01's eight delivered answers, with the matter declared ordinary, it flags exactly arts. 283 Ter, 341 and 436 and nothing else (`tests/test_regimes.py`); the other two misapplied citations (art. 51 for the employer, art. 519 instead of 518) are inside one chapter and need the lawyer-written direction tags. Found while building it, recorded under ADR-049: Títulos numbered with cardinal words (ONCE to DIECISEIS) are not recognised, so the LFT's whole procedural part sits under "TITULO DECIMO Prescripción" in its breadcrumbs, and Capítulo names on the line after the heading are lost. Research: docs/RESEARCH.md §1.
 - ADR-032 (Accepted 2026-11-26 for the statistics, option B chosen by the product owner; growing the set stays Pending): Every reported rate carries an exact 95 % interval, and the golden set is sized for the
   claims we want to make. Context: the headline numbers are point estimates on tiny denominators; exact
   (Clopper-Pearson) intervals computed 2026-11-26: correct refusals 5/5 -> 48-100 %; false refusal 1/20 -> 0.1-25 %;
@@ -694,7 +694,7 @@ below are the original one-liners and are Accepted.
   inference for ~18 900 chunks, and generated text inside the index). Recommendation: B; C only with evidence B is not
   enough. Consequences: (+) better retrieval of fracciones and the regime tags of ADR-031 become reliable; (−) a chunker
   change: new `chunker_version`, a generation built aside (ADR-006) and a golden run before and after (invariant 2).
-  Pending: owner's choice; retrieval-only and full golden runs per category. Research: docs/RESEARCH.md §19.
+  Pending: owner's choice; retrieval-only and full golden runs per category. Evidence added 2026-11-26 (while implementing ADR-031): two normalizer defects in the stored LFT. (a) Títulos written with cardinal numbers ("TITULO ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS" in data/corpus/text/LFT.txt, lines 9435-14413) are not recognised, so every article after art. 522 (authorities, procedure, evidence, strikes procedure) carries "TITULO DECIMO Prescripción" in its breadcrumb, which is embedded with its text; (b) a Capítulo whose name is on the next line after a blank line ("CAPITULO IV" / "Rescisión de las relaciones de trabajo") keeps no name. Fixing either changes chunks: it needs the generation flip of ADR-006 first. Research: docs/RESEARCH.md §19.
 
 - ADR-050 (Proposed, 2026-11-26): The law is retrieved as of a date: versions carry valid time separately from the time we
   loaded them, and a session may fix the date of the facts. Context: legal questions are about the version in force on

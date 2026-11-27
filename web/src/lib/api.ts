@@ -4,6 +4,9 @@ import type { Jurisdiction } from "./jurisdiction";
 export interface Citation {
   cite_id: string;
   citation_string: string;
+  regime?: string | null; // ADR-031: the cited unit's legal regime (LFT)
+  regime_label?: string | null;
+  applicability?: "special_regime" | "collective_regime" | null; // contradicts the matter's regime
 }
 
 export interface ChatResult {
@@ -318,6 +321,7 @@ export interface Matter {
   title: string;
   client_ref: string;
   description: string;
+  labor_regime: string | null; // ADR-031
   status: "open" | "closed";
   role: "owner" | "member";
   members: number;
@@ -355,11 +359,16 @@ const matterPath = (id: string) => `matters/${encodeURIComponent(id)}`;
 export const listMatters = () => json<Matter[]>("matters");
 export const getMatter = (id: string) => json<MatterDetail>(matterPath(id));
 export const listColleagues = () => json<Colleague[]>("matters/colleagues");
-export const createMatter = async (body: { title: string; client_ref: string; description: string }) =>
+export interface RegimeOption {
+  code: string;
+  label: string | null; // the law's chapter name; null for ordinary and collective
+}
+export const listRegimes = () => json<RegimeOption[]>("matters/regimes");
+export const createMatter = async (body: { title: string; client_ref: string; description: string; labor_regime: string | null }) =>
   (await (await send("matters", "POST", body)).json()) as Matter;
 export const updateMatter = async (
   id: string,
-  body: Partial<Pick<Matter, "title" | "client_ref" | "description" | "status">>,
+  body: Partial<Pick<Matter, "title" | "client_ref" | "description" | "status">> & { labor_regime?: string },
 ) => (await (await send(matterPath(id), "PATCH", body)).json()) as Matter;
 export const deleteMatter = async (id: string) => {
   await send(matterPath(id), "DELETE");

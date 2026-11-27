@@ -17,6 +17,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy import Connection, text
 
+from app.corpus.regimes import CASE_REGIMES, mismatch, regime_of
 from app.ingestion.chunker import CHUNKER_VERSION
 from app.ingestion.tokens import TokenCounter
 from app.observability.trace import TracedAttempt, TracedHit, Tracer, TraceRecord
@@ -89,6 +90,7 @@ class ChatRequest(BaseModel):
     history: tuple[Turn, ...] = ()  # earlier turns, oldest first (clipped by `user_turn`)
     carry: tuple[str, ...] = ()  # ids cited earlier in the conversation (ADR-016)
     case: CaseBrief | None = None
+    labor_regime: str | None = None  # ADR-031: the matter's declared regime (closed list)
 
     @field_validator("query")
     @classmethod
@@ -104,6 +106,11 @@ class Citation(BaseModel):
 
     cite_id: str
     citation_string: str
+    # ADR-031: the legal regime of the cited unit (LFT special regimes, collective law), and a
+    # warning key when it contradicts the regime the matter declares. Shown, never used to refuse.
+    regime: str | None = None
+    regime_label: str | None = None
+    applicability: Literal["special_regime", "collective_regime"] | None = None
 
 
 class ChatResult(BaseModel):
@@ -182,10 +189,33 @@ def _retrieved_set(r: Retrieval) -> RetrievedSet:
     return RetrievedSet.build(entries)
 
 
-def _citations(r: Retrieval, cited: tuple[str, ...]) -> tuple[Citation, ...]:
+def _citations(
+    r: Retrieval, cited: tuple[str, ...], labor_regime: str | None = None
+) -> tuple[Citation, ...]:
     names = {cid: name for f in r.fragments for cid, name in f.unit_names}  # ADR-020
     names.update({h.cite_id: h.citation_string for h in r.hits})
-    return tuple(Citation(cite_id=c, citation_string=names[c]) for c in cited if c in names)
+    # A unit rendered inside an expanded article shares that article's Título and Capítulo, so it
+    # takes the breadcrumb of the hit the fragment was built from.
+    crumbs = {h.cite_id: h.breadcrumb for h in r.hits}
+    for f in r.fragments:
+        for cid in f.also_cite_ids:
+            crumbs.setdefault(cid, crumbs.get(f.cite_id, ""))
+    case = labor_regime if labor_regime in CASE_REGIMES else None
+    out: list[Citation] = []
+    for c in cited:
+        if c not in names:
+            continue
+        reg = regime_of(c, crumbs.get(c, ""))
+        out.append(
+            Citation(
+                cite_id=c,
+                citation_string=names[c],
+                regime=reg.code if reg else None,
+                regime_label=reg.label if reg else None,
+                applicability=mismatch(reg, case),
+            )
+        )
+    return tuple(out)
 
 
 def user_turn(req: ChatRequest, language: str, settings: Settings) -> str:
@@ -358,5 +388,7 @@ def answer_query(
         request_id=rid, status="answered" if answered else "refused", answer=result.answer,
         refusal_block=result.refusal.block if result.refusal else None,
         refusal_reason=result.refusal.reason_key if result.refusal else None,
-        citations=_citations(retrieval, result.verdicts[-1].cited) if answered else (),
+        citations=(
+            _citations(retrieval, result.verdicts[-1].cited, req.labor_regime) if answered else ()
+        ),
     )  # fmt: skip

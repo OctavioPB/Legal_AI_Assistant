@@ -126,7 +126,7 @@ class MessageOut(BaseModel):
     content: str
     status: Literal["answered", "refused"] | None
     refusal_reason: str | None
-    citations: list[dict[str, str]]
+    citations: list[dict[str, str | None]]
     request_id: uuid.UUID | None
     created_at: datetime
 
@@ -139,7 +139,9 @@ class ConversationDetail(BaseModel):
 _CONV_COLS = (
     "c.id, c.kind, c.title, c.language, c.jurisdiction_id, c.persona, c.include_historical, "
     "c.case_side, c.case_facts, c.case_claim, c.created_at, c.updated_at, c.matter_id, "
-    "c.user_id = app_user_id() AS mine, c.model_profile"
+    "c.user_id = app_user_id() AS mine, c.model_profile, "
+    # ADR-031: the matter's declared regime (RLS: NULL when the matter is not visible)
+    "(SELECT m.labor_regime FROM matters m WHERE m.id = c.matter_id) AS labor_regime"
 )
 
 
@@ -362,8 +364,9 @@ def _request_for(row: Any, msgs: list[MessageOut], body: MessageIn) -> ChatReque
         seen: list[str] = []
         for m in reversed(msgs):  # newest first, so the carry limit keeps the recent sources
             for c in m.citations:
-                if c["cite_id"] not in seen:
-                    seen.append(c["cite_id"])
+                cid = c["cite_id"]
+                if cid and cid not in seen:
+                    seen.append(cid)
         carry = tuple(seen)
     case = (
         CaseBrief(side=row.case_side, facts=row.case_facts, claim=row.case_claim or "")
@@ -372,7 +375,7 @@ def _request_for(row: Any, msgs: list[MessageOut], body: MessageIn) -> ChatReque
     )
     return ChatRequest(
         query=body.text, persona=row.persona, workflow=workflow, history=history, carry=carry,
-        case=case,
+        case=case, labor_regime=row.labor_regime,
     )  # fmt: skip
 
 
