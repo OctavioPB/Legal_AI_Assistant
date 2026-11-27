@@ -69,8 +69,14 @@ def test_semantic_arm_plans_prefilter_first_and_hnsw_when_unselective(
       ranked exactly (no ANN approximation: the hard pre-filter in its purest form);
     - an unselective query is served by the HNSW index, with RLS applied as a filter on its scan,
       which is why `hnsw.iterative_scan` must be set (else a filtered top-k can come back short).
+
+    The selective case keeps one state in 32 (~3 % of the rows). With one in 8 (12.5 %) the two
+    plans cost nearly the same (prefilter + sort 241.7 vs HNSW down to 225) and the choice flipped
+    with the HNSW index's size statistics, which depend on how much earlier tests filled, emptied
+    and autovacuumed `chunks` (failed 2 of ~5 full runs on 2026-11-27, never alone). At 3 % the
+    prefilter plan costs 149 against >= 264 for HNSW.
     """
-    helpers.seed_bulk(admin_engine, tenant_a, n=3000, states=8)
+    helpers.seed_bulk(admin_engine, tenant_a, n=3000, states=32)
     q = vector_literal(fake_embedding("faltas de asistencia"))
     order = "ORDER BY embedding <=> CAST(:q AS vector) LIMIT 8"
     selective = (
