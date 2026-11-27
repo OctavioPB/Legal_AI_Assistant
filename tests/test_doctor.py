@@ -166,3 +166,12 @@ def test_the_reform_watcher_checks(admin_engine: Engine, ingestor_engine: Engine
     (tmp_path / "tau.yaml").write_text("tau: 0.5\ncalibrated_on: '29991231'\n", encoding="utf-8")
     with admin_engine.connect() as conn:
         assert by_name(conn)["tau calibrated after the last reform (ADR-007/017)"].status == "PASS"
+
+
+def test_the_residency_check_reads_the_variable_ollama_starts_with() -> None:
+    """ADR-041: one model at a time cost ~25 s per answer (measured); the check warns until it is >= 2."""
+    assert doctor.check_model_residency({}).status == "WARN"
+    assert doctor.check_model_residency({"OLLAMA_MAX_LOADED_MODELS": "1"}).status == "WARN"
+    assert doctor.check_model_residency({"OLLAMA_MAX_LOADED_MODELS": "x"}).status == "WARN"
+    ok = doctor.check_model_residency({"OLLAMA_MAX_LOADED_MODELS": "3"})
+    assert ok.status == "PASS" and ok.detail == "OLLAMA_MAX_LOADED_MODELS=3"

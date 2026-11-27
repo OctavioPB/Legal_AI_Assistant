@@ -181,7 +181,13 @@ def _eval_tenant(settings: Any) -> uuid.UUID:
 
 
 def run_case(
-    engine: Engine, tenant: uuid.UUID, case: GoldenCase, deps: Any, *, full: bool
+    engine: Engine,
+    tenant: uuid.UUID,
+    case: GoldenCase,
+    deps: Any,
+    *,
+    full: bool,
+    replay_out: list[dict[str, Any]] | None = None,
 ) -> CaseResult:
     from app.chat.service import ChatRequest, answer_query
     from app.db.session import tenant_transaction
@@ -208,6 +214,14 @@ def run_case(
 
         res = answer_query(conn, ctx, req, deps, mark)
         tr = deps.tracer.get(tenant, res.request_id)
+        if replay_out is not None:  # ADR-038 B: raw outputs + the full retrieved set, for replay
+            from evals.replay import record
+
+            texts = {k: list(v) for k, v in tr.retrieved_texts.items()}
+            replay_out.extend(
+                record(f"{case.id}#{n}", "golden", s.workflow, a.output, texts, a.verdict)
+                for n, a in enumerate(tr.attempts, 1)
+            )
         hits = [h.cite_id for h in tr.hits]
         scope = _scope(conn, hits)
     gen_at = stamps.get("generating") or stamps.get("validating")
@@ -240,9 +254,21 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--retrieval-only", action="store_true", help="no model calls (deterministic)")
     ap.add_argument("--preflight-only", action="store_true")
     ap.add_argument("--compare", nargs=2, metavar=("RUN_A", "RUN_B"))
+    ap.add_argument("--intervals", metavar="RUN",
+                    help="ADR-032: exact 95 %% intervals of a stored run, re-scored from its cases")  # fmt: skip
     ap.add_argument("--model-profile", choices=["gemma", "qwen", "claude"],
                     help="ADR-024: answer with this profile (default: the server default)")  # fmt: skip
     a = ap.parse_args(argv)
+
+    if a.intervals:
+        path = (
+            Path(a.intervals) if Path(a.intervals).exists() else RUNS / a.intervals / "report.json"
+        )
+        stored = [CaseResult.model_validate(c) for c in read_run(path)["cases"]]
+        s = summarize(stored)
+        out = {"overall": s["intervals"], "by_category": s["intervals_by_category"]}
+        sys.stdout.write(json.dumps(out, ensure_ascii=False, indent=1) + "\n")
+        return 0
 
     if a.compare:
         paths = [Path(p) if Path(p).exists() else RUNS / p / "report.json" for p in a.compare]
@@ -275,10 +301,12 @@ def main(argv: list[str] | None = None) -> int:
 
     tenant = _eval_tenant(state.settings)
     results: list[CaseResult] = []
+    replay_records: list[dict[str, Any]] = []
     t0 = time.monotonic()
     for c in cases:
         try:
-            r = run_case(engine, tenant, c, deps, full=not a.retrieval_only)
+            r = run_case(engine, tenant, c, deps, full=not a.retrieval_only,
+                         replay_out=replay_records)  # fmt: skip
         except Exception as exc:  # one case failing never hides the others
             r = CaseResult(id=c.id, category=c.category, gating=c.gating, expected=c.expected_behavior,
                            has_gold=bool(c.gold_chunks), hits=(), gold_rank=None, leaked=(),
@@ -310,6 +338,10 @@ def main(argv: list[str] | None = None) -> int:
     }  # fmt: skip
     out = RUNS / run_id
     out.mkdir(parents=True, exist_ok=True)
+    if replay_records:
+        from evals.replay import write as write_replay
+
+        write_replay(out / "replay.jsonl", replay_records)
     (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1, default=str),
                                      encoding="utf-8")  # fmt: skip
     sys.stdout.write(json.dumps({"overall": summary["overall"], "gates": report["gates"]},

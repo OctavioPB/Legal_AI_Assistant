@@ -57,6 +57,10 @@ jobs:
       - name: Full test suite
         run: uv run pytest
 
+      # ADR-038 A: every mutant weakens one check of the citation validator; the tests must kill all
+      - name: Validator mutation check
+        run: uv run python scripts/mutation_check.py
+
       - name: Postgres logs on failure
         if: failure()
         run: docker compose logs postgres | tail -n 200

@@ -89,3 +89,14 @@ def test_feedback_is_built_by_code_from_the_verdict() -> None:
         )
     )
     assert "MX-FED-LFT-ART999-v1" in fb and "sin cita ni marca" in fb
+
+
+def test_the_retry_keeps_the_first_prompt_as_an_exact_prefix_so_its_cache_is_reused() -> None:
+    """ADR-043 (measured 2026-11-26): with the system prompt unchanged and the user turn only
+    extended, Ollama reused the cached prefill: 0.8 s instead of 14.1 s for a 6 400-token prompt.
+    Anything placed BEFORE the original user text (or a changed system prompt) would lose that."""
+    _, llm = run([INVENTED, GOOD])
+    first, second = llm.calls
+    assert second["system"] == first["system"]
+    assert str(second["user"]).startswith(str(first["user"]))
+    assert len(str(second["user"])) > len(str(first["user"]))

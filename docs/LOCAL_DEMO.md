@@ -11,6 +11,11 @@ texto extraído", ...) are the ones you will see on screen.
 - Ollama models: `bge-m3` (embeddings), `gemma4:26b-a4b-it-qat` (drafting), `qwen3:4b-instruct-2507-q4_K_M`
   (utility/fallback). If one is missing: `ollama pull <name>`.
 - Edge browser (only for the E2E tests).
+- Let Ollama keep more than one model loaded (ADR-041): set `OLLAMA_MAX_LOADED_MODELS=3` for your user
+  (`[Environment]::SetEnvironmentVariable('OLLAMA_MAX_LOADED_MODELS','3','User')`) and restart Ollama. Without it,
+  every answer unloads the drafting model to embed the question and reloads it to generate: measured on an 8 GB
+  GPU, the median answer went from 61 s to 28 s with the setting. `scripts/dev-up.ps1` sets it when it starts
+  Ollama itself and warns otherwise; `doctor` checks it.
 - Tesseract 5 with Spanish and English data, to read scanned PDFs (ADR-030). Without it everything else works and
   a scanned upload fails with a clear message; `uv run python -m app.doctor` warns.
   - Windows: `winget install UB-Mannheim.TesseractOCR`, then put `spa.traineddata`, `eng.traineddata` and

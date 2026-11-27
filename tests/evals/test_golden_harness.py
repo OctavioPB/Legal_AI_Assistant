@@ -184,3 +184,28 @@ def test_must_not_contain_is_an_alarm_on_the_answer_text() -> None:
     assert bad.forbidden_found == ("capacitación",) and not case_ok(bad)
     assert good.forbidden_found == () and case_ok(good)
     assert metrics([bad, good])["forbidden_content"] == 0.5
+
+
+def test_an_improvement_needs_a_significant_mcnemar_test_not_a_count_of_flips() -> None:
+    """ADR-032: 3 better and 0 worse used to be an "improvement"; exact McNemar gives p = 0.25."""
+
+    def run(ok: int, total: int) -> dict[str, object]:
+        cases = [score_case(mk(id=f"c{i:02d}"), ["G-1"] if i < ok else [], {"G-1": FED}, gate_refused=False)
+                 for i in range(total)]  # fmt: skip
+        return {"cases": [c.model_dump() for c in cases]}
+
+    three = compare(run(0, 20), run(3, 20))
+    assert three["verdict"] == "within_noise"
+    assert three["mcnemar"] == {"worse": 0, "better": 3, "p_value": 0.25, "alpha": 0.05}
+    six = compare(run(0, 20), run(6, 20))
+    assert six["verdict"] == "improvement" and six["mcnemar"]["p_value"] == 0.0312  # type: ignore[index]
+
+
+def test_every_rate_in_a_report_carries_its_exact_interval() -> None:
+    results = [score_case(mk(id=f"c{i}"), ["G-1"] if i else [], {"G-1": FED}, gate_refused=False)
+               for i in range(5)]  # fmt: skip
+    s = summarize(results)
+    recall = s["intervals"]["recall_at_k"]  # type: ignore[index]
+    assert recall == {"k": 4, "n": 5, "rate": 0.8, "lower": 0.2836, "upper": 0.9949}
+    assert s["overall"]["recall_at_k"] == 0.8  # the rates themselves are unchanged  # type: ignore[index]
+    assert s["intervals_by_category"]["statutory_lookup"]["recall_at_k"] == recall  # type: ignore[index]

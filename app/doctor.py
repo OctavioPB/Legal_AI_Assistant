@@ -216,7 +216,39 @@ def check_repo(settings: Settings, registry: AliasRegistry | None = None) -> lis
     out.append(Check("refusal tau calibrated (ADR-007)", "WARN" if settings.refusal_tau is None else "PASS",
                      "tau is None: the gate refuses to run" if settings.refusal_tau is None else f"tau={settings.refusal_tau}"))  # fmt: skip
     out.append(check_ocr(settings))
+    out.append(check_model_residency())
     return out
+
+
+def check_model_residency(env: dict[str, str] | None = None) -> Check:
+    """ADR-041 (measured 2026-11-26): with Ollama keeping one model at a time, every turn unloads the drafting
+    model to embed the query and reloads it to generate (~20 s), then reloads the embedder (~4.5 s): the median
+    answer went from 61 s to 28 s on the same cases with OLLAMA_MAX_LOADED_MODELS=3. The running server's
+    environment cannot be read, so this checks the variable it is started with (process, then the Windows user
+    and machine scopes)."""
+    import os
+
+    value = (env if env is not None else os.environ).get("OLLAMA_MAX_LOADED_MODELS")
+    if value is None and env is None and os.name == "nt":
+        import winreg
+
+        for hive, key in ((winreg.HKEY_CURRENT_USER, "Environment"),
+                          (winreg.HKEY_LOCAL_MACHINE,
+                           r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment")):  # fmt: skip
+            try:
+                with winreg.OpenKey(hive, key) as k:
+                    value = str(winreg.QueryValueEx(k, "OLLAMA_MAX_LOADED_MODELS")[0])
+                    break
+            except OSError:
+                continue
+    name = "Ollama keeps the embedder and the drafting model loaded (ADR-041)"
+    if value is None or not value.strip().isdigit() or int(value) < 2:
+        return Check(
+            name,
+            "WARN",
+            "OLLAMA_MAX_LOADED_MODELS < 2 or unset: every answer reloads the models (~25 s)",
+        )
+    return Check(name, "PASS", f"OLLAMA_MAX_LOADED_MODELS={value}")
 
 
 def check_ocr(settings: Settings) -> Check:

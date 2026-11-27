@@ -20,6 +20,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from evals.stats import ALPHA, interval, mcnemar_exact
+
 Category = Literal[
     "statutory_lookup", "exact_identifier", "jurisdiction_isolation", "refusal_required",
     "cross_lingual", "temporal_validity", "injection",
@@ -206,8 +208,8 @@ def _ratio(num: int, den: int) -> float | None:
     return round(num / den, 4) if den else None
 
 
-def metrics(results: list[CaseResult]) -> dict[str, float | int | None]:
-    """Metrics over a set of results (a category, the gating subset, or everything)."""
+def _counts(results: list[CaseResult]) -> dict[str, tuple[int, int]]:
+    """(numerator, denominator) of every rate: the one definition both the rates and their intervals use."""
     answer = [r for r in results if r.expected == "answer"]
     refuse = [r for r in results if r.expected == "refuse"]
     with_gold = [r for r in answer if r.has_gold]
@@ -216,26 +218,37 @@ def metrics(results: list[CaseResult]) -> dict[str, float | int | None]:
     cited = [c for r in answered for c in r.cited]
     invalid = [c for r in answered for c in r.invalid_cited]
     return {
-        "n": len(results),
-        "recall_at_k": _ratio(sum(r.gold_rank is not None for r in with_gold), len(with_gold)),
-        "jurisdiction_leakage": _ratio(sum(bool(r.leaked) for r in results), len(results)),
-        "distractor_rate": _ratio(sum(bool(r.distractors_in_top) for r in results), len(results)),
-        "gate_refusal_on_refuse": _ratio(sum(r.gate_refused for r in refuse), len(refuse)),
-        "refusal_accuracy": _ratio(
+        "recall_at_k": (sum(r.gold_rank is not None for r in with_gold), len(with_gold)),
+        "jurisdiction_leakage": (sum(bool(r.leaked) for r in results), len(results)),
+        "distractor_rate": (sum(bool(r.distractors_in_top) for r in results), len(results)),
+        "gate_refusal_on_refuse": (sum(r.gate_refused for r in refuse), len(refuse)),
+        "refusal_accuracy": (
             sum(r.outcome == "refused" for r in refuse if r.outcome), sum(1 for r in refuse if r.outcome)
         ),
-        "false_refusal": _ratio(
+        "false_refusal": (
             sum(r.outcome == "refused" for r in answer if r.outcome), sum(1 for r in answer if r.outcome)
         ),
-        "citation_precision": _ratio(len(cited) - len(invalid), len(cited)),
-        "gold_citation": _ratio(
+        "citation_precision": (len(cited) - len(invalid), len(cited)),
+        "gold_citation": (
             sum(bool(r.cited_gold) for r in answered if r.expected == "answer"),
             sum(1 for r in answered if r.expected == "answer" and r.cited_gold is not None),
         ),
-        "regeneration_rate": _ratio(sum(r.regenerations > 0 for r in full), len(full)),
-        "forbidden_content": _ratio(sum(bool(r.forbidden_found) for r in answered), len(answered)),
-        "errors": sum(r.error is not None for r in results),
+        "regeneration_rate": (sum(r.regenerations > 0 for r in full), len(full)),
+        "forbidden_content": (sum(bool(r.forbidden_found) for r in answered), len(answered)),
     }  # fmt: skip
+
+
+def metrics(results: list[CaseResult]) -> dict[str, float | int | None]:
+    """Metrics over a set of results (a category, the gating subset, or everything)."""
+    out: dict[str, float | int | None] = {"n": len(results)}
+    out.update({name: _ratio(k, n) for name, (k, n) in _counts(results).items()})
+    out["errors"] = sum(r.error is not None for r in results)
+    return out
+
+
+def intervals(results: list[CaseResult]) -> dict[str, dict[str, float | int] | None]:
+    """ADR-032: the exact 95 % (Clopper-Pearson) interval of every rate, with its k and n."""
+    return {name: interval(k, n) for name, (k, n) in _counts(results).items()}
 
 
 def percentile(xs: list[float], q: float) -> float | None:
@@ -251,6 +264,9 @@ def summarize(results: list[CaseResult]) -> dict[str, object]:
     return {
         "overall": metrics(results),
         "by_category": {c: metrics(rs) for c, rs in by_cat.items() if rs},
+        # ADR-032: exact 95 % intervals; with dozens of cases a rate without its interval overstates itself
+        "intervals": intervals(results),
+        "intervals_by_category": {c: intervals(rs) for c, rs in by_cat.items() if rs},
         "gating": metrics(gating) if gating else None,
         "n_gating": len(gating),
         "n_ai_draft": len(results) - len(gating),
@@ -327,11 +343,21 @@ def compare(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
     worse = [f for f in flips if f["before"] and not f["after"]]
     better = [f for f in flips if not f["before"] and f["after"]]
     one_case = {cat: round(1 / v["n"], 4) for cat, v in deltas.items()}  # type: ignore[operator]
+    # ADR-032: an exact McNemar test on the flipped cases decides "improvement", not a count of flips.
+    # Any worse flip is still a regression to explain (eval-runner skill), whatever the p-value.
+    p_value = mcnemar_exact(len(worse), len(better))
+    if worse:
+        verdict = "regression"
+    elif better and p_value < ALPHA:
+        verdict = "improvement"
+    else:
+        verdict = "within_noise"
     return {
         "flips_worse": worse, "flips_better": better, "by_category": deltas,
         "one_case_moves": one_case,
-        "verdict": "regression" if worse else ("within_noise" if len(better) <= 2 else "improvement"),
-        "note": "1-2 flipped cases is noise with this many cases; any worse flip must be explained.",
+        "mcnemar": {"worse": len(worse), "better": len(better), "p_value": p_value, "alpha": ALPHA},
+        "verdict": verdict,
+        "note": "improvement needs an exact McNemar p < 0.05 on the flipped cases; any worse flip must be explained.",
     }  # fmt: skip
 
 

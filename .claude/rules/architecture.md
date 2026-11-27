@@ -502,7 +502,7 @@ below are the original one-liners and are Accepted.
   ingestion ("CAPITULO IV" without its name), so the normalizer must keep them first (a chunker change: new generation,
   ADR-006, and a golden run). Pending: owner's choice C or D; lawyer review of the regime catalog for the LFT; a
   golden category "applicability" with the five E2E-LAB-01 errors as cases. Research: docs/RESEARCH.md §1.
-- ADR-032 (Proposed, 2026-11-26): Every reported rate carries an exact 95 % interval, and the golden set is sized for the
+- ADR-032 (Accepted 2026-11-26 for the statistics, option B chosen by the product owner; growing the set stays Pending): Every reported rate carries an exact 95 % interval, and the golden set is sized for the
   claims we want to make. Context: the headline numbers are point estimates on tiny denominators; exact
   (Clopper-Pearson) intervals computed 2026-11-26: correct refusals 5/5 -> 48-100 %; false refusal 1/20 -> 0.1-25 %;
   leakage 0/5 isolation cases -> up to 52 %, 0/25 overall -> up to 14 %; misapplied E2E answers 5/8 -> 25-92 %. With zero
@@ -512,7 +512,7 @@ below are the original one-liners and are Accepted.
   cases (lawyer-reviewed); (C) Bayesian beta-binomial posteriors (same data, harder to explain to lawyers). Recommendation:
   B. Consequences: (+) claims become statements with bounds; the noise rule becomes a test; (−) the honest intervals are
   wide today and will look worse than the point numbers; case authoring is lawyer time. Pending: owner's choice; lawyer
-  authors/reviewers for the new cases. Research: docs/RESEARCH.md §2.
+  authors/reviewers for the new cases. Implemented 2026-11-26: `evals/stats.py` (Clopper-Pearson and exact McNemar, standard library, checked against scipy and a textbook value), `summary.intervals` and `intervals_by_category` in every run report, `evals.run --intervals <run>` to re-score stored runs, and `--compare` now calls a change an improvement only when McNemar gives p < 0.05 (3 better / 0 worse is p = 0.25: within noise); the README quotes every rate with its interval. Still Pending: lawyer-authored or reviewed cases toward 60 isolation and 60 refusal cases. Research: docs/RESEARCH.md §2.
 - ADR-033 (Proposed, 2026-11-26): The model emits each sentence as a typed record (law / reasoning / framing, with its
   citations) under a JSON schema, and the validator checks fields. Context: every failing attempt inspected for ADR-015
   failed only on coverage (correct but uncited closing sentences); Qwen's false refusal is 17/20 with a 0.72 regeneration
@@ -572,7 +572,7 @@ below are the original one-liners and are Accepted.
   order of cost. Consequences: (+) each piece is measured before it stays (rag.md); (−) A and B add CPU latency; B is a
   new embedding generation (ADR-006); C can widen the context beyond the 12k budget. Pending: owner's choice; baseline
   per-arm runs (rag.md requires them and none is recorded). Research: docs/RESEARCH.md §7.
-- ADR-038 (Proposed, 2026-11-26): The claim "verification is code" is backed by mutation testing, a validator replay suite,
+- ADR-038 (Accepted 2026-11-26 for A and B, chosen by the product owner; C and D stay Proposed): The claim "verification is code" is backed by mutation testing, a validator replay suite,
   measured latency work and a deterministic check of amounts in OCR text. Context: the validator's tests were written by
   the same team; latency is 35 s median against the blueprint's < 10 s p95; OCR can misread a figure on a page above the
   confidence threshold (ADR-030). Options (independent): (A) mutation testing of `app/validation/` (e.g. mutmut): every
@@ -583,7 +583,7 @@ below are the original one-liners and are Accepted.
   Recommendation: A and B (cheap, pure evidence), then D, then C. Consequences: (+) test strength becomes a number;
   regressions in verification are caught on real outputs; (−) mutation runs are slow; C depends on the runtime
   (Ollama/llama.cpp) supporting it on an 8 GB GPU. Pending: owner's choice; a mutation score baseline; latency
-  baseline per profile. Research: docs/RESEARCH.md §8.
+  baseline per profile. Implemented 2026-11-26: (A) `scripts/mutation_check.py`, a standard-library mutation check (mutmut does not run on Windows) with a control run of the unmutated copy and 12 mutants, one per contract check (invalid ids, placeholders, coverage, quotations, citation required, quotation checked against the fragment cited with it, minimum quote words, section gaps, prose refusals, runaway output, the regeneration, the system-written refusal): 12/12 killed, run in CI; (B) `evals/replay.py`: full golden runs now write `replay.jsonl` (raw outputs, full retrieved set, recorded verdicts), `extract-e2e` keeps only what an end-to-end run can replay faithfully, and `tests/validation/test_replay.py` replays 9 real attempts of E2E-LAB-01 (2 skipped as incomplete): 0 verdicts changed. Research: docs/RESEARCH.md §8.
 - ADR-039 (Proposed, 2026-11-26): The product's value is measured with a within-subject time-on-task study with practising
   lawyers before any claim of time saved. Context: the business case rests on a survey's expectations (Thomson Reuters
   2025: ~5 h/week expected), not a measurement; no user research, pilot or pricing exists. Options: (A) keep the
@@ -605,7 +605,7 @@ below are the original one-liners and are Accepted.
   about 4 to about 33 tokens/s; (−) those reports are anecdotal and on other models, no Gemma figure was found; a second
   runtime to install and pin; a runtime change is a model change (golden run, invariant 2). Pending: owner's choice;
   tokens/s, prefill and p50/p95 per answer on this GPU before and after. Research: docs/RESEARCH.md §10.
-- ADR-041 (Proposed, 2026-11-26): Retrieval latency is profiled, and the embedder is kept resident if model swapping is the
+- ADR-041 (Accepted 2026-11-26, option B chosen by the product owner; the cause was measured, not assumed): Retrieval latency is profiled, and the embedder is kept resident if model swapping is the
   cause. Context: retrieval p50 is 3.16 s and p95 5.55 s (golden-20261109T084417Z), which is far slower than an indexed
   search over ~18 900 rows should be; the embedder (bge-m3) and the drafting model share 8 GB of VRAM through Ollama,
   and a cold load of the drafting model takes 46.5 s. The cause is not yet known. Options: (A) do nothing; (B) profile
@@ -625,8 +625,8 @@ below are the original one-liners and are Accepted.
   "the cited fragment" means); (D) measure top-5 against top-8 expansion first (rag.md). Recommendation: D, then B.
   Consequences: (+) fewer prefill tokens and less distraction for the model; (−) a pruned unit is not citable, so a
   correct citation can become impossible (the ADR-020 failure in reverse); the pruner is a model to pin. Pending:
-  owner's choice; faithfulness and false-refusal runs with and without pruning. Research: docs/RESEARCH.md §12.
-- ADR-043 (Proposed, 2026-11-26): The regeneration prompt keeps the first attempt's prompt as an exact prefix, so its
+  owner's choice; faithfulness and false-refusal runs with and without pruning. Measured 2026-11-26 (`evals/profile_retrieval.py`): retrieval itself is 0.56 s at the median (query embedding 0.02 s, both arms < 0.1 s, the dense rerank of 21 texts 0.36 s), with or without the drafting model resident. The 3-9 s seen in full runs was Ollama keeping ONE model at a time: each turn unloaded gemma to embed the query (bge-m3 reload ~4.5-6.5 s) and reloaded gemma to generate (17-21 s); fewer GPU layers for gemma did not help, running bge-m3 on CPU made Ollama unload gemma anyway. With `OLLAMA_MAX_LOADED_MODELS=3` (tested on a second, temporary Ollama on port 11435) both stay loaded: gemma reload 0 s, embedding 0.4 s, generation unchanged (27-29 tokens/s); the same four golden cases went from a median of 61 s to 28 s end to end and retrieval from ~7 s to ~1.2 s (`golden-20261127T044716Z-adr041-latency-check` vs `...-adr041-after-coresident`; 4 cases, one regenerated in the first run). `scripts/dev-up.ps1` sets the variable when it starts Ollama and warns otherwise; `doctor` checks it; docs/LOCAL_DEMO.md documents it. Pending: setting it on each machine whose Ollama starts outside the script (the Windows tray app reads the user variable at start). Research: docs/RESEARCH.md §12.
+- ADR-043 (Accepted 2026-11-26: verified already true, now guarded by a test): The regeneration prompt keeps the first attempt's prompt as an exact prefix, so its
   prefill is reused. Context: one regeneration is allowed per answer (rag.md); llama.cpp, under Ollama too, reuses the
   KV cache for an identical prompt prefix; at 375 tokens/s a 12k-token context is about 32 s of prefill. Whether today's
   composer keeps the prefix identical is not verified. Options: (A) leave as is; (B) check, and if needed compose the
@@ -635,7 +635,7 @@ below are the original one-liners and are Accepted.
   request (already the layer order: core, workflow, persona, session, fragments). Recommendation: B. Consequences:
   (+) up to ~30 s saved on every regenerated answer; (−) appending the failed answer may anchor the model to it (measure
   the regeneration success rate before and after). Pending: owner's choice; the check of the current composer; retry
-  latency before and after. Research: docs/RESEARCH.md §13.
+  latency before and after. Measured 2026-11-26: the retry keeps the system prompt (where the context lives) and starts its user turn with the original user text, so Ollama reused the cached prefill: 0.8 s instead of 14.1 s for a 6 400-token prompt. `tests/validation/test_loop.py` now asserts the byte-for-byte prefix, so a change that breaks it fails a test. No code change was needed. Research: docs/RESEARCH.md §13.
 - ADR-044 (Proposed, 2026-11-26): Speculative decoding is measured, starting with the n-gram mode that needs no draft model.
   Context: answers copy long statute passages from the context (verbatim quotations are required to match it); llama.cpp
   offers a draft-model mode, EAGLE-3 and an n-gram mode that drafts tokens from text already in the prompt. EAGLE-3

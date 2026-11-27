@@ -249,15 +249,16 @@ a table of where the build departs from it.
 
 ## Measured results
 
-Golden suite, 25 cases, local models. The run records are in `evals/runs/`.
+Golden suite, 25 cases, local models. The run records are in `evals/runs/`. In brackets, the exact 95 %
+(Clopper-Pearson) interval: `uv run python -m evals.run --intervals <run>` (ADR-032).
 
 | Metric | Gemma 4 26B (default) | Qwen 3 4B |
 |---|---|---|
-| Recall@8 | 1.00 | 1.00 |
-| Jurisdiction leakage | 0 | 0 |
-| Citation precision | 1.00 | 1.00 (3 answers) |
-| Correct refusals | 5 of 5 | 5 of 5 |
-| False refusals | 1 of 20 | 17 of 20 |
+| Recall@8 | 20 of 20 [83–100 %] | 20 of 20 [83–100 %] |
+| Jurisdiction leakage | 0 of 25 [0–14 %] | 0 of 25 [0–14 %] |
+| Citation precision | 57 of 57 [94–100 %] | 4 of 4 [40–100 %] |
+| Correct refusals | 5 of 5 [48–100 %] | 5 of 5 [48–100 %] |
+| False refusals | 1 of 20 [0.1–25 %] | 17 of 20 [62–97 %] |
 | Median time per answer | 35 s | 19 s |
 
 Read these with their limits:
@@ -265,7 +266,9 @@ Read these with their limits:
 - **The cases were drafted with AI and no lawyer has reviewed them.** Until that review, no
   release gate counts. A set written from the corpus inherits its vocabulary and overstates
   performance.
-- **One case moves a rate by 4 to 5 points.** Differences of one or two cases are noise.
+- **One case moves a rate by 4 to 5 points, and the intervals are wide.** "0 leaks in 25 cases" only bounds the
+  leakage rate below 14 %; bounding it below 1 % from tests alone takes about 300 cases with none. `--compare`
+  calls a change an improvement only when an exact McNemar test on the flipped cases gives p < 0.05.
 - **Citation precision is 1.00 by construction** (the validator rejects everything else). It
   proves provenance, not that a paraphrase is faithful. That check is still human.
 - The remote Claude profile has not been measured.
@@ -392,7 +395,8 @@ and the law use.
   reported, never cited; OCR text can still contain a misread word, and the source viewer says the text came from OCR.
   The brief verifier does not read scans yet.
 - Case law is not loaded; the corpus is statutes.
-- An answer takes 1.5 to 4 minutes with the local 26B model on an 8 GB GPU.
+- An answer takes about half a minute with the local 26B model on an 8 GB GPU (28 s median on four golden
+  cases with `OLLAMA_MAX_LOADED_MODELS=3`, ADR-041; 61 s without it), longer when it regenerates.
 - The refusal threshold was calibrated on statute text with AI-drafted probe sets; a question about a
   firm's own contract fell just under it in the end-to-end case.
 - A citation can be real and verified yet point to an article that does not govern the case. Only a

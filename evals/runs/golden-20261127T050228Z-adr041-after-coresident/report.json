@@ -1,0 +1,405 @@
+{
+ "run_id": "golden-20261127T050228Z-adr041-after-coresident",
+ "ts": "20261127T050228Z",
+ "tag": "adr041-after-coresident",
+ "commit": "f05776c",
+ "dirty": true,
+ "suite": "golden_v2.jsonl",
+ "mode": "full",
+ "model_profile": "gemma",
+ "languages": [
+  "es-MX"
+ ],
+ "config": {
+  "settings": {
+   "refusal_tau": 0.58,
+   "refusal_min_fragments": 1,
+   "retrieval_arm_top": 40,
+   "retrieval_rrf_k": 60,
+   "retrieval_rrf_top": 20,
+   "retrieval_rerank_top": 8,
+   "retrieval_context_budget_tokens": 12000,
+   "context_citable_units": true,
+   "validator_quote_min_words": 5,
+   "validator_coverage_min_words": 6
+  },
+  "resolved_models": {
+   "drafting-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "drafting-heavy": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "adversarial-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "cheap-utility": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593",
+   "fallback-general": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593"
+  },
+  "embedder": {
+   "model": "bge-m3",
+   "revision": "790764642607"
+  },
+  "reranker": "bge-m3-dense-cosine",
+  "prompt_manifest_sha256": "9efbe155d2d271470535067142449bb4c01dde0b62f596049aa0aa59f187e25b",
+  "generations": [
+   {
+    "embedding_model": "bge-m3",
+    "embedding_revision": "790764642607",
+    "chunker_version": 1,
+    "thresholds": "{\"counter\": \"bge-m3-xlmr\", \"max_tokens\": 800, \"min_tokens\": 80, \"embedder_window\": 8192}"
+   }
+  ]
+ },
+ "n_cases": 4,
+ "n_by_category": {
+  "statutory_lookup": 4
+ },
+ "summary": {
+  "overall": {
+   "n": 4,
+   "recall_at_k": 1.0,
+   "jurisdiction_leakage": 0.0,
+   "distractor_rate": 0.0,
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": 0.0,
+   "citation_precision": 1.0,
+   "gold_citation": 1.0,
+   "regeneration_rate": 0.0,
+   "forbidden_content": 0.0,
+   "errors": 0
+  },
+  "by_category": {
+   "statutory_lookup": {
+    "n": 4,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 0.0,
+    "citation_precision": 1.0,
+    "gold_citation": 1.0,
+    "regeneration_rate": 0.0,
+    "forbidden_content": 0.0,
+    "errors": 0
+   }
+  },
+  "intervals": {
+   "recall_at_k": {
+    "k": 4,
+    "n": 4,
+    "rate": 1.0,
+    "lower": 0.3976,
+    "upper": 1.0
+   },
+   "jurisdiction_leakage": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   },
+   "distractor_rate": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   },
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   },
+   "citation_precision": {
+    "k": 8,
+    "n": 8,
+    "rate": 1.0,
+    "lower": 0.6306,
+    "upper": 1.0
+   },
+   "gold_citation": {
+    "k": 4,
+    "n": 4,
+    "rate": 1.0,
+    "lower": 0.3976,
+    "upper": 1.0
+   },
+   "regeneration_rate": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   },
+   "forbidden_content": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   }
+  },
+  "intervals_by_category": {
+   "statutory_lookup": {
+    "recall_at_k": {
+     "k": 4,
+     "n": 4,
+     "rate": 1.0,
+     "lower": 0.3976,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.6024
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.6024
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.6024
+    },
+    "citation_precision": {
+     "k": 8,
+     "n": 8,
+     "rate": 1.0,
+     "lower": 0.6306,
+     "upper": 1.0
+    },
+    "gold_citation": {
+     "k": 4,
+     "n": 4,
+     "rate": 1.0,
+     "lower": 0.3976,
+     "upper": 1.0
+    },
+    "regeneration_rate": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.6024
+    },
+    "forbidden_content": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.6024
+    }
+   }
+  },
+  "gating": null,
+  "n_gating": 0,
+  "n_ai_draft": 4,
+  "latency": {
+   "retrieval_p50": 1.31,
+   "retrieval_p95": 1.38,
+   "total_p50": 35.36,
+   "total_p95": 35.73
+  },
+  "faithfulness": null
+ },
+ "gates": {
+  "status": "not_gating",
+  "reason": "0 lawyer-reviewed cases (all ai-draft)"
+ },
+ "cases": [
+  {
+   "id": "gd2-001",
+   "category": "statutory_lookup",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-ART51-v2026.11",
+    "MX-FED-LFT-ART291M-v2026.11",
+    "MX-FED-LFT-ART47-FRACX-v2026.11",
+    "MX-FED-LFT-ART46-v2026.11",
+    "MX-FED-LFT-ART47-CAPUT-v2026.11",
+    "MX-FED-LFT-ART42-v2026.11",
+    "MX-FED-LFT-ART353G-v2026.11",
+    "MX-FED-LFT-ART161-v2026.11"
+   ],
+   "gold_rank": 3,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "answered",
+   "refusal_reason": null,
+   "cited": [
+    "MX-FED-LFT-ART47-FRACX-v2026.11"
+   ],
+   "invalid_cited": [],
+   "cited_gold": true,
+   "regenerations": 0,
+   "retrieval_s": 0.9059999999590218,
+   "total_s": 20.42200000002049,
+   "request_id": "9a895659-7609-41e3-a5ae-f876223af385",
+   "error": null,
+   "query": "¿Cuántas faltas de asistencia permiten rescindir la relación de trabajo sin responsabilidad para el patrón?",
+   "answer": "(I) Planteamiento\n[análisis propio] Se consulta sobre el número de faltas de asistencia que facultan al patrón para rescindir la relación de trabajo sin responsabilidad.\n\n(II) Marco normativo aplicable\n- El trabajador puede ser objeto de rescisión por \"Tener el trabajador más de tres faltas de asistencia en un período de treinta días, sin permiso del patrón o sin causa justificada\" [cite: MX-FED-LFT-ART47-FRACX-v2026.11].\n\n(III) Criterios jurisprudenciales\n<insuficiente></insuficiente>\n\n(IV) Análisis\n[análisis propio] De acuerdo con la legislación laboral federal, la acumulación de más de tres faltas de asistencia dentro de un periodo de treinta días, siempre que estas carezcan de permiso patronal o de una causa justificada, constituye una causa de rescisión de la relación de trabajo sin responsabilidad para el patrón.\n\n(V) Fuentes citadas\n- MX-FED-LFT-ART47-FRACX-v2026.11: Ley Federal del Trabajo, art. 47, fracc. X",
+   "cited_texts": {
+    "MX-FED-LFT-ART47-FRACX-v2026.11": [
+     "X. Tener el trabajador más de tres faltas de asistencia en un período de treinta días, sin permiso del patrón o sin causa justificada;",
+     "Artículo 47.- Son causas de rescisión de la relación de trabajo, sin responsabilidad para el patrón:\n\nI. Engañarlo el trabajador o en su caso, el sindicato que lo hubiese propuesto o recomendado con certificados falsos o referencias en los que se atribuyan al trabajador capacidad, aptitudes o facultades de que carezca. Esta causa de rescisión dejará de tener efecto después de treinta días de prestar sus servicios el trabajador;\nII. Incurrir el trabajador, durante sus labores, en faltas de probidad u honradez, en actos de violencia, amagos, injurias o malos tratamientos en contra del patrón, sus familiares o del personal directivo o administrativo de la empresa o establecimiento, o en contra de clientes y proveedores del patrón, salvo que medie provocación o que obre en defensa propia;\n\nFracción reformada DOF 30-11-2012\n\nIII. Cometer el trabajador contra alguno de sus compañeros, cualquiera de los actos enumerados en la fracción anterior, si como consecuencia de ellos se altera la disciplina del lugar en que se desempeña el trabajo;\nIV. Cometer el trabajador, fuera del servicio, contra el patrón, sus familiares o personal directivo administrativo, alguno de los actos a que se refiere la fracción II, si son de tal manera graves que hagan imposible el cumplimiento de la relación de trabajo;\nV. Ocasionar el trabajador, intencionalmente, perjuicios materiales durante el desempeño de las labores o con motivo de ellas, en los edificios, obras, maquinaria, instrumentos, materias primas y demás objetos relacionados con el trabajo;\nVI. Ocasionar el trabajador los perjuicios de que habla la fracción anterior siempre que sean graves, sin dolo, pero con negligencia tal, que ella sea la causa única del perjuicio;\nVII. Comprometer el trabajador, por su imprudencia o descuido inexcusable, la seguridad del establecimiento o de las personas que se encuentren en él;\nVIII. Cometer el trabajador actos inmorales o de hostigamiento y/o acoso sexual contra cualquier persona en el establecimiento o lugar de trabajo;\n\nFracción reformada DOF 30-11-2012\n\nIX. Revelar el trabajador los secretos de fabricación o dar a conocer asuntos de carácter reservado, con perjuicio de la empresa;\nX. Tener el trabajador más de tres faltas de asistencia en un período de treinta días, sin permiso del patrón o sin causa justificada;\nXI. Desobedecer el trabajador al patrón o a sus representantes, sin causa justificada, siempre que se trate del trabajo contratado;\nXII. Negarse el trabajador a adoptar las medidas preventivas o a seguir los procedimientos indicados para evitar accidentes o enfermedades;\nXIII. Concurrir el trabajador a sus labores en estado de embriaguez o bajo la influencia de algún narcótico o droga enervante, salvo que, en este último caso, exista prescripción médica. Antes\n\nde iniciar su servicio, el trabajador deberá poner el hecho en conocimiento del patrón y presentar la prescripción suscrita por el médico;\n\nXIV. La sentencia ejecutoriada que imponga al trabajador una pena de prisión, que le impida el cumplimiento de la relación de trabajo;\n\nFracción reformada DOF 30-11-2012\n\n- XIV Bis. La falta de documentos que exijan las leyes y reglamentos, necesarios para la prestación del servicio cuando sea imputable al trabajador y que exceda del periodo a que se refiere la fracción IV del artículo 43; y\n\nFracción adicionada DOF 30-11-2012\n\nXV. Las análogas a las establecidas en las fracciones anteriores, de igual manera graves y de consecuencias semejantes en lo que al trabajo se refiere.\n\nEl patrón que despida a un trabajador deberá darle aviso escrito en el que refiera claramente la conducta o conductas que motivan la rescisión y la fecha o fechas en que se cometieron.\n\nPárrafo reformado DOF 30-11-2012\n\nEl aviso deberá entregarse personalmente al trabajador en el momento mismo del despido o bien, comunicarlo al Tribunal competente, dentro de los cinco días hábiles siguientes, en cuyo caso deberá proporcionar el último domicilio que tenga registrado del trabajador a fin de que la autoridad se lo notifique en forma personal.\n\nPárrafo adicionado DOF 04-01-1980. Reformado DOF 30-11-2012, 01-05-2019\n\nLa prescripción para ejercer las acciones derivadas del despido no comenzará a correr sino hasta que el trabajador reciba personalmente el aviso de rescisión.\n\nPárrafo adicionado DOF 30-11-2012\n\nLa falta de aviso al trabajador personalmente o por conducto del Tribunal, por sí sola presumirá la separación no justificada, salvo prueba en contrario que acredite que el despido fue justificado.\n\nPárrafo adicionado DOF 04-01-1980. Reformado DOF 30-11-2012, 01-05-2019"
+    ]
+   },
+   "forbidden_found": []
+  },
+  {
+   "id": "gd2-002",
+   "category": "statutory_lookup",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-ART48-v2026.11",
+    "MX-FED-CPEUM-ART123-APARTADOA-FRACXXII-v2026.11",
+    "MX-FED-LFT-ART157-v2026.11",
+    "MX-FED-LFT-ART1003-v2026.11",
+    "MX-FED-LFT-ART431-v2026.11",
+    "MX-FED-LFT-ART929-v2026.11",
+    "MX-FED-LFT-ART33-v2026.11",
+    "MX-FED-LFT-ART57-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "answered",
+   "refusal_reason": null,
+   "cited": [
+    "MX-FED-LFT-ART48-v2026.11"
+   ],
+   "invalid_cited": [],
+   "cited_gold": true,
+   "regenerations": 0,
+   "retrieval_s": 1.375,
+   "total_s": 35.35899999993853,
+   "request_id": "f28fb3e0-5731-4e40-8228-a2d0d618a86c",
+   "error": null,
+   "query": "¿Qué puede reclamar un trabajador despedido injustificadamente?",
+   "answer": "Si el patrón no comprueba la causa de la rescisión, el trabajador tiene derecho a que se le paguen los salarios vencidos, computados desde la fecha del despido y por un período máximo de doce meses [cite: MX-FED-LFT-ART48-v2026.11].\n\nAsimismo, el trabajador podrá solicitar ante la Autoridad Conciliadora, o ante el Tribunal si no existe arreglo conciliatorio, que se le reinstale en el trabajo que desempeñaba, o que se le indemnice con el importe de tres meses de salario, a razón del que corresponda a la fecha en que se realice el pago [cite: MX-FED-LFT-ART48-v2026.11].\n\nEn caso de que al término del plazo de doce meses no haya concluido el procedimiento o no se haya dado cumplimiento a la sentencia, se pagarán también al trabajador los intereses que se generen sobre el importe de quince meses de salario, a razón del dos por ciento mensual, capitalizable al momento del pago [cite: MX-FED-LFT-ART48-v2026.11].",
+   "cited_texts": {
+    "MX-FED-LFT-ART48-v2026.11": [
+     "Artículo 48.- El trabajador podrá solicitar ante la Autoridad Conciliadora, o ante el Tribunal si no existe arreglo conciliatorio, que se le reinstale en el trabajo que desempeñaba, o que se le indemnice con el importe de tres meses de salario, a razón del que corresponda a la fecha en que se realice el pago, observando previamente las disposiciones relativas al procedimiento de conciliación previsto en el artículo 684-A y subsiguientes.\n\nPárrafo reformado DOF 01-05-2019\n\nSi en el juicio correspondiente no comprueba el patrón la causa de la rescisión, el trabajador tendrá derecho, además, cualquiera que hubiese sido la acción intentada, a que se le paguen los salarios vencidos computados desde la fecha del despido hasta por un período máximo de doce meses, en términos de lo preceptuado en la última parte del párrafo anterior.\n\nSi al término del plazo señalado en el párrafo anterior no ha concluido el procedimiento o no se ha dado cumplimiento a la sentencia, se pagarán también al trabajador los intereses que se generen sobre el importe de quince meses de salario, a razón del dos por ciento mensual, capitalizable al momento del pago. Lo dispuesto en este párrafo no será aplicable para el pago de otro tipo de indemnizaciones o prestaciones.\n\nPárrafo reformado DOF 01-05-2019\n\nEn caso de muerte del trabajador, dejarán de computarse los salarios vencidos como parte del conflicto, a partir de la fecha del fallecimiento.\n\nLos abogados, litigantes o representantes que promuevan acciones, excepciones, incidentes, diligencias, ofrecimiento de pruebas, recursos y, en general toda actuación en forma notoriamente improcedente, con la finalidad de prolongar, dilatar u obstaculizar la sustanciación o resolución de un juicio laboral, se le impondrá una multa de 100 a 1000 veces la Unidad de Medida y Actualización.\n\nPárrafo reformado DOF 01-05-2019\n\nSi la dilación es producto de omisiones o conductas irregulares de los servidores públicos, la sanción aplicable será la suspensión hasta por noventa días sin pago de salario y en caso de reincidencia la destitución del cargo, en los términos de las disposiciones aplicables. Además, en este último supuesto se dará vista al Ministerio Público para que investigue la posible comisión de delitos contra la administración de justicia.\n\nA los servidores públicos del Centro Federal de Conciliación y Registro Laboral cuando retrasen, obstruyan o influyan en el procedimiento de registros sindicales y de contratos colectivos y de reglamentos interiores de trabajo a favor o en contra de una de las partes, así como en el otorgamiento de la constancia de representatividad sin causa justificada se les impondrá una multa de 100 a 1000 veces la Unidad de Medida y Actualización. Por lo que se refiere a los servidores públicos de los Centros de Conciliación locales se le sancionará en los mismos términos, cuando en el desempeño de su función conciliatoria incurran en estas conductas.\n\nPárrafo adicionado DOF 01-05-2019\n\nArtículo reformado DOF 30-11-2012"
+    ]
+   },
+   "forbidden_found": []
+  },
+  {
+   "id": "gd2-003",
+   "category": "statutory_lookup",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-ART76-v2026.11",
+    "MX-FED-LFT-ART199-v2026.11",
+    "MX-FED-LFT-ART77-v2026.11",
+    "MX-FED-LFT-ART233-v2026.11",
+    "MX-FED-CPEUM-ART123-APARTADOB-FRACIII-v2026.11",
+    "MX-FED-LFT-ART81-v2026.11",
+    "MX-FED-LFT-ART179-v2026.11",
+    "MX-FED-LFT-ART78-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "answered",
+   "refusal_reason": null,
+   "cited": [
+    "MX-FED-CPEUM-ART123-APARTADOB-FRACIII-v2026.11",
+    "MX-FED-LFT-ART76-v2026.11",
+    "MX-FED-LFT-ART199-v2026.11",
+    "MX-FED-LFT-ART179-v2026.11",
+    "MX-FED-LFT-ART233-v2026.11"
+   ],
+   "invalid_cited": [],
+   "cited_gold": true,
+   "regenerations": 0,
+   "retrieval_s": 1.0320000000065193,
+   "total_s": 35.73499999998603,
+   "request_id": "455d2ef1-b2c8-4278-9a8d-f6e749989b43",
+   "error": null,
+   "query": "¿Cuántos días de vacaciones corresponden al primer año de servicios?",
+   "answer": "(I) Planteamiento\n[análisis propio] Determinación de la cantidad de días de vacaciones que le corresponden a un trabajador tras haber cumplido su primer año de servicios.\n\n(II) Marco normativo aplicable\n*   **Constitución Política de los Estados Unidos Mexicanos**\n    *   Los trabajadores gozarán de vacaciones que nunca serán menores de veinte días al año [cite: MX-FED-CPEUM-ART123-APARTADOB-FRACIII-v2026.11].\n*   **Ley Federal del Trabajo**\n    *   Las personas trabajadoras que tengan más de un año de servicios disfrutarán de un periodo anual de vacaciones pagadas, que en ningún caso podrá ser inferior a doce días laborables [cite: MX-FED-LFT-ART76-v2026.11].\n    *   Los trabajadores tienen derecho a un período mínimo de doce días laborables de vacaciones anuales pagadas [cite: MX-FED-LFT-ART199-v2026.11].\n    *   Los menores de dieciocho años, disfrutarán de un período anual de vacaciones pagadas de dieciocho días laborables, por lo menos [cite: MX-FED-LFT-ART179-v2026.11].\n    *   Los tripulantes tienen derecho a un período anual de vacaciones de treinta días de calendario, no acumulables [cite: MX-FED-LFT-ART233-v2026.11].\n\n(III) Criterios jurisprudenciales\n<insuficiente></insuficiente>\n\n(IV) Análisis\n[análisis propio] La cantidad de días de vacaciones para el primer año de servicios varía según la categoría del trabajador: para trabajadores generales la ley establece un mínimo de doce días laborables, mientras que para menores de dieciocho años el mínimo es de dieciocho días laborables y para tripulantes es de treinta días de calendario. No obstante, la Constitución establece que los trabajadores gozarán de vacaciones que nunca serán menores de veinte días al año.\n\n(V) Fuentes citadas\n*   MX-FED-CPEUM-ART123-APARTADOB-FRACIII-v2026.11: Constitución Política de los Estados Unidos Mexicanos, art. 123, Apartado B, fracc. III\n*   MX-FED-LFT-ART76-v2026.11: Ley Federal del Trabajo, art. 76\n*   MX-FED-LFT-ART179-v2026.11: Ley Federal del Trabajo, art. 179\n*   MX-FED-LFT-ART199-v2026.11: Ley Federal del Trabajo, art. 199\n*   MX-FED-LFT-ART233-v2026.11: Ley Federal del Trabajo, art. 233",
+   "cited_texts": {
+    "MX-FED-CPEUM-ART123-APARTADOB-FRACIII-v2026.11": [
+     "III. Los trabajadores gozarán de vacaciones que nunca serán menores de veinte días al año;",
+     "B. Entre los Poderes de la Unión y sus trabajadores:\n\nPárrafo reformado DOF 08-10-1974, 29-01-2016\n\nI. La jornada diaria máxima de trabajo diurna y nocturna será de ocho y siete horas respectivamente. Las que excedan serán extraordinarias y se pagarán con un ciento por ciento más de la remuneración fijada para el servicio ordinario. En ningún caso el trabajo extraordinario podrá exceder de tres horas diarias ni de tres veces consecutivas;\nII. Por cada seis días de trabajo, disfrutará el trabajador de un día de descanso, cuando menos, con goce de salario íntegro;\nIII. Los trabajadores gozarán de vacaciones que nunca serán menores de veinte días al año;\nIV. Los salarios serán fijados en los presupuestos respectivos sin que su cuantía pueda ser disminuida durante la vigencia de éstos, sujetándose a lo dispuesto en el artículo 127 de esta Constitución y en la ley.\n\nPárrafo reformado DOF 24-08-2009\n\nEn ningún caso los salarios podrán ser inferiores al mínimo para los trabajadores en general en las entidades federativas.\n\nPárrafo reformado DOF 29-01-2016\n\nFracción reformada DOF 27-11-1961\n\nV. A trabajo igual corresponderá salario igual, sin tener en cuenta el sexo ni género. Las leyes establecerán los mecanismos tendientes a reducir y erradicar la brecha salarial de género;\n\nFracción reformada DOF 15-11-2024\n\nVI. Sólo podrán hacerse retenciones, descuentos, deducciones o embargos al salario, en los casos previstos en las leyes;\nVII. La designación del personal se hará mediante sistemas que permitan apreciar los conocimientos y aptitudes de los aspirantes. El Estado organizará escuelas de Administración Pública;\nVIII. Los trabajadores gozarán de derechos de escalafón a fin de que los ascensos se otorguen en función de los conocimientos, aptitudes y antigüedad. En igualdad de condiciones, tendrá prioridad quien represente la única fuente de ingreso en su familia;\n\nFracción reformada DOF 31-12-1974\n\n- XI (sic 05-12-1960). Los trabajadores sólo podrán ser suspendidos o cesados por causa justificada, en los términos que fije la ley.\n\nEn caso de separación injustificada tendrá derecho a optar por la reinstalación en su trabajo o por la indemnización correspondiente, previo el procedimiento legal. En los casos de supresión de plazas, los trabajadores afectados tendrán derecho a que se les otorgue otra equivalente a la suprimida o a la indemnización de ley;\n\nX. Los trabajadores tendrán el derecho de asociarse para la defensa de sus intereses comunes. Podrán, asimismo, hacer uso del derecho de huelga previo el cumplimiento de los requisitos que determine la ley, respecto de una o varias dependencias de los Poderes Públicos, cuando se violen de manera general y sistemática los derechos que este artículo les consagra;\nXI. La seguridad social se organizará conforme a las siguientes bases mínimas:\na) Cubrirá los accidentes y enfermedades profesionales; las enfermedades no profesionales y maternidad; y la jubilación, la invalidez, vejez y muerte.\nb) En caso de accidente o enfermedad, se conservará el derecho al trabajo por el tiempo que determine la ley.\nc) Las mujeres durante el embarazo no realizarán trabajos que exijan un esfuerzo considerable y signifiquen un peligro para su salud en relación con la gestación; gozarán forzosamente de un mes de descanso antes de la fecha fijada aproximadamente para el parto y de otros dos después del mismo, debiendo percibir su salario íntegro y conservar su empleo y los derechos que hubieren adquirido por la relación de trabajo. En el período de lactancia tendrán dos descansos extraordinarios por día, de media hora cada uno, para alimentar a sus hijos. Además, disfrutarán de asistencia médica y obstétrica, de medicinas, de ayudas para la lactancia y del servicio de guarderías infantiles.\n\nInciso reformado DOF 31-12-1974\n\nd) Los familiares de los trabajadores tendrán derecho a asistencia médica y medicinas, en los casos y en la proporción que determine la ley.\ne) Se establecerán centros para vacaciones y para recuperación, así como tiendas económicas para beneficio de los trabajadores y sus familiares.\nf) Se proporcionarán a los trabajadores habitaciones baratas, en arrendamiento o venta, conforme a los programas previamente aprobados. Además, el Estado mediante las aportaciones que haga, establecerá un fondo nacional de la vivienda a fin de constituir depósitos en favor de dichos trabajadores y establecer un sistema de financiamiento que permita otorgar a éstos crédito barato y suficiente para que adquieran en propiedad habitaciones cómodas e higiénicas, o bien para construirlas, repararlas, mejorarlas o pagar pasivos adquiridos por estos conceptos.\n\nLas aportaciones que se hagan a dicho fondo serán enteradas al organismo encargado de la seguridad social regulándose en su Ley y en las que corresponda, la forma y el procedimiento conforme a los cuales se administrará el citado fondo y se otorgarán y adjudicarán los créditos respectivos.\n\nInciso reformado DOF 10-11-1972\n\nXII. Los conflictos individuales, colectivos o intersindicales serán sometidos a un Tribunal Federal de Conciliación y Arbitraje integrado según lo prevenido en la ley reglamentaria. Asimismo, conocerá de los asuntos relacionados con el acceso a la información pública de los sindicatos de los trabajadores al servicio del Estado y de los recursos de revisión que interpongan los particulares respecto de las resoluciones de los mismos.\n\nPárrafo reformado DOF 20-12-2024\n\nLos conflictos entre el Poder Judicial de la Federación y sus servidores, así como los que se susciten entre la Suprema Corte de Justicia y sus empleados, serán resueltos por el Tribunal de Disciplina Judicial.\n\nPárrafo reformado DOF 31-12-1994, 15-09-2024. Publicado sin cambios DOF 20-12-2024\n\nXIII. Los militares, marinos, integrantes de la Guardia Nacional, personal del servicio exterior, agentes del Ministerio Público, peritos y los miembros de las instituciones policiales, se regirán por sus propias leyes.\n\nPárrafo reformado DOF 30-09-2024\n\nLos agentes del Ministerio Público, los peritos y los miembros de las instituciones policiales de la Federación, las entidades federativas y los Municipios, podrán ser separados de sus cargos si no cumplen con los requisitos que las leyes vigentes en el momento del acto señalen para permanecer en dichas instituciones, o removidos por incurrir en responsabilidad en el desempeño de sus funciones. Si la autoridad jurisdiccional resolviere que la separación, remoción, baja, cese o cualquier otra forma de terminación del servicio fue injustificada, el Estado sólo estará obligado a pagar la indemnización y demás prestaciones a que tenga derecho, sin que en ningún caso proceda su reincorporación al servicio, cualquiera que sea el resultado del juicio o medio de defensa que se hubiere promovido.\n\nPárrafo reformado DOF 29-01-2016\n\nLas autoridades federales, de las entidades federativas y municipales, a fin de propiciar el fortalecimiento del sistema de seguridad social del personal del Ministerio\n\nPúblico, de las corporaciones policiales y de los servicios periciales, de sus familias y dependientes, instrumentarán sistemas complementarios de seguridad social.\n\nPárrafo reformado DOF 29-01-2016\n\nEl Estado proporcionará a los miembros en el activo del Ejército, Fuerza Aérea, Armada y Guardia Nacional, las prestaciones a que se refiere el inciso f) de la fracción XI de este apartado, en términos similares y a través del organismo encargado de la seguridad social de los componentes de dichas instituciones;\n\nPárrafo reformado DOF 30-09-2024 Fracción reformada DOF 10-11-1972, 08-03-1999, 18-06-2008\n\n- XIII bis. El banco central y las entidades de la Administración Pública Federal que formen parte del sistema bancario mexicano regirán sus relaciones laborales con sus trabajadores por lo dispuesto en el presente Apartado.\n\nFracción adicionada DOF 17-11-1982. Reformada DOF 27-06-1990, 20-08-1993\n\nXIV. La ley determinará los cargos que serán considerados de confianza. Las personas que los desempeñen disfrutarán de las medidas de protección al salario y gozarán de los beneficios de la seguridad social.\n\nApartado B con fracciones adicionado DOF 05-12-1960"
+    ],
+    "MX-FED-LFT-ART76-v2026.11": [
+     "Artículo 76.- Las personas trabajadoras que tengan más de un año de servicios disfrutarán de un periodo anual de vacaciones pagadas, que en ningún caso podrá ser inferior a doce días laborables, y que aumentará en dos días laborables, hasta llegar a veinte, por cada año subsecuente de servicios.\n\nA partir del sexto año, el periodo de vacaciones aumentará en dos días por cada cinco de servicios. Artículo reformado DOF 27-12-2022"
+    ],
+    "MX-FED-LFT-ART199-v2026.11": [
+     "Artículo 199.- Los trabajadores tienen derecho a un período mínimo de doce días laborables de vacaciones anuales pagadas, que se aumentará en dos días laborables, hasta llegar a veinticuatro, por cada año subsecuente de servicios. Con posterioridad se aumentará el período de vacaciones en dos días por cada cinco años de servicios.\n\nLas vacaciones deberán disfrutarse en tierra, pudiendo fraccionarse cuando lo exija la continuidad del trabajo."
+    ],
+    "MX-FED-LFT-ART179-v2026.11": [
+     "Artículo 179. Los menores de dieciocho años, disfrutarán de un período anual de vacaciones pagadas de dieciocho días laborables, por lo menos.\n\nArtículo reformado DOF 12-06-2015"
+    ],
+    "MX-FED-LFT-ART233-v2026.11": [
+     "Artículo 233.- Los tripulantes tienen derecho a un período anual de vacaciones de treinta días de calendario, no acumulables. Este período podrá disfrutarse semestralmente en forma proporcional, y se aumentará en un día por cada año de servicios, sin que exceda de sesenta días de calendario."
+    ]
+   },
+   "forbidden_found": []
+  },
+  {
+   "id": "gd2-004",
+   "category": "statutory_lookup",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-ART87-v2026.11",
+    "MX-FED-LFT-ART109-v2026.11",
+    "MX-FED-LFT-ART432-v2026.11",
+    "MX-FED-LFT-ART937-v2026.11",
+    "MX-FED-LFT-ART72-v2026.11",
+    "MX-FED-LFT-ART947-v2026.11",
+    "MX-FED-LFT-ART439-v2026.11",
+    "MX-FED-LFT-ART82-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "answered",
+   "refusal_reason": null,
+   "cited": [
+    "MX-FED-LFT-ART87-v2026.11"
+   ],
+   "invalid_cited": [],
+   "cited_gold": true,
+   "regenerations": 0,
+   "retrieval_s": 1.312000000034459,
+   "total_s": 19.359000000054948,
+   "request_id": "b4bfa68c-57c3-49df-b4f3-5687a4549cf3",
+   "error": null,
+   "query": "¿Cuántos días de salario debe pagar el patrón por concepto de aguinaldo y cuándo?",
+   "answer": "(I) Planteamiento\n[análisis propio] Se consulta sobre la cuantía y la oportunidad en el pago de la prestación de aguinaldo por parte del patrón.\n\n(II) Marco normativo aplicable\n*   Los trabajadores tienen derecho a un aguinaldo anual que debe pagarse \"antes del día veinte de diciembre\" [cite: MX-FED-LFT-ART87-v2026.11].\n*   Dicha prestación debe ser \"equivalente a quince días de salario, por lo menos\" [cite: MX-FED-LFT-ART87-v2026.11].\n*   Aquellos trabajadores que no hayan cumplido el año de servicios tienen derecho al pago de la \"parte proporcional del mismo, conforme al tiempo que hubieren trabajado\" [cite: MX-FED-LFT-ART87-v2026.11].\n\n(III) Criterios jurisprudenciales\n<insuficiente></insuficiente>\n\n(IV) Análisis\n[análisis propio] De la normativa analizada se desprende que el aguinaldo es una retribución que debe cubrirse de forma anual y proporcional al tiempo laborado, estableciéndose un límite mínimo de quince días de salario.\n\n(V) Fuentes citadas\n*   MX-FED-LFT-ART87-v2026.11: Ley Federal del Trabajo, art. 87",
+   "cited_texts": {
+    "MX-FED-LFT-ART87-v2026.11": [
+     "Artículo 87.- Los trabajadores tendrán derecho a un aguinaldo anual que deberá pagarse antes del día veinte de diciembre, equivalente a quince días de salario, por lo menos.\n\nLos que no hayan cumplido el año de servicios, independientemente de que se encuentren laborando o no en la fecha de liquidación del aguinaldo, tendrán derecho a que se les pague la parte proporcional del mismo, conforme al tiempo que hubieren trabajado, cualquiera que fuere éste.\n\nPárrafo reformado DOF 31-12-1975"
+    ]
+   },
+   "forbidden_found": []
+  }
+ ],
+ "seconds": 111.0
+}
