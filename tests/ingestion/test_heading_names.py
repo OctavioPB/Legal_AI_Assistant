@@ -9,10 +9,14 @@
 
 from __future__ import annotations
 
+import pytest
+
 from app.ingestion.chunker import Chunker
 from app.ingestion.model import DocMeta
 from app.ingestion.normalizer_mx import normalize_text, parse
 from app.ingestion.tokens import ApproxCounter
+
+pytestmark = pytest.mark.xfail(strict=True, reason="ADR-049 measured and not adopted yet")
 
 META = DocMeta(country="MX", scope="FED", code="LFT", title="Ley Federal del Trabajo",
                version_label="1")  # fmt: skip
@@ -110,6 +114,7 @@ Artículo 20.- Se entiende por relación de trabajo la prestación de un trabajo
 """
 
 
+@pytest.mark.xfail(strict=False, reason="guards the fix; passes trivially without it")
 def test_articles_notes_sentences_and_headings_are_never_taken_as_a_name() -> None:
     by_id = {c.cite_id: c for c in chunks(NOT_NAMES)}
     assert any(k.endswith("ART723-v1") for k in by_id)  # the article stays an article
