@@ -58,18 +58,19 @@ def test_each_decree_unit_carries_its_own_publication_date() -> None:
     assert "se derogan los artículos 15A" in repeals.text
 
 
-def test_a_decree_heading_moves_from_the_previous_unit_to_its_own() -> None:
+def test_a_decree_heading_is_its_own_hidden_unit_not_part_of_a_neighbour() -> None:
+    """Measured on gd2-024 (2026-11-27): a fragment that opens with a long multi-law decree title
+    made the drafting model decline 5/5; the same context without it answered 5/5."""
     out, _ = chunks(TWO_DECREES)
     previous = next(c for c in out if c.text.startswith("Primero. El presente decreto entrará"))
     assert "DECRETO" not in previous.text and "Publicado" not in previous.text
+    heads = [c for c in out if c.text.startswith("DECRETO por el que")]
+    assert len(heads) == 2 and all(c.is_navigation for c in heads)
+    assert "30 de noviembre de 2012" in heads[0].text and "Ley del Seguro Social" in heads[1].text
     first = next(c for c in out if "Se ADICIONAN" in c.text)
-    assert first.text.startswith("DECRETO por el que se reforman")
-    assert "30 de noviembre de 2012" in first.text
+    assert first.text.startswith("Artículo Único.-") and not first.is_navigation
     second = next(c for c in out if "se derogan los artículos 15A" in c.text)
-    assert (
-        second.text.startswith("DECRETO por el que")
-        and "de la Ley del Seguro Social." in second.text
-    )
+    assert second.text.startswith("Artículo Primero.") and not second.is_navigation
 
 
 def test_no_text_is_lost_or_duplicated() -> None:
