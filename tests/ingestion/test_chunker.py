@@ -58,7 +58,7 @@ def test_properties_hold_for_every_fixture(name: str) -> None:
 
 
 def test_version_constant_and_thresholds_stored_shape() -> None:
-    assert CHUNKER_VERSION == 3  # ADR-049, ADR-052
+    assert CHUNKER_VERSION == 2  # ADR-049
     with pytest.raises(ValueError):
         ChunkThresholds(max_tokens=800)  # > 512 window (ADR-012)
 
