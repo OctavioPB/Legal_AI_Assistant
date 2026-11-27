@@ -105,3 +105,12 @@ CREATE POLICY {table}_matter_scope ON {table} AS RESTRICTIVE FOR ALL
   USING (matter_id IS NULL OR app_matter_visible(matter_id))
   WITH CHECK (matter_id IS NULL OR app_matter_visible(matter_id));
 -- @end
+
+-- @template generation_scoped
+-- ADR-006: derived corpus rows (doc_nodes, chunks) of one index generation. Every role subject to
+-- RLS sees and writes only the ACTIVE generation; a rebuild writes the next one as the explicit,
+-- reviewed superuser step (multi-tenancy.md) and the switch is one UPDATE of index_generations.
+CREATE POLICY {table}_active_generation ON {table} AS RESTRICTIVE FOR ALL
+  USING (generation = (SELECT app_generation()))
+  WITH CHECK (generation = (SELECT app_generation()));
+-- @end

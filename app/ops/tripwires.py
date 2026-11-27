@@ -144,7 +144,10 @@ def collect_metrics(conn: Connection, *, window_days: int = 7) -> dict[str, floa
             "COALESCE((chunk_thresholds->>'embedder_window')::int, "
             "2147483647)) AS over_window, "
             "count(DISTINCT (embedding_model, embedding_revision, chunker_version, "
-            "chunk_thresholds::text)) AS generations FROM chunks WHERE is_current"
+            "chunk_thresholds::text)) AS generations FROM chunks WHERE is_current "
+            # ADR-006: a privileged engine bypasses RLS; count the ACTIVE generation only (a
+            # generation being built aside is not live)
+            "AND generation = app_generation()"
         )
     ).one()
     rates = conn.execute(

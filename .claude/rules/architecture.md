@@ -47,12 +47,27 @@ below are the original one-liners and are Accepted.
 - ADR-003: LiteLLM proxy self-hosted; task aliases, provider-agnostic app code.
 - ADR-004: Docling for parsing; custom legal normalizer owns node typing. Docling gives typography, we give legal semantics.
 - ADR-005: Refusal threshold τ applied post-rerank; refusal short-circuits before LLM call.
-- ADR-006 (Proposed, 2026-11-02): Version guards. Chunks store `embedding_model`, `embedding_revision`,
+- ADR-006 (Accepted 2026-11-26, generation column chosen by the product owner): Version guards. Chunks store `embedding_model`, `embedding_revision`,
   `chunker_version` and the chunk thresholds; retrieval filters on the active embedding version;
   re-embeds are built aside (shadow generation) and swapped atomically, never in place; a
   thresholds-only override that changes chunks without bumping `chunker_version` is the failure it
   prevents. Source: Library-RAG rule 6 / ADR-003, 004. Pending: choose generation-flip mechanism
   (`index_generation` column vs shadow table) in WS2.T08.
+  Implemented 2026-11-26 (migration 0015, `app/ingestion/rebuild.py`): a `generation` column on doc_nodes and
+  chunks, not a shadow table; `index_generations` holds one `active` row, `app_generation()` is the default of
+  every new row, and a RESTRICTIVE `generation_scoped` policy shows and lets every role under RLS write only the
+  active generation, so no existing query changed. `documents` are not versioned (lineage, firm files and alerts
+  keep their rows). The rebuild runs as the superuser (an explicit step), writes generation N+1 aside and stops
+  instead of writing a different corpus: a law's source must hash to its stored checksum, a firm document (whose
+  original is never stored, ADR-025) is rebuilt from the text of its tree and must keep the same ids with the same
+  text. `activate` (refused while a live document has no tree in N: `fill`) and `rollback` are one transaction;
+  `prune` never touches the active generation. `doctor` checks one active generation, none half-built, and that
+  the live index was cut by the code's chunker (otherwise ingestion refuses, invariant 5). Evidence: 8 tests in
+  `tests/test_index_generations.py`; on the real corpus (20 473 chunks, 10 documents including one firm contract)
+  generation 2 was built in ~15 min with bge-m3 on CPU+GPU, activated, measured and rolled back (ADR-049). Found
+  while building it: the migrator is under FORCE RLS, so generation 1's model and chunker are recorded by the
+  first rebuild, not by the migration; ltree orders labels as text (`s10` before `s2`), so a document's
+  sections are read by `ordinal` (the rebuild's own unit check caught it before anything was written).
 - ADR-007 (Proposed, 2026-11-02): The refusal is a system action, and τ is calibrated, not guessed.
   (a) The `<insuficiente>` block is emitted by code on τ-miss and on validator failure; the LLM is
   never asked to "decline in its own words" (measured: it explains that nothing was found and
@@ -694,7 +709,19 @@ below are the original one-liners and are Accepted.
   inference for ~18 900 chunks, and generated text inside the index). Recommendation: B; C only with evidence B is not
   enough. Consequences: (+) better retrieval of fracciones and the regime tags of ADR-031 become reliable; (−) a chunker
   change: new `chunker_version`, a generation built aside (ADR-006) and a golden run before and after (invariant 2).
-  Pending: owner's choice; retrieval-only and full golden runs per category. Evidence added 2026-11-26 (while implementing ADR-031): two normalizer defects in the stored LFT. (a) Títulos written with cardinal numbers ("TITULO ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS" in data/corpus/text/LFT.txt, lines 9435-14413) are not recognised, so every article after art. 522 (authorities, procedure, evidence, strikes procedure) carries "TITULO DECIMO Prescripción" in its breadcrumb, which is embedded with its text; (b) a Capítulo whose name is on the next line after a blank line ("CAPITULO IV" / "Rescisión de las relaciones de trabajo") keeps no name. Fixing either changes chunks: it needs the generation flip of ADR-006 first. Research: docs/RESEARCH.md §19.
+  Pending: owner's choice; retrieval-only and full golden runs per category. Evidence added 2026-11-26 (while implementing ADR-031): two normalizer defects in the stored LFT. (a) Títulos written with cardinal numbers ("TITULO ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS" in data/corpus/text/LFT.txt, lines 9435-14413) are not recognised, so every article after art. 522 (authorities, procedure, evidence, strikes procedure) carries "TITULO DECIMO Prescripción" in its breadcrumb, which is embedded with its text; (b) a Capítulo whose name is on the next line after a blank line ("CAPITULO IV" / "Rescisión de las relaciones de trabajo") keeps no name. Fixing either changes chunks: it needs the generation flip of ADR-006 first. Measured 2026-11-26 and NOT adopted
+  (owner's choice after the numbers): both defects fixed in the MX normalizer (chunker v2), built as index
+  generation 2: 432 junk heading-name units gone, 10 article texts no longer carry the next heading, no article or
+  fracción id lost, 20 473 -> 20 016 chunks. Golden `golden-20261127T060836Z-before-adr049-structure` vs
+  `golden-20261127T064516Z-after-adr049-structure`: recall@8 0.95 -> 0.95, leakage 0 -> 0, refusal accuracy 5/5 ->
+  5/5, false refusal 2/20 -> 4/20 (McNemar 2 worse / 0 better, p = 0.5). Repeated 3 more times per generation
+  (`...-rep-gen1-{1,2,3}`, `...-rep-gen2-{1,2,3}`): gd2-024 ("art. 15-C") correct 4/4 on generation 1 and 0/4 on
+  generation 2, gd2-009 4/4 vs 2/4. Cause of gd2-024, read in the outputs: the units are byte-identical in both
+  generations, but with the junk units gone a long amendment list (`TRANS4-UNICO-P2`) enters the top 8 and the
+  model attributes the repeal of art. 15-C to it; the citation exists, so the validator (provenance) accepts it.
+  Rolled back to generation 1 and the parser change reverted; generation 2 is kept retired; the fixtures stay in
+  `tests/ingestion/test_heading_names.py` as strict xfails. Pending: the transitorio misattribution (a reform
+  decree's lists of article numbers) addressed first, then this fix rebuilt and measured again.
 
 - ADR-050 (Proposed, 2026-11-26): The law is retrieved as of a date: versions carry valid time separately from the time we
   loaded them, and a session may fix the date of the facts. Context: legal questions are about the version in force on

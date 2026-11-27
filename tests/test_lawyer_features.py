@@ -66,6 +66,8 @@ def test_the_navigator_browses_a_law_by_its_own_structure(law) -> None:  # type:
     titulo = toc[0]
     assert titulo["node_type"] == "titulo"
     assert titulo["heading"] == "Relaciones Individuales de Trabajo"
+    assert titulo["label"] == "TITULO SEGUNDO"  # the name once, as the heading
+    assert titulo["children"][0]["label"] == "CAPITULO IV"
     capitulo = titulo["children"][0]
     labels = [a["label"] for a in capitulo["children"]]
     assert labels == ["Artículo 47", "Artículo 48", "Artículo 50", "Artículo 50 Bis"]

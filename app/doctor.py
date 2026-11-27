@@ -184,10 +184,35 @@ def check_search_config(conn: Connection) -> list[Check]:
 
 
 def check_generations(conn: Connection) -> list[Check]:
+    from app.ingestion.chunker import CHUNKER_VERSION
     from app.ops.tripwires import collect_metrics
 
     m = collect_metrics(conn)
+    gens = conn.execute(
+        text("SELECT id, status, chunker_version FROM index_generations ORDER BY id")
+    ).all()
+    active = [g for g in gens if g.status == "active"]
+    building = [str(g.id) for g in gens if g.status == "building"]
+    live_cv = active[0].chunker_version if active else None
+    if active and live_cv is None:  # generation 1 as migrated: read it from its chunks
+        live_cv = conn.execute(
+            text("SELECT min(chunker_version) FROM chunks WHERE generation = :g"),
+            {"g": active[0].id},
+        ).scalar()
     return [
+        Check("exactly one index generation is active (ADR-006)",
+              "PASS" if len(active) == 1 else "FAIL",
+              f"active {active[0].id}" if active else "none"),
+        Check("no index generation left half-built (ADR-006)",
+              "PASS" if not building else "WARN",
+              "none" if not building else f"building: {', '.join(building)} "
+              "(fill + activate, or prune)"),
+        Check("the live index was cut by this code's chunker (ADR-006)",
+              "PASS" if live_cv in (None, CHUNKER_VERSION) else "WARN",
+              f"code v{CHUNKER_VERSION}, live v{live_cv}" + (
+                  "" if live_cv in (None, CHUNKER_VERSION)
+                  else ": new documents are refused until `app.ingestion.rebuild` builds and "
+                  "activates a generation")),
         Check("one embedding/chunker generation is live (invariant 5)",
               "PASS" if m["live_generations"] <= 1 else "FAIL", f"{int(m['live_generations'])} live"),
         Check("no chunk exceeds the embedder window (ADR-012)",

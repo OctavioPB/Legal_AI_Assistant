@@ -58,7 +58,11 @@ def preflight(conn: Connection, cases: list[GoldenCase]) -> list[str]:
     }  # fmt: skip
     found = set(
         conn.execute(
-            text("SELECT cite_id FROM chunks WHERE cite_id = ANY(:ids)"), {"ids": sorted(exact)}
+            text(
+                "SELECT cite_id FROM chunks WHERE cite_id = ANY(:ids) "
+                "AND generation = app_generation()"  # ADR-006: the superuser sees every generation
+            ),
+            {"ids": sorted(exact)},
         ).scalars()
     )
     for c in cases:
@@ -67,7 +71,10 @@ def preflight(conn: Connection, cases: list[GoldenCase]) -> list[str]:
             for p in ids:
                 if p.endswith("*"):
                     n = conn.execute(
-                        text("SELECT count(*) FROM chunks WHERE cite_id LIKE :p"),
+                        text(
+                            "SELECT count(*) FROM chunks WHERE cite_id LIKE :p "
+                            "AND generation = app_generation()"
+                        ),
                         {"p": p[:-1].replace("%", r"\%").replace("_", r"\_") + "%"},
                     ).scalar_one()
                     if not n:
@@ -101,7 +108,7 @@ def _scope(conn: Connection, ids: list[str]) -> dict[str, Jurisdiction]:
     rows = conn.execute(
         text(
             "SELECT cite_id, country, level, state_code, municipality FROM chunks "
-            "WHERE cite_id = ANY(:ids)"
+            "WHERE cite_id = ANY(:ids) AND generation = app_generation()"
         ),
         {"ids": ids},
     ).all()
@@ -132,9 +139,11 @@ def _config(
     gen = conn.execute(
         text(
             "SELECT DISTINCT embedding_model, embedding_revision, chunker_version, "
-            "chunk_thresholds::text AS th FROM chunks"
+            "chunk_thresholds::text AS th FROM chunks WHERE generation = app_generation()"
         )
     ).all()
+    # ADR-006: which index generation the run measured (provenance, like the model ids)
+    index_generation = conn.execute(text("SELECT app_generation()")).scalar()
     return {
         "settings": {k: getattr(settings, k) for k in (
             "refusal_tau", "refusal_min_fragments", "retrieval_arm_top", "retrieval_rrf_k",
@@ -149,6 +158,7 @@ def _config(
             {"embedding_model": g[0], "embedding_revision": g[1], "chunker_version": g[2], "thresholds": g[3]}
             for g in gen
         ],
+        "index_generation": index_generation,
     }  # fmt: skip
 
 

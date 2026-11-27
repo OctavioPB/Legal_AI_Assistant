@@ -15,7 +15,7 @@ import math
 import time
 import uuid
 from datetime import date
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import CursorResult, Engine, text
@@ -86,6 +86,66 @@ def _generation(embedder: Embedder, th: ChunkThresholds) -> dict[str, object]:
         "chunker_version": CHUNKER_VERSION,
         "chunk_thresholds": th.model_dump(),
     }
+
+
+def write_tree(
+    s: Any,
+    *,
+    tenant_id: uuid.UUID,
+    doc_id: uuid.UUID,
+    src: str,
+    nodes: list[Any],
+    chunks: list[Any],
+    vectors: list[list[float]],
+    gen: dict[str, object],
+    generation: int | None = None,
+) -> None:
+    """Write a document's tree and chunks. `generation` None: the active one (the column default);
+    an explicit value only from a rebuild (ADR-006), which runs as the superuser."""
+    extra = {} if generation is None else {"generation": generation}
+    ids: dict[str, uuid.UUID] = {}
+    parents = {n.path: n.parent for n in nodes}
+    for n in nodes:  # document order: parents precede children
+        ids[n.path] = uuid.uuid4()
+        pp = parents[n.path]
+        parent_id = ids[pp] if pp is not None else None
+        s.add(
+            DocNode(
+                id=ids[n.path],
+                document_id=doc_id,
+                tenant_id=tenant_id,
+                parent_id=parent_id,
+                node_type=n.node_type,
+                label=n.label,
+                ordinal=n.ordinal,
+                path=n.path,
+                full_text=src[n.start : n.end],
+                **extra,
+            )
+        )
+        s.flush()
+    for c, v in zip(chunks, vectors, strict=True):
+        s.add(
+            ChunkRow(
+                tenant_id=tenant_id,
+                document_id=doc_id,
+                node_id=ids[c.node_path],
+                is_current=c.is_current,
+                is_navigation=c.is_navigation,
+                cite_id=c.cite_id,
+                citation_string=c.citation_string,
+                text=c.text,
+                breadcrumb=c.breadcrumb,
+                embedded_text=c.embedded_text,
+                char_start=c.char_start,
+                char_end=c.char_end,
+                token_count=c.token_count,
+                embedding=v,
+                **extra,
+                **gen,
+            )
+        )
+    s.flush()
 
 
 def ingest_document(
@@ -214,47 +274,8 @@ def ingest_document(
         s.add(doc)
         s.flush()
         doc_id = doc.id
-        ids: dict[str, uuid.UUID] = {}
-        parents = {n.path: n.parent for n in nodes}
-        for n in nodes:  # document order: parents precede children
-            ids[n.path] = uuid.uuid4()
-            pp = parents[n.path]
-            parent_id = ids[pp] if pp is not None else None
-            s.add(
-                DocNode(
-                    id=ids[n.path],
-                    document_id=doc_id,
-                    tenant_id=tenant_id,
-                    parent_id=parent_id,
-                    node_type=n.node_type,
-                    label=n.label,
-                    ordinal=n.ordinal,
-                    path=n.path,
-                    full_text=src[n.start : n.end],
-                )
-            )
-            s.flush()
-        for c, v in zip(chunks, vectors, strict=True):
-            s.add(
-                ChunkRow(
-                    tenant_id=tenant_id,
-                    document_id=doc_id,
-                    node_id=ids[c.node_path],
-                    is_current=c.is_current,
-                    is_navigation=c.is_navigation,
-                    cite_id=c.cite_id,
-                    citation_string=c.citation_string,
-                    text=c.text,
-                    breadcrumb=c.breadcrumb,
-                    embedded_text=c.embedded_text,
-                    char_start=c.char_start,
-                    char_end=c.char_end,
-                    token_count=c.token_count,
-                    embedding=v,
-                    **gen,
-                )
-            )
-        s.flush()
+        write_tree(s, tenant_id=tenant_id, doc_id=doc_id, src=src, nodes=nodes, chunks=chunks,
+                   vectors=vectors, gen=gen)  # fmt: skip
 
     rep = report(chunks)
     return IngestStats(
