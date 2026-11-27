@@ -146,7 +146,7 @@ _ABBREV_END = re.compile(
     r"(?:^|[\s(,;])(?:art|arts|fracc|fr|inc|párr|parr|núm|num|no|sec|secs|cap|tít|tit|cfr|vs|pág|pp|ej)\.$",
     re.IGNORECASE,
 )
-_NUMBER_START = re.compile(r"^(?:\d|[IVXLC]+|[A-Z]?\d)")
+_NUMBER_START = re.compile(r"^(?:\d|[IVXLC]+\b|[A-Z]?\d)")
 
 
 # An inline list ("... menor de un año; II. Si comprueba ...") and an ordinal ("artículo 1°. de la
