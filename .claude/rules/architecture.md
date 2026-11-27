@@ -484,6 +484,248 @@ below are the original one-liners and are Accepted.
   real scanned contract from a firm, a lawyer's check of its extracted text; OCR in the brief verifier; whether 0.6 is
   the right threshold for legal text (tomd measured it on books).
 
+- ADR-031 (Proposed, 2026-11-26): A citation whose legal regime contradicts the case is caught by code, from the law's own
+  structure. Context: in E2E-LAB-01 five of eight delivered answers cited real, verified articles that do not govern the
+  facts; the validator proves provenance, not applicability (rag.md). Three of the five are visible in the stored
+  breadcrumbs (checked 2026-11-26): LFT 283 Ter sits under "TITULO SEXTO Trabajos Especiales › CAPITULO VIII Personas
+  Trabajadoras del Campo", 341 under "CAPITULO XIII Personas Trabajadoras del Hogar", 436 under "TITULO SEPTIMO
+  Relaciones Colectivas de Trabajo", while the case is an individual relationship of a billing assistant. Options:
+  (A) do nothing (applicability stays lawyer-only); (B) an LLM judge of applicability (cost: the model verifying the
+  model, against invariant 6, and no measured agreement); (C) deterministic regime tags per article derived from the
+  Título/Capítulo of the tree (special regimes, collective vs individual, and per-article "direction" tags such as
+  "causal del trabajador" written once per law by a lawyer), plus a closed-list "type of relationship" field on the case
+  sheet, and a check that flags or refuses a citation whose regime contradicts the case, like the jurisdiction
+  predicate; (D) C, but only as a warning shown next to the citation. Recommendation: C, starting as D until lawyer
+  review confirms the tags. Consequences: (+) the first automated check aimed at applicability, catching 3/5 of the
+  observed errors with no model; (−) per-law tagging work, and it cannot catch errors inside one chapter (art. 51 vs 47,
+  art. 519 vs 518 both under Prescripción) without the per-article direction tags; some chapter titles were dropped at
+  ingestion ("CAPITULO IV" without its name), so the normalizer must keep them first (a chunker change: new generation,
+  ADR-006, and a golden run). Pending: owner's choice C or D; lawyer review of the regime catalog for the LFT; a
+  golden category "applicability" with the five E2E-LAB-01 errors as cases. Research: docs/RESEARCH.md §1.
+- ADR-032 (Proposed, 2026-11-26): Every reported rate carries an exact 95 % interval, and the golden set is sized for the
+  claims we want to make. Context: the headline numbers are point estimates on tiny denominators; exact
+  (Clopper-Pearson) intervals computed 2026-11-26: correct refusals 5/5 -> 48-100 %; false refusal 1/20 -> 0.1-25 %;
+  leakage 0/5 isolation cases -> up to 52 %, 0/25 overall -> up to 14 %; misapplied E2E answers 5/8 -> 25-92 %. With zero
+  failures, a one-sided 95 % bound below 5 % / 2 % / 1 % needs 59 / 149 / 299 cases. Options: (A) keep the "1-2 cases is
+  noise" rule only; (B) report Clopper-Pearson intervals in every run report and README, compare before/after with an
+  exact McNemar test on the per-case flips the runner already stores, and grow the set toward 60 isolation and 60 refusal
+  cases (lawyer-reviewed); (C) Bayesian beta-binomial posteriors (same data, harder to explain to lawyers). Recommendation:
+  B. Consequences: (+) claims become statements with bounds; the noise rule becomes a test; (−) the honest intervals are
+  wide today and will look worse than the point numbers; case authoring is lawyer time. Pending: owner's choice; lawyer
+  authors/reviewers for the new cases. Research: docs/RESEARCH.md §2.
+- ADR-033 (Proposed, 2026-11-26): The model emits each sentence as a typed record (law / reasoning / framing, with its
+  citations) under a JSON schema, and the validator checks fields. Context: every failing attempt inspected for ADR-015
+  failed only on coverage (correct but uncited closing sentences); Qwen's false refusal is 17/20 with a 0.72 regeneration
+  rate; the sentence splitter is heuristic (rag.md lists its special cases). Ollama accepts a JSON schema for structured
+  output. Options: (A) keep free text + splitter; (B) schema-constrained output `[{text, kind, cites}]`, rendered by
+  the UI, where a `law` record without a valid citation is still refused (contract unchanged) and `framing` becomes an
+  explicit, rendered category instead of a coverage failure; (C) a prompt v2 against framing sentences (ADR-020 option
+  B). Recommendation: B, measured against C. Not adopted: Chain-of-Verification as a check, because it is the model
+  verifying itself (invariant 6). Consequences: (+) fewer false refusals without relaxing the contract; no sentence
+  splitting on the validator side; (−) new prompt versions for every workflow (golden before/after, invariant 2);
+  schema adherence of small models must be measured; `framing` must be defined narrowly or it becomes a loophole for
+  uncited law. Pending: owner's choice; golden runs before/after per profile. Research: docs/RESEARCH.md §5.
+- ADR-034 (Proposed, 2026-11-26): A small local fact-checker scores each cited sentence against its fragment, shown as a
+  warning until its agreement with lawyers is measured. Context: `faithfulness` is null in every run; the validator checks
+  only verbatim quotations, so a paraphrase that inverts its source passes (rag.md). MiniCheck (Tang, Laban, Durrett,
+  EMNLP 2024) is a 770M Flan-T5 checker that matches GPT-4 on grounding benchmarks at ~400x lower cost. Options: (A) do
+  nothing; (B) an LLM judge with the drafting model (expensive, self-verification); (C) MiniCheck locally, per verifiable
+  claim (VeriScore-style extraction of only verifiable claims), as a warning "Fidelidad no verificada" next to the
+  citation; promoted to a gate only after measured agreement with lawyer grades (rag.md already requires this);
+  (D) C, but gating from day one. Recommendation: C. Consequences: (+) the first number for faithfulness; a second,
+  independent check on paraphrase; (−) MiniCheck is trained on English: its accuracy on Spanish statute text is unknown
+  and is the first thing to measure; CPU latency per claim; a judge model is pinned like any other (ADR-014 rules).
+  Pending: owner's choice; agreement vs lawyer grades on E2E-LAB-01 and the golden set (ADR-035). Research:
+  docs/RESEARCH.md §3.
+- ADR-035 (Proposed, 2026-11-26): Faithfulness and applicability are estimated with prediction-powered inference over a
+  small set of lawyer labels, with inter-rater agreement reported. Context: lawyer time is the bottleneck and today no
+  answer has been graded; a judge alone gives biased numbers. Prediction-powered inference (PPI), as used by ARES
+  (Saad-Falcon et al.), combines a few human labels with many judge labels and yields valid confidence intervals that
+  correct the judge's bias. Options: (A) lawyer-grade everything (unaffordable at scale); (B) judge only (biased, no
+  valid interval); (C) PPI: lawyers grade a stratified sample (every category, plus cases where the validator and the
+  judge disagree), the judge scores everything, the PPI estimator gives the interval; two lawyers grade an overlapping
+  subset and Cohen's kappa / Krippendorff's alpha is reported. Recommendation: C. Consequences: (+) defensible intervals
+  from ~50-100 lawyer labels; agreement numbers say how far to trust the graders; (−) needs the judge of ADR-034; the
+  estimator and the sampling are code that must be tested like the rest of the harness. Pending: owner's choice; two
+  lawyers; the review page of E2E-LAB-01 as the first labels. Research: docs/RESEARCH.md §4.
+- ADR-036 (Proposed, 2026-11-26): The refusal threshold is chosen by conformal risk control, per document type, with a
+  stated error bound. Context: tau = 0.58 was picked by inspection (tau-20261107T212422Z: answers 87.7 % of covered,
+  refuses 80.3 % of absent; no tau met both targets); in E2E-LAB-01 a contract question scored 0.571 and was refused
+  because tau was calibrated on statute text. Conformal abstention (Abbasi-Yadkori et al., 2024; COIN; the Angelopoulos et al.
+  recipe) picks the threshold on a calibration set with a Clopper-Pearson bound so that the rate of answering an absent
+  topic is at most alpha with probability 1-delta; group-conditional control keeps one group from hiding in a global
+  budget. Options: (A) keep the hand-picked tau; (B) one conformal tau; (C) conformal tau per group (statute vs firm
+  document; optionally per language), calibrated by topic, not by wording. Recommendation: C. Consequences: (+) "answers
+  an absent topic at most alpha of the time, with 1-delta confidence" becomes a claim with a guarantee; contracts get
+  their own threshold; (−) the guarantee assumes calibration and real questions are exchangeable, which the AI-drafted
+  probe sets do not ensure (66 absent wordings come from only 22 topics); needs probe sets of firm documents. Pending:
+  owner's choice; lawyer-reviewed probe sets per group. Research: docs/RESEARCH.md §6.
+- ADR-037 (Proposed, 2026-11-26): Four retrieval experiments are run, each kept only if the golden suite says so. Context:
+  recall@8 is 1.00 on 25 easy cases, but distractors reach the top 8 in 16 % of cases and the dense signal could not
+  separate same-numbered articles (ADR-022); the cross-encoder lost on AUC (0.892 vs 0.934) and was 16x slower.
+  Options (independent): (A) use bge-m3's own sparse and multi-vector (ColBERT-style) scores as a reranker (same model,
+  so no new generation; needs FlagEmbedding on CPU, Ollama serves dense only); (B) a Jina-ColBERT-v2 late-interaction
+  arm (multilingual, 8192-token window; no published Spanish legal results); (C) cross-reference expansion: references
+  such as "en los términos del artículo 48" parsed by the existing citation grammar and the referenced unit added to the
+  context (SAT-Graph RAG, de Martim 2025); (D) LegalBench-RAG-style character-level precision/recall as a retrieval
+  metric, since chunks already store character offsets. Recommendation: D first (measurement), then A, C, B in that
+  order of cost. Consequences: (+) each piece is measured before it stays (rag.md); (−) A and B add CPU latency; B is a
+  new embedding generation (ADR-006); C can widen the context beyond the 12k budget. Pending: owner's choice; baseline
+  per-arm runs (rag.md requires them and none is recorded). Research: docs/RESEARCH.md §7.
+- ADR-038 (Proposed, 2026-11-26): The claim "verification is code" is backed by mutation testing, a validator replay suite,
+  measured latency work and a deterministic check of amounts in OCR text. Context: the validator's tests were written by
+  the same team; latency is 35 s median against the blueprint's < 10 s p95; OCR can misread a figure on a page above the
+  confidence threshold (ADR-030). Options (independent): (A) mutation testing of `app/validation/` (e.g. mutmut): every
+  weakened check must make a test fail; (B) replay: re-validate stored model outputs from the audit log on every change
+  (done by hand for ADR-021); (C) latency: reuse of the KV cache of the fixed prompt prefix, speculative decoding with a
+  small draft model of the same family, measured p50/p95; (D) OCR amounts: Mexican contracts write sums twice
+  ("$15,000.00 (QUINCE MIL PESOS 00/100 M.N.)"), so a mismatch between the figure and the words is flagged on the unit.
+  Recommendation: A and B (cheap, pure evidence), then D, then C. Consequences: (+) test strength becomes a number;
+  regressions in verification are caught on real outputs; (−) mutation runs are slow; C depends on the runtime
+  (Ollama/llama.cpp) supporting it on an 8 GB GPU. Pending: owner's choice; a mutation score baseline; latency
+  baseline per profile. Research: docs/RESEARCH.md §8.
+- ADR-039 (Proposed, 2026-11-26): The product's value is measured with a within-subject time-on-task study with practising
+  lawyers before any claim of time saved. Context: the business case rests on a survey's expectations (Thomson Reuters
+  2025: ~5 h/week expected), not a measurement; no user research, pilot or pricing exists. Options: (A) keep the
+  hypothesis; (B) a within-subject, counterbalanced study: 10-12 lawyers, matched research tasks with and without the
+  tool, measuring time, errors caught and errors introduced, analysed with paired tests (Wilcoxon signed-rank), with a
+  protocol written before the study; (C) a pilot in one firm with logs only (no control). Recommendation: B, then C.
+  Consequences: (+) the first measured value; errors introduced are measured, not only time; (−) recruiting lawyers and
+  preparing matched tasks; ethics and confidentiality of the tasks (fictional matters only). Pending: owner's choice;
+  participants; task set reviewed by a lawyer. Research: docs/RESEARCH.md §9.
+
+- ADR-040 (Proposed, 2026-11-26): The drafting model runs with its mixture-of-experts weights on CPU and everything else on
+  GPU. Context: measured 2026-11-26 on the demo machine (RTX 5060 8 GB, Ollama 0.40.13): gemma4:26b-a4b-it-qat is split
+  by whole layers, 68 % CPU / 32 % GPU; generation 27-30 tokens/s, prefill 375 tokens/s, cold load 46.5 s. The model is
+  a mixture of experts (about 4B active parameters per token); llama.cpp can keep attention and shared weights on the
+  GPU and only the routed experts in RAM (`--n-cpu-moe N`, `-ot exps=CPU`). Options: (A) keep Ollama's layer split;
+  (B) run the drafting model under `llama-server` (OpenAI-compatible) with expert offload, pinned by the GGUF's sha256
+  like any model (ADR-014), Ollama kept for the embedder and the utility model; (C) a smaller dense model. Recommendation:
+  B, measured. Consequences: (+) community reports on 8 GB cards with similar 35B-A3B models show generation rising from
+  about 4 to about 33 tokens/s; (−) those reports are anecdotal and on other models, no Gemma figure was found; a second
+  runtime to install and pin; a runtime change is a model change (golden run, invariant 2). Pending: owner's choice;
+  tokens/s, prefill and p50/p95 per answer on this GPU before and after. Research: docs/RESEARCH.md §10.
+- ADR-041 (Proposed, 2026-11-26): Retrieval latency is profiled, and the embedder is kept resident if model swapping is the
+  cause. Context: retrieval p50 is 3.16 s and p95 5.55 s (golden-20261109T084417Z), which is far slower than an indexed
+  search over ~18 900 rows should be; the embedder (bge-m3) and the drafting model share 8 GB of VRAM through Ollama,
+  and a cold load of the drafting model takes 46.5 s. The cause is not yet known. Options: (A) do nothing; (B) profile
+  each stage (query embedding, each arm's SQL, fusion, rerank, expansion) and, if swapping dominates, keep both models
+  resident (`OLLAMA_MAX_LOADED_MODELS`, `keep_alive`) or run bge-m3 on CPU; (C) cache query embeddings (helps only
+  repeated queries). Recommendation: B. Consequences: (+) possibly the cheapest latency win; the profile also gives the
+  per-stage numbers every later change is measured against; (−) keeping two models resident on 8 GB may push more of
+  the drafting model to CPU (interacts with ADR-040). Pending: owner's choice; the per-stage profile. Research:
+  docs/RESEARCH.md §11.
+- ADR-042 (Proposed, 2026-11-26): Irrelevant citable units are pruned from the context before generation, never words
+  inside a unit. Context: prefill runs at 375 tokens/s, so the 12 000-token context budget costs about 32 s per attempt,
+  and a regeneration pays it again; rag.md already notes that fewer good fragments beat many mediocre ones. Provence
+  (Chirkova et al., ICLR 2025) prunes sentences inside the reranker's own forward pass at almost no extra cost; XProvence
+  (arXiv 2601.18886) is multilingual. Options: (A) keep full parent expansion; (B) prune whole citable units (fracciones,
+  párrafos of an expanded article) by a pruner's relevance score, keeping the unit the query hit and its caput;
+  (C) prune at sentence level as Provence does (rejected: a unit cut inside breaks the verbatim check and changes what
+  "the cited fragment" means); (D) measure top-5 against top-8 expansion first (rag.md). Recommendation: D, then B.
+  Consequences: (+) fewer prefill tokens and less distraction for the model; (−) a pruned unit is not citable, so a
+  correct citation can become impossible (the ADR-020 failure in reverse); the pruner is a model to pin. Pending:
+  owner's choice; faithfulness and false-refusal runs with and without pruning. Research: docs/RESEARCH.md §12.
+- ADR-043 (Proposed, 2026-11-26): The regeneration prompt keeps the first attempt's prompt as an exact prefix, so its
+  prefill is reused. Context: one regeneration is allowed per answer (rag.md); llama.cpp, under Ollama too, reuses the
+  KV cache for an identical prompt prefix; at 375 tokens/s a 12k-token context is about 32 s of prefill. Whether today's
+  composer keeps the prefix identical is not verified. Options: (A) leave as is; (B) check, and if needed compose the
+  retry as the same system and user turns plus the original answer and the feedback appended at the end, with a test
+  that the retry prompt starts with the first prompt byte for byte; (C) also order the fixed layers first for every
+  request (already the layer order: core, workflow, persona, session, fragments). Recommendation: B. Consequences:
+  (+) up to ~30 s saved on every regenerated answer; (−) appending the failed answer may anchor the model to it (measure
+  the regeneration success rate before and after). Pending: owner's choice; the check of the current composer; retry
+  latency before and after. Research: docs/RESEARCH.md §13.
+- ADR-044 (Proposed, 2026-11-26): Speculative decoding is measured, starting with the n-gram mode that needs no draft model.
+  Context: answers copy long statute passages from the context (verbatim quotations are required to match it); llama.cpp
+  offers a draft-model mode, EAGLE-3 and an n-gram mode that drafts tokens from text already in the prompt. EAGLE-3
+  reports up to 6.5x in its paper, but Meta reports 10-30 % at batch size 1 on H100s, and matching EAGLE-3 draft
+  checkpoints are scarce. Options: (A) none; (B) n-gram speculative decoding; (C) a small draft model of the same family;
+  (D) EAGLE-3 if a checkpoint for the drafting model exists. Recommendation: B first (no new model), C if B helps little.
+  Consequences: (+) possibly faster generation of quoted text at no quality cost (speculative decoding does not change the
+  output distribution); (−) depends on ADR-040's runtime (`llama-server`); gains at batch size 1 on consumer hardware are
+  uncertain. Pending: owner's choice; tokens/s on real answers with and without. Research: docs/RESEARCH.md §14.
+- ADR-045 (Proposed, 2026-11-26): Vectors are stored as half precision (`halfvec`), and binary quantization stays unused at
+  this scale. Context: pgvector 0.7+ offers `halfvec`, reported to halve vector and index storage with similar search
+  quality, and binary quantization with full-precision rescoring for large collections; the corpus holds ~18 900 chunks.
+  Options: (A) keep `vector(1024)`; (B) `halfvec(1024)` for the column and the HNSW index; (C) binary quantization plus
+  rescoring (meant for millions of rows). Recommendation: B, low priority. Consequences: (+) half the memory for vectors
+  and the index, which matters as firms upload documents; (−) a change of stored representation, built aside as a new
+  generation (ADR-006) with a retrieval-only golden run; no latency gain expected at this size. Pending: owner's choice;
+  recall@8 and scores before and after (the tau calibration uses these scores). Research: docs/RESEARCH.md §15.
+- ADR-046 (Proposed, 2026-11-26): The embedder is adapted to this corpus with hard negatives taken from its own confusions.
+  Context: the dense signal could not tell "art. 123 fracc. XIII CPF" from "art. 123-B-XIII CPEUM" (ADR-022), and
+  distractors reach the top 8 in 16 % of golden cases. GPL (Wang et al., NAACL 2022) adapts a dense retriever with
+  synthetic queries and cross-encoder pseudo-labels; R-GPL (arXiv 2501.14434) refreshes hard negatives during training
+  and improved 13 of 14 BEIR datasets. Options: (A) keep bge-m3 as is; (B) GPL-style adaptation where the hard negatives
+  are this corpus's known confusions: same-numbered articles of other laws and states, and repealed versions of the same
+  unit; (C) switch embedder (ADR-047). Recommendation: B, after ADR-047's comparison. Consequences: (+) aims at the exact
+  failure that cost recall before ADR-022; (−) a new embedding generation built aside (invariant 5, ADR-006); synthetic
+  queries are model-written, so evaluation must use lawyer-reviewed cases, not more synthetic ones; training needs a GPU
+  session. Pending: owner's choice; retrieval-only golden runs before and after, per category. Research:
+  docs/RESEARCH.md §16.
+- ADR-047 (Proposed, 2026-11-26): Qwen3-Reranker-0.6B, and Qwen3-Embedding-0.6B as an embedder, are measured against the
+  current dense cosine. Context: the cross-encoder bge-reranker-v2-m3 was discarded (AUC 0.892 vs 0.934, 16 s per query
+  on CPU, near-zero scores for English over Spanish; tau-20261107T212422Z). Qwen3-Reranker-0.6B (Apache-2.0, June 2025)
+  reports 66.36 on multilingual retrieval (MMTEB-R) against 58.36 for bge-reranker-v2-m3, but in the vendor's own runs on
+  top of its own first stage. Options: (A) keep dense cosine; (B) Qwen3-Reranker-0.6B as the reranker; (C) also
+  Qwen3-Embedding-0.6B as the embedder. Recommendation: B, measured exactly as the last reranker was (AUC on the probe
+  sets, false-refusal cost, cross-lingual scores, CPU latency); C only if B shows the first stage is the limit.
+  Consequences: (+) possibly better separation of covered and absent topics, which also tightens tau; (−) a reranker
+  changes the score scale, so tau must be recalibrated (ADR-036); C is a new embedding generation. Pending: owner's choice;
+  the calibration run with the new reranker. Research: docs/RESEARCH.md §17.
+- ADR-048 (Proposed, 2026-11-26): Lexical and semantic scores are fused by a tuned convex combination instead of fixed RRF.
+  Context: fusion is RRF with k = 60, untuned (rag.md). Bruch, Gai and Ingber (ACM, 2023, arXiv 2210.11934) find that a
+  convex combination of normalised scores beats RRF in and out of domain, needs only a small sample to tune its single
+  parameter, and that a tuned RRF generalises poorly. Options: (A) keep RRF k = 60; (B) a convex combination with one
+  weight, tuned on the probe sets and validated on the golden set; (C) tune RRF's k. Recommendation: B against A.
+  Consequences: (+) a one-parameter change with published evidence; (−) fusion would depend on raw scores, which rag.md
+  forbids today ("fusion depends only on ranks"), so the rule itself changes, and determinism (stable tie-breaks) must
+  still hold; with 25 golden cases the weight must not be fitted to the test set. Pending: owner's choice; retrieval-only
+  runs per category for A and B. Research: docs/RESEARCH.md §18.
+- ADR-049 (Proposed, 2026-11-26): Each chunk is contextualised for retrieval by deterministic text (its article's lead-in and
+  the full chapter titles) before any model-written context. Context: Anthropic's contextual retrieval (2024) prepends
+  chunk-specific context before embedding and lexical indexing and reports retrieval failures down about 35 % with
+  embeddings alone and about 49 % with BM25 as well; this project already prepends a breadcrumb, a structural version of
+  that idea. Two deterministic gaps remain: a fracción is embedded without its article's lead-in sentence (rag.md lists
+  "caput glue" as pending) and some chapter titles were dropped at ingestion (found 2026-11-26, e.g. "CAPITULO IV" with no
+  name). Options: (A) leave as is; (B) glue the caput lead-in and restore full chapter titles in the embedded text (the
+  stored `text` stays an exact slice: rag.md); (C) B plus a short model-written context per chunk (hours of local
+  inference for ~18 900 chunks, and generated text inside the index). Recommendation: B; C only with evidence B is not
+  enough. Consequences: (+) better retrieval of fracciones and the regime tags of ADR-031 become reliable; (−) a chunker
+  change: new `chunker_version`, a generation built aside (ADR-006) and a golden run before and after (invariant 2).
+  Pending: owner's choice; retrieval-only and full golden runs per category. Research: docs/RESEARCH.md §19.
+
+- ADR-050 (Proposed, 2026-11-26): The law is retrieved as of a date: versions carry valid time separately from the time we
+  loaded them, and a session may fix the date of the facts. Context: legal questions are about the version in force on
+  the date of the facts, not today's. Cymbler, Guez and Fabre (ICML 2026, arXiv 2608.09393) built a versioned corpus of
+  32 436 article versions of the French tax code and found that RAG over a current-only corpus retrieved the
+  date-applicable version 0 % of the time. This project: (1) only has a boolean `include_historical` (current text, or
+  every version), not "as of date D"; (2) 8 of the 9 stored public documents have `valid_from` NULL (checked
+  2026-11-26), so no answer can show that its version applied on a given date; (3) `store.ingest_document` retires the
+  previous version with `valid_to = current_date`, the day the reform was DETECTED, while the new version's
+  `valid_from` is the publication date read from the text: the CPF shows the old version in force until 2026-11-25 and
+  the new one from 2026-11-13, twelve days claimed by both; and publication is not always entry into force (the decree's
+  transitorios decide); (4) the E2E-LAB-01 dismissal happened on 2026-10-03 and was answered from the LFT loaded on
+  2026-11-07, with no record that this was the version in force on the date of the facts. Options: (A) keep the boolean;
+  (B) bitemporal versions: valid time (`valid_from`/`valid_to`, from the decree's entry into force, or explicitly
+  "unknown") kept apart from transaction time (`ingested_at`, a new `retired_at`); retiring sets the old `valid_to` from
+  the new version's `valid_from`, never from the detection day; an optional as-of date on the session (a date picker on
+  the case sheet, validated, never inferred from free text, like jurisdiction), applied inside
+  `build_jurisdiction_predicate()` as `valid_from <= D < valid_to`; answers state the as-of date; when no loaded version
+  covers D, or its dates are unknown, the system refuses with a fixed reason ("no tenemos la versión vigente al …")
+  instead of answering from today's text; (C) B plus backfilling earlier versions of each loaded law from its official
+  history of reforms (corpus work per law, ADR-017 rules); (D) a temporal golden track in the style of FiscalQA Pro:
+  questions whose correct version is not the current one, scored on version correctness, with repealed and future
+  versions as distractors. Recommendation: B with D, then C one law at a time. Consequences: (+) a reform no longer
+  creates a period in which two versions both claim validity; an answer can say which version applied on the date that
+  matters, or say it cannot; (−) a schema change and a predicate change (the isolation and predicate property tests
+  extend to dates); entry-into-force dates need reading the transitorios, which a person must check per reform; until
+  C, most as-of dates before 2026-11 will be refused, which is honest but limits usefulness; the stored CPF overlap must
+  be corrected by an explicit, reviewed data migration (invariant 3: nothing is deleted, dates are corrected). Pending:
+  owner's choice; the entry-into-force dates of the loaded versions (a person reads each decree); the temporal golden
+  cases, lawyer-reviewed. Research: docs/RESEARCH.md §20.
+
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →
 hybrid search (prefiltered) → RRF → rerank → τ check → parent expansion → prompt composer →

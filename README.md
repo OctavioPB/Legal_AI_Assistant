@@ -358,6 +358,7 @@ browser checks on every pull request. A daily read-only canary
 | [evals/golden/README.md](evals/golden/README.md) | The golden set: schema, status and commands |
 | [docs/LOCAL_DEMO.md](docs/LOCAL_DEMO.md) | Running the demo on one machine, with troubleshooting |
 | [docs/Brand.md](docs/Brand.md) | The source of truth for the interface: colour, type, components, screens |
+| [docs/RESEARCH.md](docs/RESEARCH.md) | Techniques proposed to close the review's weaknesses (applicability, faithfulness, calibrated refusal, statistics, retrieval, value study) to improve speed and precision, and to retrieve the law as of a date, with sources and ADR-031 to ADR-050 |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Future work in three horizons, and the anti-roadmap of what will not be built |
 | [docs/lessons-from-library-rag.md](docs/lessons-from-library-rag.md) | Lessons imported from the sibling project, and what was deliberately not imported |
 | [.claude/skills/](.claude/skills/) | Working procedures: eval runner, prompt lab, decision records, legal chunking |
