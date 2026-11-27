@@ -33,9 +33,6 @@ _ORD_WORD = (
     r"(?:(?:D[eé]cimo|Vig[eé]simo|Trig[eé]simo)\s+)?(?:Primer[oa]?|Segund[oa]|Tercer[oa]?|Cuart[oa]"
     r"|Quint[oa]|Sext[oa]|S[eé]ptim[oa]|Octav[oa]|Noven[oa])|D[eé]cim[oa]|Vig[eé]sim[oa]"
     r"|[UÚ]nic[oa]|Preliminar"
-    # ADR-049: Títulos numbered with cardinal words (LFT: "TITULO ONCE" ... "TITULO DIECISEIS")
-    r"|Und[eé]cim[oa]|Duod[eé]cim[oa]|Once|Doce|Trece|Catorce|Quince|Diecis[eé]is|Diecisiete"
-    r"|Dieciocho|Diecinueve|Veinte"
 )
 _HEADING = re.compile(
     rf"^(?P<kind>LIBRO|T[IÍ]TULO|CAP[IÍ]TULO|SECCI[OÓ]N)\s+"
@@ -70,22 +67,6 @@ _NOTE_LINE = re.compile(
     r"|Libros?|Incisos?|Apartados?)\s+(?:reformad|adicionad|derogad|recorrid|modificad)[oa]s?\b.*\bDOF\b",
     re.IGNORECASE,
 )
-# ADR-049: a heading's name on its own line ("CAPITULO IV" / "Rescisión de las relaciones de
-# trabajo"): a short line that is not structure, an annotation, a sentence or an index line
-_HEADING_NAME_MAX = 150
-
-
-def _is_heading_name(line: str) -> bool:
-    if not line or len(line) > _HEADING_NAME_MAX or not line[0].isupper():
-        return False
-    if line[-1] in ".;:," or re.search(r"\bDOF\b", line):
-        return False
-    return not any(
-        rx.match(line)
-        for rx in (_HEADING, _TRANS_HEAD, _ARTICLE, _FRACCION, _INCISO, _APARTADO, _NOTE_LINE)
-    ) and not _NAV_LINE.search(line)
-
-
 _REFORM = re.compile(r"\((?:Reformad[oa]|Adicionad[oa]|Derogad[oa]|F\. de E\.)[^)]*\)", re.I)
 
 
@@ -237,39 +218,6 @@ def parse(src: str) -> list[Node]:
                     pos += len(lines[i]) + 1
                     end = pos - 1
                     i += 1
-                    # ADR-049: the all-caps name may run onto up to two more lines (CC NL)
-                    for _ in range(2):
-                        cont = lines[i].strip() if i < len(lines) else ""
-                        if not (cont and cont == cont.upper() and _is_heading_name(cont)):
-                            break
-                        label = f"{label} {cont}"
-                        pos += len(lines[i]) + 1
-                        end = pos - 1
-                        i += 1
-                elif core.strip() == m.group(0).strip():
-                    # ADR-049: a bare heading ("CAPITULO IV") named by the next non-blank line, up
-                    # to two blank lines below ("Rescisión de las relaciones de trabajo")
-                    j = i
-                    while j < len(lines) and j - i < 2 and not lines[j].strip():
-                        j += 1
-                    if j < len(lines) and _is_heading_name(lines[j].strip()):
-                        name = [lines[j].strip()]
-                        # an all-caps name may continue ("DE LAS OBLIGACIONES DEL MANDATARIO CON"
-                        # / "RESPECTO AL MANDANTE"), one blank line allowed between the parts
-                        while name[0] == name[0].upper() and len(name) < 3:
-                            k = j + 1
-                            if k < len(lines) and not lines[k].strip():
-                                k += 1
-                            cont = lines[k].strip() if k < len(lines) else ""
-                            if not (cont and cont == cont.upper() and _is_heading_name(cont)):
-                                break
-                            name.append(cont)
-                            j = k
-                        label = f"{stripped} {' '.join(name)}"
-                        for k in range(i, j + 1):
-                            pos += len(lines[k]) + 1
-                        end = pos - 1
-                        i = j + 1
             node = _Open(
                 ntype, label, f"{ntype[0].upper()}{_ident(m['id']).upper()}", ntype[0], start
             )
