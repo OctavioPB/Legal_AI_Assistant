@@ -167,6 +167,34 @@ _DOCS_SQL = (
 )
 
 
+# A rebuild embeds every chunk of the corpus; on Windows the embedding server can run out of local
+# sockets (thousands of short internal requests left in TIME_WAIT) and reject a batch. That is a
+# transient refusal of the server, not of the text: the batch is sent again after a pause. The same
+# text always gives the same vector, so a retry cannot change what is written.
+TRANSIENT_EMBED_ERRORS = ("lacked sufficient buffer space", "queue was full", "connection refused")
+EMBED_RETRIES = 8
+EMBED_RETRY_PAUSE_S = 45.0
+
+
+def _embed_with_retry(
+    embedder: Embedder, texts: list[str], *, pause: float = EMBED_RETRY_PAUSE_S,
+    out: Any = sys.stderr,
+) -> list[list[float]]:  # fmt: skip
+    for attempt in range(EMBED_RETRIES + 1):
+        try:
+            return embedder.embed(texts)
+        except Exception as exc:
+            transient = any(m in str(exc).lower() for m in TRANSIENT_EMBED_ERRORS)
+            if not transient or attempt == EMBED_RETRIES:
+                raise
+            out.write(
+                f"  embedder busy ({str(exc)[:80]}...); retry {attempt + 1} in {pause:.0f} s\n"
+            )
+            out.flush()
+            time.sleep(pause)
+    raise AssertionError("unreachable")
+
+
 def _rebuild_one(
     engine: Engine,
     row: Any,
@@ -233,7 +261,7 @@ def _rebuild_one(
     vectors: list[list[float]] = []
     texts = [c.embedded_text for c in chunks]
     for i in range(0, len(texts), EMBED_BATCH):
-        vectors.extend(embedder.embed(texts[i : i + EMBED_BATCH]))
+        vectors.extend(_embed_with_retry(embedder, texts[i : i + EMBED_BATCH]))
     validate_vectors([c.cite_id for c in chunks], vectors)
     with Session(engine) as s, s.begin():
         write_tree(

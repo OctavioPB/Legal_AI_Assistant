@@ -249,3 +249,29 @@ def test_only_one_build_at_a_time_and_the_active_generation_is_never_pruned(
         assert (
             c.execute(text("SELECT count(*) FROM doc_nodes WHERE generation = 1")).scalar_one() == 0
         )
+
+
+def test_a_transient_embedder_refusal_is_retried_and_anything_else_is_not() -> None:
+    """Seen 2026-11-27 building generation 4: Ollama rejected a batch because Windows had run out
+    of local sockets; the same batch succeeds a minute later and gives the same vectors."""
+
+    class Flaky:
+        model, revision, calls = "fake-embed", "r1", 0
+
+        def embed(self, texts: list[str]) -> list[list[float]]:
+            self.calls += 1
+            if self.calls < 3:
+                raise ValueError("embedding request rejected (400): ... system lacked sufficient "
+                                 "buffer space or because a queue was full.")  # fmt: skip
+            return [fake_embedding(t) for t in texts]
+
+    f = Flaky()
+    assert rebuild._embed_with_retry(f, ["a"], pause=0, out=io.StringIO()) == [fake_embedding("a")]
+    assert f.calls == 3
+
+    class Broken(Flaky):
+        def embed(self, texts: list[str]) -> list[list[float]]:
+            raise ValueError("embedding dimension mismatch")
+
+    with pytest.raises(ValueError, match="dimension"):
+        rebuild._embed_with_retry(Broken(), ["a"], pause=0, out=io.StringIO())
