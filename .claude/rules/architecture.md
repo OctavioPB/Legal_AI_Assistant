@@ -722,6 +722,15 @@ below are the original one-liners and are Accepted.
   Rolled back to generation 1 and the parser change reverted; generation 2 is kept retired; the fixtures stay in
   `tests/ingestion/test_heading_names.py` as strict xfails. Pending: the transitorio misattribution (a reform
   decree's lists of article numbers) addressed first, then this fix rebuilt and measured again.
+  Measured again 2026-11-27 with ADR-051's decree check on, and NOT adopted again (same rule as before): the fix was
+  re-applied and checked identical to the stored generation 2 (all 9 public documents: same ids, text and
+  breadcrumbs), generation 2 re-activated. `golden-20261127T081458Z-after-decree-check-gen1` vs
+  `golden-20261127T083503Z-after-decree-check-gen2`: false refusal 2/20 -> 4/20 (McNemar 2 worse / 0 better, p =
+  0.5), recall, leakage and refusal accuracy unchanged. gd2-024 is now refused instead of misattributed (no wrong
+  answer reaches the user), but it is not answered on generation 2 in any of 5 runs, and gd2-009 is answered 2/5
+  (5/5 on generation 1). Rolled back; the code is kept in git history as a commit and its revert. Pending: why the
+  model declines or adds an uncited framing sentence when the junk heading units are gone (a model or prompt
+  question, not a parsing one).
 
 - ADR-050 (Proposed, 2026-11-26): The law is retrieved as of a date: versions carry valid time separately from the time we
   loaded them, and a session may fix the date of the facts. Context: legal questions are about the version in force on
@@ -752,6 +761,28 @@ below are the original one-liners and are Accepted.
   be corrected by an explicit, reviewed data migration (invariant 3: nothing is deleted, dates are corrected). Pending:
   owner's choice; the entry-into-force dates of the loaded versions (a person reads each decree); the temporal golden
   cases, lawyer-reviewed. Research: docs/RESEARCH.md §20.
+
+- ADR-051 (Accepted 2026-11-27, option "number + verb" chosen by the product owner): A sentence that credits a cited
+  decree with a change must match that decree's own list, checked by code. Context: with index generation 2 (ADR-049)
+  golden gd2-024 wrote "art. 15-C was repealed" and cited `MX-FED-LFT-TRANS4-UNICO` (the 2012 reform that ADDED
+  15-A to 15-D) while the repealing decree (`TRANS13-PRIMERO`: "se derogan los artículos 15A; 15-B; 15-C, y 15-D")
+  was in the same context; the citation existed, so the validator (provenance) accepted it 3 times out of 3. The
+  corpus holds 430 such decree-list units (CPF 170, CPEUM 158, CCF 55, LFT 47). Options: (A) number + verb in the
+  validator; (B) number only (misses "repealed" cited to a decree that reformed the article); (C) retrieval pins the
+  decree that names the article (prevents it upstream, does not check the sentence); (D) A and C. Decision: A.
+  `app/validation/decrees.py` parses a transitorio's list into the articles it reforms, adds and repeals (the
+  numbers before the first verb of a chunk cut mid-list are `unknown`, and defer to the expanded article's own list);
+  a sentence that cites a decree list and says article X was repealed / reformed / added must have X under one of
+  its verbs in a cited decree; otherwise `decree_mismatches` -> one regeneration with code-written feedback ->
+  system refusal. Only `-TRANS` units are decree lists; quoted text is masked; article ids are compared as written.
+  Evidence: replaying all 87 stored attempts of the 8 golden runs of 2026-11-26 flags exactly the 3 misattributions
+  and changes nothing else; E2E-LAB-01's replay fixture unchanged; mutation check 13/13 (new mutant); golden on
+  generation 1 `golden-20261127T081458Z-after-decree-check-gen1` identical to `golden-20261127T060836Z-before-adr049-
+  structure` (same three failing cases, false refusal 2/20, refusal accuracy 5/5, leakage 0); on generation 2 it
+  turned the misattribution into a refusal. Consequences: (+) the first check aimed at what a decree says, not only
+  that it exists; (-) a claim about a decree phrased without a change verb, or naming an article with words, is
+  not checked; a wrong claim inside a list the parser cannot read passes as before. Pending: lawyer review of the
+  parser on the 430 units; whether option C is still worth measuring.
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

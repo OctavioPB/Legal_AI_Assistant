@@ -12,6 +12,7 @@ import unicodedata
 from functools import lru_cache
 
 from app.prompts.composer import EXAMPLE_CITE_IDS, OWN_ANALYSIS_TAG, STRATEGIC_TAG
+from app.validation.decrees import mismatches
 from app.validation.types import RetrievedSet, ValidationConfig, Verdict
 
 # Every quantifier below is bounded or cannot cross its own delimiter, so an UNCLOSED marker costs
@@ -305,6 +306,16 @@ def _bad_quotes_with_fixes(
     return bad
 
 
+def _decree_mismatches(answer: str, retrieved: RetrievedSet) -> list[str]:
+    """ADR-051: sentences that credit a cited decree with a change its list does not make."""
+    out: list[str] = []
+    for unit in _units(answer):
+        cites = [c for c in parse_citations(unit) if c in retrieved.ids]
+        for art in mismatches(_mask_quotes(unit), cites, retrieved.texts):
+            out.append(f"{art}: {_plain(unit)[:140]}")
+    return out
+
+
 GAP = _OPEN + _CLOSE
 
 
@@ -363,6 +374,7 @@ def validate(
     uncovered: list[str] = []
     bad_quotes: list[str] = []
     quote_fixes: list[str] = []
+    decree_bad: list[str] = []
     share = 0.0
     if not refused and not prose:
         uncovered, share = _coverage(
@@ -371,6 +383,7 @@ def validate(
         with_fixes = _bad_quotes_with_fixes(text, retrieved, cfg.quote_min_words)
         bad_quotes = [b for b, _ in with_fixes]
         quote_fixes = [f for _, f in with_fixes]
+        decree_bad = _decree_mismatches(text, retrieved)
 
     grounded = (
         not refused
@@ -380,6 +393,7 @@ def validate(
         and not placeholders
         and not uncovered
         and not bad_quotes
+        and not decree_bad
     )
     return Verdict(
         cited=tuple(cited),
@@ -391,6 +405,7 @@ def validate(
         uncovered=tuple(uncovered),
         bad_quotes=tuple(bad_quotes),
         quote_fixes=tuple(quote_fixes),
+        decree_mismatches=tuple(decree_bad),
         analysis_share=round(share, 4),
         grounded=grounded,
     )

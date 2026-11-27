@@ -68,6 +68,12 @@ def build_feedback(v: Verdict) -> str:
                     f'      el fragmento dice exactamente: "{fix}" '
                     "(cópialo así o quita las comillas)"
                 )
+    if v.decree_mismatches:
+        lines.append(
+            "- Estas oraciones atribuyen a un decreto citado un cambio que su lista no hace "
+            "(revisa qué artículos reforma, adiciona o deroga ese fragmento):"
+        )
+        lines.extend(f"    art. {s}" for s in v.decree_mismatches[:5])
     if not v.cited and not v.invalid and not v.placeholders:
         lines.append("- No incluiste ninguna cita válida.")
     lines.append("Responde con la respuesta completa, conservando igual todo lo que no se señala.")

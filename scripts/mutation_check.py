@@ -46,6 +46,8 @@ MUTANTS = (
            "an uncited legal sentence is delivered"),
     Mutant("quotes-ignored", V, "        and not bad_quotes\n", "",
            "a non-verbatim quotation is delivered"),
+    Mutant("decree-misattribution-ignored", V, "        and not decree_bad\n", "",
+           "a sentence crediting a cited decree with a change it does not make is delivered"),
     Mutant("needs-no-citation", V, "        and bool(cited)\n", "",
            "an answer without any valid citation is delivered"),
     Mutant("quote-any-fragment", V,
