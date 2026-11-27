@@ -59,8 +59,8 @@ def test_the_claim_of_a_sentence() -> None:
 
 
 def test_crediting_the_wrong_decree_is_reported_and_the_right_one_passes() -> None:
-    wrong = "El artículo 15-C fue derogado [cite: %s]." % A
-    right = "El artículo 15-C fue derogado [cite: %s]." % R
+    wrong = f"El artículo 15-C fue derogado [cite: {A}]."
+    right = f"El artículo 15-C fue derogado [cite: {R}]."
     assert mismatches(wrong, [A], TEXTS) == ["15C"]
     assert mismatches(right, [R], TEXTS) == []
     assert mismatches("El artículo 15-C fue adicionado [cite: A].", [A], TEXTS) == []
