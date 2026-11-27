@@ -86,6 +86,28 @@ def _is_heading_name(line: str) -> bool:
     ) and not _NAV_LINE.search(line)
 
 
+# ADR-052: a reform decree's heading inside the transitorios ("DECRETO por el que se reforman ..."
+# / "Publicado en el Diario Oficial de la Federación el 23 de abril de 2021") opens THAT decree:
+# its lines travel with the decree's first unit, never with the previous decree's last one, and
+# every unit after it carries the decree's publication date in its label (breadcrumb, citation).
+_DECREE_HEAD = re.compile(r"^DECRETO\s")
+_DECREE_TITLE_LINES = 4  # a decree title wrapped over a few lines, before its "Publicado" line
+_PUBLISHED = re.compile(
+    r"^Publicad[oa] en el Diario Oficial de la Federaci[oó]n,?\s+(?:el\s+)?(?:d[ií]a\s+)?"
+    r"(?P<d>\d{1,2})(?:o|º|°)?\s+de\s+(?P<m>[a-záéíóú]+)\s+del?\s+(?P<y>\d{4})",
+    re.IGNORECASE,
+)
+_MONTHS = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6, "julio": 7,
+    "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12,
+}  # fmt: skip
+
+
+def _decree_date(m: re.Match[str]) -> str | None:
+    month = _MONTHS.get(m["m"].lower())
+    return f"{int(m['d']):02d}-{month:02d}-{m['y']}" if month else None
+
+
 _REFORM = re.compile(r"\((?:Reformad[oa]|Adicionad[oa]|Derogad[oa]|F\. de E\.)[^)]*\)", re.I)
 
 
@@ -134,6 +156,10 @@ def parse(src: str) -> list[Node]:
     stack: list[_Open] = []
     in_trans = False
     n_trans = 0
+    decree: str | None = None  # ADR-052: publication date of the decree being read (DD-MM-YYYY)
+    pending: int | None = None  # start of a decree heading not yet given to its first unit
+    held = pending_at = replay_until = 0
+    held_pub = pending_blank = False
     nav: _Open | None = None
     pos = 0
     lines = src.split("\n")
@@ -180,7 +206,12 @@ def parse(src: str) -> list[Node]:
             return stack[-1]
         return None
 
-    while i < len(lines):
+    while i < len(lines) or pending is not None:
+        if pending is not None and i >= len(lines):  # text ended inside a decree heading
+            replay_until = len(lines)
+            i, pos, blank_before = pending_at, pending, pending_blank
+            pending, held_pub = None, False
+            continue
         line = lines[i]
         start = pos
         end = pos + len(line)
@@ -213,6 +244,36 @@ def parse(src: str) -> list[Node]:
             nav.touch(end, own=True)
             continue
         nav = None
+
+        pub = _PUBLISHED.match(stripped)
+        if pub and not in_trans and decree is None:
+            decree = _decree_date(pub)  # the law's own publication: its original transitorios
+        holding = i - 1 >= replay_until  # a released block is re-read normally, never held twice
+        if holding and in_trans and (_DECREE_HEAD.match(stripped) or pub):
+            # the heading block: "DECRETO ...", its title lines, "Publicado en el DOF el ..."
+            if pub:
+                decree = _decree_date(pub) or decree
+                held_pub = True
+            if pending is None:
+                pending, held = start, 0
+                pending_at, pending_blank = i - 1, was_blank
+            continue
+        if pending is not None:
+            title_line = not held_pub and held < _DECREE_TITLE_LINES
+            marker = bool(
+                _TRANS_HEAD.match(core) or _TRANS_ITEM.match(core) or _HEADING.match(core)
+            )
+            if title_line and not marker:
+                held += 1
+                continue
+            if not _TRANS_ITEM.match(core):
+                # not followed by a unit of its own (a TRANSITORIOS heading has no text of its
+                # own either): re-read the block as before, so it stays
+                # where it always was and the structure (every cite_id) is unchanged
+                replay_until = i - 1
+                i, pos, blank_before = pending_at, pending, pending_blank
+                pending, held_pub = None, False
+                continue
 
         if stack and _NOTE_LINE.match(core):
             stack[-1].touch(end, own=True)
@@ -292,6 +353,10 @@ def parse(src: str) -> list[Node]:
         if m:
             ordw = _ident(m["ord"]).upper()
             label = f"Artículo {m['ord'].title()} transitorio"
+            if decree:
+                label = f"{label}, decreto DOF {decree}"
+            if pending is not None:
+                start, pending, held_pub = pending, None, False
             node = _Open("transitorio", label, ordw, "tr", start)
             node.end = node.own_end = end
             add(node, _RANK["transitorio"])

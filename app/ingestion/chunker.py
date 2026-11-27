@@ -21,7 +21,7 @@ from app.ingestion.model import (
 )
 from app.ingestion.tokens import TokenCounter
 
-CHUNKER_VERSION = 2  # ADR-049: cardinal Títulos and heading names (new generation, ADR-006)
+CHUNKER_VERSION = 3  # ADR-049 headings + ADR-052 decree dates (new generation, ADR-006)
 
 CITE_RE = re.compile(
     r"^(?P<country>[A-Z]{2})-(?P<scope>[A-Z0-9]+)-(?P<code>[A-Z0-9]+)-"
