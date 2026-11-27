@@ -14,7 +14,7 @@ import { DEFAULT_SCOPE, loadScope } from "../workbench/Scope";
 const POLL_MS = 3000;
 const ICON = { processing: "◷", ready: "✓", failed: "⌕" } as const;
 const TONE = { processing: "neutral", ready: "ok", failed: "missing" } as const;
-const KNOWN_ERRORS = ["no_text", "unreadable", "too_long", "embedder_unavailable", "generation_mismatch", "interrupted"];
+const KNOWN_ERRORS = ["no_text", "unreadable", "too_long", "embedder_unavailable", "generation_mismatch", "interrupted", "ocr_unavailable", "ocr_failed", "ocr_low_confidence", "too_many_scanned_pages"];
 
 /** ADR-025, Brand.md 9.7: the firm's own documents. The file is turned into text on this machine
  *  and discarded; what is listed here is what the conversations of its matter can cite. */
@@ -27,13 +27,14 @@ export function DocumentosView() {
   const { catalogs, failed } = useCatalogs();
   const matters = useMatters();
   const [matter, setMatter] = useInitialMatter();
-  const ids = { file: useId(), title: useId(), kind: useId(), lang: useId(), country: useId(), state: useId(), muni: useId() };
+  const ids = { file: useId(), title: useId(), kind: useId(), lang: useId(), country: useId(), state: useId(), muni: useId(), ocr: useId() };
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<FileKind>("contrato");
   const [language, setLanguage] = useState<"es" | "en">(locale === "en-US" ? "en" : "es");
   const [where, setWhere] = useState<Selection>(DEFAULT_SCOPE.selection);
+  const [forceOcr, setForceOcr] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [files, setFiles] = useState<ClientFile[] | null>(null);
@@ -74,8 +75,10 @@ export function DocumentosView() {
     setError(null);
     try {
       const name = (title.trim() || file.name.replace(/\.[A-Za-z0-9]{1,5}$/, "")).slice(0, 200);
-      await uploadFile({ title: name, kind, language, jurisdiction_id: target.id, matter_id: matter }, file);
+      const isPdf = /\.pdf$/i.test(file.name) || file.type === "application/pdf";
+      await uploadFile({ title: name, kind, language, jurisdiction_id: target.id, matter_id: matter, force_ocr: forceOcr && isPdf }, file);
       setFile(null);
+      setForceOcr(false);
       setTitle("");
       if (input.current) input.current.value = "";
       setAnnounce(t("uploadedAnnounce", { title: name }));
@@ -113,6 +116,13 @@ export function DocumentosView() {
             }}
           />
           <p className="small muted">{t("fileHelp")}</p>
+          <label className="check">
+            <input type="checkbox" checked={forceOcr} onChange={(e) => setForceOcr(e.target.checked)} aria-describedby={ids.ocr} />
+            <span>{t("forceOcr")}</span>
+          </label>
+          <p className="small muted" id={ids.ocr}>
+            {t("forceOcrHelp")}
+          </p>
         </div>
         <div className="field">
           <label htmlFor={ids.title}>{t("docTitle")}</label>
@@ -237,6 +247,15 @@ function FileRow({ f, place, when, onOpen, onChanged }: { f: ClientFile; place: 
         {t(`kinds.${f.kind}`)} · {place} · {when} · {t("by", { name: f.uploaded_by_name })}
       </p>
       {f.status === "failed" && <p className="small">{t(`failed.${reason}`)}</p>}
+      {f.status === "ready" && f.ocr_pages.length > 0 && (
+        <p className="small">{t("ocrRead", { pages: f.ocr_pages.join(", "), pct: Math.round((f.ocr_confidence ?? 0) * 100) })}</p>
+      )}
+      {f.status === "ready" && f.ocr_excluded_pages.length > 0 && (
+        <p className="reform-notice small" role="note">
+          <span aria-hidden="true">⌕ </span>
+          {t("ocrExcluded", { pages: f.ocr_excluded_pages.join(", ") })}
+        </p>
+      )}
       {f.status === "processing" && <p className="small muted">{t("processingHelp")}</p>}
       <div className="bar-actions">
         {f.status === "ready" && (

@@ -115,6 +115,13 @@ class Settings(BaseSettings):
     client_file_max_chars: int = 3_000_000  # extracted text (about 1 000 pages)
     client_file_stale_minutes: int = 60  # a job "processing" for longer was interrupted
     client_file_min_articles: int = 3  # fewer articles than this: not a statute, generic grammar
+    # OCR of scanned pages of a firm's PDF (ADR-030; values from Markdown-Conversor's ADR-017)
+    ocr_languages: str = "spa+eng"
+    ocr_dpi: int = 300  # Tesseract's recommended minimum for body text
+    ocr_min_confidence: float = 0.6  # a page under this mean word confidence is left out
+    ocr_max_pages: int = 200  # scanned pages per upload (~3-4 s each on CPU: ~12 minutes)
+    ocr_tesseract_cmd: str | None = None  # default: PATH, then C:/Program Files/Tesseract-OCR
+    ocr_tessdata: str | None = None  # default: %LOCALAPPDATA%/legalai or tomd/tessdata
     validator_quote_min_words: int = 5  # a quoted run shorter than this is not checked
     validator_coverage_min_words: int = 6  # shorter units (headings, labels) need no citation
 

@@ -387,7 +387,9 @@ and the law use.
 
 ## Known limits
 
-- Scanned PDFs are not read (no OCR).
+- Scanned PDF pages are read by OCR (Tesseract, on the machine). A page read with low confidence is left out and
+  reported, never cited; OCR text can still contain a misread word, and the source viewer says the text came from OCR.
+  The brief verifier does not read scans yet.
 - Case law is not loaded; the corpus is statutes.
 - An answer takes 1.5 to 4 minutes with the local 26B model on an 8 GB GPU.
 - The refusal threshold was calibrated on statute text with AI-drafted probe sets; a question about a

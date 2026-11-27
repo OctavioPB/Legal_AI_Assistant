@@ -167,7 +167,8 @@ because of the double validation pass — in this domain, that overhead *is* the
   (`docs/EVALUACION-E2E.md`). The first run already showed what only a lawyer can judge: real, verified
   citations to articles that do not govern the case.
 - **Missing to close the demo:** review of the evaluation set by lawyers (until then
-  the gates do not count), OCR for scanned documents and measuring the optional remote profile.
+  the gates do not count) and measuring the optional remote profile. OCR for scanned firm documents was added on
+  2026-11-26 (ADR-030).
 - **Afterwards:** procedural-deadline calculator, brief templates, case law and the Mexican
   citator, dossier export (`ROADMAP.md`). Reform monitoring and the
   citation verifier for external briefs, formerly on this list, are already built.

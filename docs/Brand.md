@@ -378,6 +378,12 @@ The same frame as §8 (bar, tokens, typography, tone); no tool uses the model fo
 - Viewer (§11.4) for a firm document: a "Documento del despacho" badge instead of
   Vigente/No vigente and "Sección completa" instead of "Artículo completo".
 - While something is processing the list updates itself and the end is announced (`role=status`).
+- OCR (ADR-030, 2026-11-26): under the file field, the checkbox "El texto del PDF está dañado: leerlo como
+  escaneado" with one sentence of help (when to tick it, and that it is slower). A ready card read by OCR says
+  "Páginas leídas por OCR: … (confianza media N %)" as a plain small line; pages left out use the notice style of
+  §11.4 (`reform-notice`, ⌕ icon, `role=note`): which pages, that the assistant will not see or cite them, and to
+  rescan at 300 ppp or more. The viewer adds the same notice above the text for a firm document read by OCR
+  ("compárelo con el original antes de citarlo"). Never a colour alone, never a confidence number without words.
 
 ## 10. OPB style (v2, 2026-11-08): how it is applied
 

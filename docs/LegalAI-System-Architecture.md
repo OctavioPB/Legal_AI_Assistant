@@ -930,7 +930,8 @@ Explicit honesty about what this design does **not** solve:
   > (termination by the worker) as a requirement for the employer. A lawyer's review is pending, which
   > will turn those cases into golden.
 - **The embedder's input window bounds vector retrieval.** A chunk's text beyond it is not "seen"; it is measured and recorded, not assumed.
-- **The firm's documents (ADR-025).** A scanned PDF is not read (no OCR); a `.docx`'s footnotes and headers are not
+- **The firm's documents (ADR-025, ADR-030).** Scanned pages are read by OCR and a low-confidence page is left out,
+  but a kept page can still hold a misread word, verified only against the recognised text; a `.docx`'s footnotes and headers are not
   read; the generic grammar is by form and has not been reviewed by a lawyer with real contracts and rulings; τ was
   calibrated with statute text, not with contract prose; a document cannot be moved between matters. Processing is a thread in the API process: if it is closed halfway through a load,
   the document is left «interrumpido» and has to be uploaded again.

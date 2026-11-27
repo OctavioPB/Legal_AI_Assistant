@@ -28,6 +28,8 @@ export interface Source {
   version_label: string | null;
   valid_to: string | null;
   reform: Succession | null; // ADR-017: a reform changed this unit after it was cited
+  ocr_pages: number[] | null; // ADR-030: a firm document read (in part) by OCR
+  ocr_confidence: number | null;
 }
 
 export type ChangeKind = "unchanged" | "amended" | "derogated" | "removed" | "added";
@@ -476,6 +478,9 @@ export interface ClientFile {
   mine: boolean;
   uploaded_by_name: string;
   can_delete: boolean;
+  ocr_pages: number[]; // ADR-030: pages read by OCR and kept
+  ocr_excluded_pages: number[]; // pages read by OCR under the confidence threshold: left out
+  ocr_confidence: number | null;
 }
 
 export interface FileUnit {
@@ -490,6 +495,7 @@ export interface NewFile {
   language: "es" | "en";
   jurisdiction_id: number;
   matter_id: string | null;
+  force_ocr: boolean; // ADR-030: read every page of a PDF as scanned
 }
 
 export const listFiles = () => json<ClientFile[]>("files");
@@ -501,6 +507,7 @@ export const deleteFile = async (id: string) => {
 export async function uploadFile(meta: NewFile, file: Blob): Promise<ClientFile> {
   const q = new URLSearchParams({ title: meta.title, kind: meta.kind, language: meta.language, jurisdiction_id: String(meta.jurisdiction_id) });
   if (meta.matter_id) q.set("matter_id", meta.matter_id);
+  if (meta.force_ocr) q.set("force_ocr", "true");
   const res = await fetch(`/api/v1/files?${q.toString()}`, { method: "POST", headers: { "content-type": "application/octet-stream" }, body: file });
   if (!res.ok) {
     const err: { code?: string } = await res.json().catch(() => ({}));

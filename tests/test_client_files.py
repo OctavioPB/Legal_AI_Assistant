@@ -547,3 +547,103 @@ def test_the_matter_scope_is_part_of_the_hard_prefilter(firm) -> None:  # type: 
     assert "chunks.matter_id = CAST(:j_matter AS uuid)" in scoped.sql
     assert scoped.params["j_matter"] == str(m)
     json.dumps(scoped.params)  # the predicate is logged: it must stay serializable
+
+
+# ── scanned PDFs (ADR-030) ───────────────────────────────────────────────────────────────────────
+SCANNED_CLAUSE = (
+    "QUINTA.- CONFIDENCIALIDAD. La Prestadora guardará reserva absoluta sobre la información del "
+    "Cliente durante la vigencia del contrato y cinco años después de su terminación."
+)
+POOR_CLAUSE = "SEXTA.- JURISDICCIÓN. Las partes se someten a los tribunales de la Ciudad de México."
+
+
+class _Parser:
+    """Docling stand-in: the digital pages' text."""
+
+    def __init__(self) -> None:
+        self.calls: list[object] = []
+
+    def parse(self, path: object, *, page_range: object = None) -> object:
+        from types import SimpleNamespace
+
+        self.calls.append(page_range)
+        return SimpleNamespace(text=CONTRACT, warnings=())
+
+
+class _Reader:
+    """Tesseract stand-in: page 2 reads well, page 3 is a poor scan."""
+
+    label = "fake-ocr 1.0 spa+eng"
+
+    def __call__(self, page: object, number: int) -> object:
+        from app.ingestion.ocr import OcrPageText
+
+        if number == 3:
+            return OcrPageText(number, POOR_CLAUSE, confidence=0.35, words=14)
+        return OcrPageText(number, SCANNED_CLAUSE, confidence=0.91, words=28)
+
+
+def _scanned_pdf(pages: list[str]) -> bytes:
+    from tests.pdf_fixtures import build_pdf, scan_image
+
+    return build_pdf([scan_image(["x"]) if p == "scan" else p for p in pages])
+
+
+def test_a_scanned_page_is_read_by_ocr_and_a_poor_one_never_becomes_citable(firm) -> None:  # type: ignore[no-untyped-def]
+    client, state, j, tenant_a, _ = firm
+    state.pdf_parser, state.page_reader = _Parser(), _Reader()
+    ana = auth(client)
+    data = _scanned_pdf(["Contrato con capa de texto real.", "scan", "scan"])
+    f = upload(client, ana, data, title="Contrato escaneado", kind="contrato",
+               jurisdiction_id=j["fed"]).json()  # fmt: skip
+    assert (f["status"], f["pages"], f["ocr_pages"], f["ocr_excluded_pages"]) == (
+        "ready", 3, [2], [3],
+    )  # fmt: skip
+    assert f["ocr_confidence"] == pytest.approx(0.91)
+    units = client.get(f"/files/{f['id']}/text", headers=ana).json()
+    joined = " ".join(u["text"] for u in units)
+    assert "reserva absoluta" in joined  # the OCR page is citable...
+    assert "JURISDICCIÓN" not in joined  # ...the poor page is not, anywhere
+    ocr_unit = next(u for u in units if "reserva absoluta" in u["text"])
+    src = client.get(f"/sources/{ocr_unit['cite_id']}", headers=ana).json()
+    assert (src["ocr_pages"], src["ocr_confidence"]) == ([2], pytest.approx(0.91))
+    with tenant_transaction(state.engine, tenant_a) as c:
+        engine = c.execute(
+            text("SELECT ocr_engine FROM client_files WHERE id = :i"), {"i": f["id"]}
+        ).scalar_one()
+        verdict = c.execute(
+            text("SELECT verdict FROM audit_log WHERE event_type = 'ingestion'")
+        ).scalar_one()
+    assert engine == "fake-ocr 1.0 spa+eng"
+    assert (verdict["ocr_pages"], verdict["ocr_excluded_pages"]) == (1, 1)  # counts, never text
+
+
+def test_reading_as_scanned_skips_the_text_layer_and_bad_scans_fail_closed(firm) -> None:  # type: ignore[no-untyped-def]
+    client, state, j, _, _ = firm
+    parser = _Parser()
+    state.pdf_parser, state.page_reader = parser, _Reader()
+    ana = auth(client)
+    ok = {"title": "x", "jurisdiction_id": j["fed"]}
+    forced = upload(client, ana, _scanned_pdf(["texto con capa danada", "otra pagina mas"]),
+                    force_ocr="true", **ok).json()  # fmt: skip
+    assert (forced["status"], forced["ocr_pages"]) == ("ready", [1, 2])
+    assert parser.calls == []  # the damaged text layer was never used
+    # a digital PDF ignores nothing: force_ocr on a text file is meaningless and ignored
+    plain = upload(client, ana, CONTRACT.encode(), force_ocr="true", **ok).json()
+    assert (plain["status"], plain["ocr_pages"]) == ("ready", [])
+
+    state.page_reader = lambda page, n: _Reader()(page, 3)  # every page reads poorly
+    poor = upload(client, ana, _scanned_pdf(["scan"]), **ok).json()
+    assert (poor["status"], poor["error_key"], poor["chunk_count"]) == (
+        "failed", "ocr_low_confidence", None,
+    )  # fmt: skip
+
+    state.page_reader = None  # no Tesseract on this machine
+    state.settings = state.settings.model_copy(update={"ocr_tesseract_cmd": "Z:/no/tesseract.exe"})
+    missing = upload(client, ana, _scanned_pdf(["scan"]), **ok).json()
+    assert (missing["status"], missing["error_key"]) == ("failed", "ocr_unavailable")
+    state.settings = state.settings.model_copy(update={"ocr_max_pages": 0})
+    state.page_reader = _Reader()
+    many = upload(client, ana, _scanned_pdf(["scan"]), **ok).json()
+    assert (many["status"], many["error_key"]) == ("failed", "too_many_scanned_pages")
+    state.settings = settings()

@@ -116,7 +116,9 @@ def test_crlf_checkout_pins_to_the_same_hash(
     shutil.copytree(C.PROMPTS_DIR, tmp_path / "p", ignore=shutil.ignore_patterns("__pycache__"))
     monkeypatch.setattr(C, "PROMPTS_DIR", tmp_path / "p")
     for f in (tmp_path / "p").rglob("*.j2"):
-        f.write_bytes(f.read_bytes().replace(b"\n", b"\r\n"))
+        # normalise first: on a Windows checkout (core.autocrlf) a file may already be CRLF, and
+        # adding "\r" again would make "\r\r\n", which no checkout produces
+        f.write_bytes(f.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
     verify_manifest(tmp_path / "p" / "manifest.yaml")
 
 

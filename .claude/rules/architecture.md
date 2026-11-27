@@ -8,7 +8,8 @@
 - `app/validation/` — citation parser, existence/coverage checks, regeneration loop.
 - `app/ingestion/` — Docling wrapper, legal normalizer grammars, chunker, embedder (Celery tasks only).
 - `app/db/` — SQLAlchemy models, RLS session middleware, migrations (alembic).
-- `app/api/files.py` + `app/ingestion/extract.py` + `normalizer_generic.py` — the firm's own documents
+- `app/api/files.py` + `app/ingestion/extract.py` + `normalizer_generic.py` (+ `pdf_read.py`, `ocr.py` for scanned
+  pages, ADR-030) — the firm's own documents
   (ADR-025): upload, text extraction in memory, one background thread, status in `client_files`.
 - `app/corpus/` — reading the corpus without a model: reform lineage (`lineage.py`, ADR-017) and the brief
   verifier's grammar (`verify.py`, ADR-019). `app/ingestion/watch.py` + `reform.py`: the reform watcher, the only
@@ -445,6 +446,43 @@ below are the original one-liners and are Accepted.
   layout change or a block is seen within a day even when the demo machine is off; the ETL itself (writes,
   embeddings) is unchanged. Tested by `tests/test_canary.py` (each outcome, one request per source, robots once per
   host, stdlib-only import, workflow without secrets).
+
+- ADR-030 (Accepted 2026-11-26, every option chosen by the product owner): Scanned pages of a firm's PDF are read by
+  OCR, page by page, and a page read with low confidence is left out. Context: a scanned contract failed with
+  `no_text` (Docling ran with OCR off, ADR-025 listed OCR as pending); the owner's other project, Markdown-Conversor
+  (tomd, its ADR-017), already reads scans locally with Tesseract. Options asked: integration (tomd as a pinned
+  dependency / copy tomd's OCR module / Docling's built-in OCR), low-confidence pages (exclude and report / keep with a
+  warning / reject the file), trigger (auto + an optional "read as scanned" / auto only / always). Decision: copy,
+  exclude and report, auto + optional force. (1) `app/ingestion/ocr.py` is adapted from tomd's
+  `readers/pdf/ocr.py` and `extract.py` at commit 4ad49eb: the gate (fewer than 20 characters under an image
+  covering > 50 % of the page, or > 30 % garbage characters), rendering at 300 dpi within a 40 MP budget, contrast
+  stretch, orientation by OSD, deskew by projection profile (±3°), table rules erased, hOCR words with confidence,
+  speckles dropped; tomd's font size, bold, bullet and table-grid logic is not copied (this project needs paragraphs,
+  not Markdown). Tesseract 5 with `spa+eng` data, via `pytesseract` (Apache-2.0), is a system dependency, found in
+  settings, PATH or the default Windows install; tessdata in settings, `%LOCALAPPDATA%/legalai|tomd/tessdata`, or
+  Tesseract's own. Docling's OCR was not chosen: it downloads OCR models (network at install, ADR-014) and gives no
+  per-page confidence. (2) `app/ingestion/pdf_read.py` reads a PDF page by page in order: runs of pages with a text
+  layer go through Docling with `page_range` (the same parser and clean-up as before; a digital PDF takes exactly the
+  previous single call), flagged pages go through Tesseract. (3) An OCR page whose mean word confidence is under
+  `ocr_min_confidence` (0.6, tomd's threshold) is NOT stored: a misread figure in a clause must never be citable, and
+  the verbatim check would only compare a quotation with the misreading. The upload lists the pages left out and asks
+  for a rescan; if every scanned page is poor the upload fails (`ocr_low_confidence`). (4) "El texto del PDF está
+  dañado: leerlo como escaneado" (`force_ocr`) reads every page as an image. (5) `client_files` records `ocr_pages`,
+  `ocr_excluded_pages`, `ocr_confidence`, `ocr_engine` (version and languages, as provenance) and `force_ocr`
+  (migration 0013, numbers only); the source viewer and the document list say a text was read by OCR and with what
+  confidence. Failures are keys: `ocr_unavailable`, `ocr_failed`, `ocr_low_confidence`, `too_many_scanned_pages`
+  (`ocr_max_pages` 200, ~3-4 s per page). `doctor` warns when Tesseract or a language is missing. Consequences: the
+  rendered page reaches the disk briefly, as pytesseract's temporary image (deleted when the call returns), like the
+  PDF's own temporary file under ADR-025; OCR text is citable and verified against the recognised text, never the
+  paper, so a kept page can still contain a misread word above the threshold (the viewer says so); the copy will drift
+  from tomd and a fix in one must be ported by hand; the brief verifier (ADR-019) still reads text-layer PDFs only;
+  no chunk, embedding or prompt changes (no golden run needed, invariant 2), and tau was calibrated on statute text,
+  not OCR'd contracts. Evidence: `tests/test_ocr.py` (gate, rules, skew, hOCR, page-order assembly with fakes, and
+  real Tesseract reads of a generated scan, upright and upside down) and two API tests in
+  `tests/test_client_files.py` (a kept OCR page is citable and the viewer says so, a poor page is in no unit, forced
+  OCR skips the text layer, poor / missing engine / too many pages fail closed, audit holds counts only). Pending: a
+  real scanned contract from a firm, a lawyer's check of its extracted text; OCR in the brief verifier; whether 0.6 is
+  the right threshold for legal text (tomd measured it on books).
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →

@@ -215,7 +215,31 @@ def check_repo(settings: Settings, registry: AliasRegistry | None = None) -> lis
                      f"unpinned: {', '.join(unpinned)}" if unpinned else ""))  # fmt: skip
     out.append(Check("refusal tau calibrated (ADR-007)", "WARN" if settings.refusal_tau is None else "PASS",
                      "tau is None: the gate refuses to run" if settings.refusal_tau is None else f"tau={settings.refusal_tau}"))  # fmt: skip
+    out.append(check_ocr(settings))
     return out
+
+
+def check_ocr(settings: Settings) -> Check:
+    """ADR-030: without Tesseract a scanned PDF fails with `ocr_unavailable`. A WARN, not a FAIL:
+    every other upload and the whole query path work without it."""
+    from app.ingestion.ocr import OcrConfig, OcrEngine
+
+    cfg = OcrConfig.from_settings(settings)
+    engine = OcrEngine.find(cfg)
+    if engine is None:
+        return Check("OCR engine for scanned PDFs (ADR-030)", "WARN",
+                     "Tesseract not found: scanned uploads will fail")  # fmt: skip
+    try:
+        version, missing = engine.version(), engine.missing_languages()
+    except Exception as exc:
+        return Check(
+            "OCR engine for scanned PDFs (ADR-030)", "WARN", f"Tesseract does not run: {exc}"
+        )
+    if missing:
+        return Check("OCR engine for scanned PDFs (ADR-030)", "WARN",
+                     f"tesseract {version}: no language data for {', '.join(missing)}")  # fmt: skip
+    return Check("OCR engine for scanned PDFs (ADR-030)", "PASS",
+                 f"tesseract {version}, {engine.languages}")  # fmt: skip
 
 
 WATCH_STALE_DAYS = 3  # the watcher runs daily; three missed days is worth a warning
