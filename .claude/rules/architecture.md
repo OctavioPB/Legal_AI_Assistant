@@ -731,6 +731,14 @@ below are the original one-liners and are Accepted.
   (5/5 on generation 1). Rolled back; the code is kept in git history as a commit and its revert. Pending: why the
   model declines or adds an uncited framing sentence when the junk heading units are gone (a model or prompt
   question, not a parsing one).
+  CORRECTION 2026-11-27: every gd2-009 failure above was a validator bug, not the model. `_NUMBER_START` held a
+  backspace byte instead of `\b`, so "…art. 123, Apartado B, fracc. XIII: …" was cut at "fracc." and its first half
+  reported as uncited (generation 2's answers write the reference that way). Fixed in commit 9c81376: replaying 154
+  stored attempts changes exactly the 6 gd2-009 attempts on generation 2, all to grounded. Measured with both
+  validator changes (`golden-20261127T173959Z-after-numstart-gen1` vs `golden-20261127T175956Z-after-numstart-gen2`):
+  false refusal 2/20 vs 3/20 (McNemar 1 worse / 0 better, p = 1.0), recall, leakage, citation precision and refusal
+  accuracy equal; gd2-009 answered on both; the one difference is gd2-024, refused on generation 2 (0/6 runs answered
+  there, 5/5 on generation 1), never misattributed since ADR-051. The decision on generation 2 is the owner's again.
 
 - ADR-050 (Proposed, 2026-11-26): The law is retrieved as of a date: versions carry valid time separately from the time we
   loaded them, and a session may fix the date of the facts. Context: legal questions are about the version in force on
