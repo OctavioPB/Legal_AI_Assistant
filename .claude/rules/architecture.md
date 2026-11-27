@@ -68,7 +68,7 @@ below are the original one-liners and are Accepted.
   while building it: the migrator is under FORCE RLS, so generation 1's model and chunker are recorded by the
   first rebuild, not by the migration; ltree orders labels as text (`s10` before `s2`), so a document's
   sections are read by `ordinal` (the rebuild's own unit check caught it before anything was written).
-- ADR-007 (Proposed, 2026-11-02): The refusal is a system action, and τ is calibrated, not guessed.
+- ADR-007 (Accepted 2026-11-27, chosen by the product owner; (c) measured and rejected): The refusal is a system action, and τ is calibrated, not guessed.
   (a) The `<insuficiente>` block is emitted by code on τ-miss and on validator failure; the LLM is
   never asked to "decline in its own words" (measured: it explains that nothing was found and
   still fills layers). (b) τ is set from two hand-built probe sets (covered / absent topics, ≥ 20
@@ -76,6 +76,15 @@ below are the original one-liners and are Accepted.
   whether the gate should require ≥ m fragments above τ instead of max ≥ τ (Library-RAG gate:
   ≥ 2 sections ≥ 0.4). Pending: probe-set scores on the seeded corpus (WS3.T04). Does NOT change
   invariant 4.
+  Closed 2026-11-27. (a) and (b) are in the code (system-written `<insuficiente>`; τ = 0.58 from the probe sets,
+  `tau-20261107T212422Z`). (c) measured on index generation 4 (`tau-20261127T210329Z`, 81 covered / 66 absent
+  AI-drafted wordings): gating on the m-th best score separates worse, AUC 0.935 (m = 1), 0.923 (m = 2), 0.913
+  (m = 3); to refuse >= 95 % of absent wordings m = 1 needs τ 0.61 and answers 73 % of covered, m = 2 needs 0.605
+  and answers 65 %, m = 3 needs 0.595 and answers 58 %. At τ = 0.58, m = 2 would answer 76.5 % (vs 87.7 %) and refuse
+  90.9 % (vs 80.3 %), which m = 1 beats at τ = 0.60 (78 % / 91 %): m = 1 is better at every operating point, so
+  `refusal_min_fragments` stays 1. τ = 0.58 re-confirmed on generation 4: identical rates to generation 1 (87.7 %
+  covered answered, 80.3 % absent refused). `evals.calibrate_tau` now reports the m sweep, the τ in force and the
+  index generation with every run. Pending: lawyer review of the probe sets (they are AI-drafted).
 - ADR-008 (Proposed, 2026-11-02): Multi-source synthesis stays direct generation over the
   expanded context. No map-reduce / per-document summarization as default in Dossier Builder or
   Adversarial. Evidence (Library-RAG ADR-017): fidelity 0.87 → 0.58, correct abstention 2/3 → 0/3,
@@ -698,7 +707,7 @@ below are the original one-liners and are Accepted.
   forbids today ("fusion depends only on ranks"), so the rule itself changes, and determinism (stable tie-breaks) must
   still hold; with 25 golden cases the weight must not be fitted to the test set. Pending: owner's choice; retrieval-only
   runs per category for A and B. Research: docs/RESEARCH.md §18.
-- ADR-049 (Proposed, 2026-11-26): Each chunk is contextualised for retrieval by deterministic text (its article's lead-in and
+- ADR-049 (Accepted 2026-11-27, option B chosen by the product owner and adopted as index generation 4 with ADR-052): Each chunk is contextualised for retrieval by deterministic text (its article's lead-in and
   the full chapter titles) before any model-written context. Context: Anthropic's contextual retrieval (2024) prepends
   chunk-specific context before embedding and lexical indexing and reports retrieval failures down about 35 % with
   embeddings alone and about 49 % with BM25 as well; this project already prepends a breadcrumb, a structural version of
