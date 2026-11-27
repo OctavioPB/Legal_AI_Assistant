@@ -85,19 +85,23 @@ below are the original one-liners and are Accepted.
   `refusal_min_fragments` stays 1. τ = 0.58 re-confirmed on generation 4: identical rates to generation 1 (87.7 %
   covered answered, 80.3 % absent refused). `evals.calibrate_tau` now reports the m sweep, the τ in force and the
   index generation with every run. Pending: lawyer review of the probe sets (they are AI-drafted).
-- ADR-008 (Proposed, 2026-11-02): Multi-source synthesis stays direct generation over the
+- ADR-008 (Accepted 2026-11-27, confirmed by the product owner): Multi-source synthesis stays direct generation over the
   expanded context. No map-reduce / per-document summarization as default in Dossier Builder or
   Adversarial. Evidence (Library-RAG ADR-017): fidelity 0.87 → 0.58, correct abstention 2/3 → 0/3,
   4× latency. Reopen only with a golden-suite run that beats direct on faithfulness AND refusal
   accuracy.
-- ADR-009 (Proposed, 2026-11-02): Rewritten, translated and follow-up queries never replace the
+  Closed 2026-11-27: the code synthesises by direct generation only (no per-document summarisation exists); the
+  reopen condition stands.
+- ADR-009 (Accepted 2026-11-27 as a standing rule, confirmed by the product owner): Rewritten, translated and follow-up queries never replace the
   user's own query. The original query's top-N keep their ranks; secondary searches only fill the
   remaining slots; equal-weight RRF across variants is not used. First messages are searched as
   written. A rewrite can never alter jurisdiction/tenant (those come only from SessionContext).
   Evidence (Library-RAG ADR-038, 052): equal weight cost 6 pts recall@8 on the original set and
   synthesis recall 0.54 → 0.43–0.48. Pending: measure on the bilingual golden category (WS3.T06).
+  Closed 2026-11-27: no query rewriting or translation exists today, and follow-ups are searched as written
+  (ADR-016 c); the rule binds whichever is built first. The bilingual measurement stays pending until then.
 
-- ADR-010 (Proposed, 2026-11-06): Deviations from the blueprint's DDL made while building WS1.
+- ADR-010 (Accepted 2026-11-27, (a) and (d) confirmed by the product owner): Deviations from the blueprint's DDL made while building WS1.
   Context: the blueprint's `chunks.cite_id UNIQUE` is a cross-tenant existence oracle (tenant A
   inserting a cite_id learns from the conflict that B holds it), its policies let a session
   anchored on PUBLIC_CORPUS write it, and `current_setting('app.tenant_id')` raises (or, once
@@ -114,13 +118,21 @@ below are the original one-liners and are Accepted.
   `SET LOCAL` cannot take bind parameters. Consequence: citations to client files need the
   `CF-` prefix (rag.md); client-file cite_ids may repeat across tenants. Pending: user
   confirmation of (a) and (d), the two that change contracts other workstreams consume.
-- ADR-011 (Proposed, 2026-11-06): Retrieval plan shapes under RLS, measured on 3 000 chunks
+  Closed 2026-11-27: every point is in the schema and covered by tests/test_tenant_isolation.py and
+  tests/test_schema.py; the owner confirmed (a) and (d).
+- ADR-011 (Accepted 2026-11-27, confirmed by the product owner): Retrieval plan shapes under RLS, measured on 3 000 chunks
   (tests/test_schema.py). A selective jurisdiction filter is served by `chunks_prefilter_idx`
   and the survivors are ranked exactly (no ANN); an unselective query uses HNSW with the RLS
   predicate as a scan filter, so every vector query sets `hnsw.iterative_scan` per transaction
   (else a filtered top-k can come back short). Consequence for WS3: do not force HNSW for
   selective sessions (a municipal session is exact search, by design). Pending: re-measure at
   corpus scale (WS2.T07 seed) and at 50M-chunk tripwire (ADR-001).
+  Closed 2026-11-27: `hnsw.iterative_scan` is set on every vector query (app/rag/search.py). Measured the same day
+  (tests/test_schema.py): a filter keeping 12.5 % of 3 000 rows sits on a cost tie between the two plans and flipped
+  with the HNSW index's size statistics; at 3 % the prefilter plan wins clearly. Caveat: a real state or municipal
+  session also stacks federal law, so it is rarely selective in this sense; "a municipal session is exact search"
+  is not guaranteed, but results are correct either way (iterative scan). Re-measuring at corpus scale and at the
+  ADR-001 tripwire stays open.
 - ADR-012 (Superseded by ADR-014 for the embedder window, 2026-11-07): Chunk size vs the embedder window. Context: Cohere
   embed-multilingual-v3.0 accepts 512 tokens (1024 dims) and `truncate` defaults to `END`, i.e.
   text past the window is dropped silently (docs.cohere.com/docs/cohere-embed and /reference/embed,
@@ -133,7 +145,7 @@ below are the original one-liners and are Accepted.
   are stored per chunk. Consequence: more, smaller chunks (re-measure parent expansion budget);
   token counts use `ApproxCounter` (x1.3 words) until the Cohere tokenizer is wired in WS2.T06.
   Pending: golden run comparing A vs B once WS5.T04 exists; user choice A/B.
-- ADR-013 (Proposed, 2026-11-07): Tenant offboarding and the audit log. Context: `audit_log` is
+- ADR-013 (Accepted 2026-11-27 for the default, confirmed by the product owner; retention length pending): Tenant offboarding and the audit log. Context: `audit_log` is
   append-only for every role (privileges + trigger, ADR-010) and holds `query_text`/`output_text`, i.e.
   client content; offboarding must "leave no trace" (WS7.T06) yet a firm may owe a retention period.
   Options: (A) erase it with the rest, as an explicit superuser step that bypasses the trigger in one
@@ -142,6 +154,9 @@ below are the original one-liners and are Accepted.
   retain (`PostgresStore(audit="retain")`), erasure must be asked for explicitly, and the tenant row is
   tombstoned (`status='suspended'`), never deleted. Consequence: offboarding is only "zero traces" once
   the retention period is chosen. Pending: user/legal choice of A vs B and the retention length.
+  Closed 2026-11-27 for the mechanism: both options exist (app/tenancy/stores.py), retain is the default, erasure is
+  explicit. The retention length is a legal decision per firm and stays pending; until it exists, nothing is erased
+  without an explicit request.
 - ADR-014 (Accepted 2026-11-07, chosen by the product owner): The demo runs 100% locally. No provider,
   API key or network call is involved. Stack: Ollama on loopback serves (a) the embedder `bge-m3`
   (1024 dimensions = the existing column, multilingual es/en, 8192-token window; revision = model
