@@ -19,6 +19,10 @@
   text — pending measurement on the golden suite (rule 2 in CLAUDE.md), `chunker_version` bump.
 - Derogated/“(Se deroga)” nodes, bis/ter/A-B articles, transitorios and reform notes are real
   node types, not noise; derogated text is stored with `is_current=false`, never dropped.
+- A reform decree's heading inside the transitorios ("DECRETO por el que ..." / "Publicado en el Diario Oficial de
+  la Federación el ...") is publication data, not law: it is its own navigation unit (ADR-052), and every
+  transitorio unit after it carries the decree's date in its label ("..., decreto DOF 23-04-2021"). Measured: a
+  fragment opening with a multi-law decree title made the drafting model decline a question it answers otherwise.
 - Navigation chunks (índice, tabla de contenidos, lists of articles) get `is_navigation=true` and
   are excluded at query time. They list every heading of the code and out-rank the articles they
   point to.

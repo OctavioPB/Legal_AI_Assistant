@@ -1,0 +1,382 @@
+{
+ "run_id": "golden-20261127T200313Z-rep-gen4-3",
+ "ts": "20261127T200313Z",
+ "tag": "rep-gen4-3",
+ "commit": "3af1bde",
+ "dirty": true,
+ "suite": "golden_v2.jsonl",
+ "mode": "full",
+ "model_profile": "gemma",
+ "languages": [
+  "es-MX"
+ ],
+ "config": {
+  "settings": {
+   "refusal_tau": 0.58,
+   "refusal_min_fragments": 1,
+   "retrieval_arm_top": 40,
+   "retrieval_rrf_k": 60,
+   "retrieval_rrf_top": 20,
+   "retrieval_rerank_top": 8,
+   "retrieval_context_budget_tokens": 12000,
+   "context_citable_units": true,
+   "validator_quote_min_words": 5,
+   "validator_coverage_min_words": 6
+  },
+  "resolved_models": {
+   "drafting-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "drafting-heavy": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "adversarial-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "cheap-utility": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593",
+   "fallback-general": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593"
+  },
+  "embedder": {
+   "model": "bge-m3",
+   "revision": "790764642607"
+  },
+  "reranker": "bge-m3-dense-cosine",
+  "prompt_manifest_sha256": "9efbe155d2d271470535067142449bb4c01dde0b62f596049aa0aa59f187e25b",
+  "generations": [
+   {
+    "embedding_model": "bge-m3",
+    "embedding_revision": "790764642607",
+    "chunker_version": 4,
+    "thresholds": "{\"counter\": \"bge-m3-xlmr\", \"max_tokens\": 800, \"min_tokens\": 80, \"embedder_window\": 8192}"
+   }
+  ],
+  "index_generation": 4
+ },
+ "n_cases": 2,
+ "n_by_category": {
+  "exact_identifier": 1,
+  "temporal_validity": 1
+ },
+ "summary": {
+  "overall": {
+   "n": 2,
+   "recall_at_k": 1.0,
+   "jurisdiction_leakage": 0.0,
+   "distractor_rate": 0.0,
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": 0.0,
+   "citation_precision": 1.0,
+   "gold_citation": 1.0,
+   "regeneration_rate": 0.0,
+   "forbidden_content": 0.0,
+   "errors": 0
+  },
+  "by_category": {
+   "exact_identifier": {
+    "n": 1,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 0.0,
+    "citation_precision": 1.0,
+    "gold_citation": 1.0,
+    "regeneration_rate": 0.0,
+    "forbidden_content": 0.0,
+    "errors": 0
+   },
+   "temporal_validity": {
+    "n": 1,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 0.0,
+    "citation_precision": 1.0,
+    "gold_citation": 1.0,
+    "regeneration_rate": 0.0,
+    "forbidden_content": 0.0,
+    "errors": 0
+   }
+  },
+  "intervals": {
+   "recall_at_k": {
+    "k": 2,
+    "n": 2,
+    "rate": 1.0,
+    "lower": 0.1581,
+    "upper": 1.0
+   },
+   "jurisdiction_leakage": {
+    "k": 0,
+    "n": 2,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.8419
+   },
+   "distractor_rate": {
+    "k": 0,
+    "n": 2,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.8419
+   },
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": {
+    "k": 0,
+    "n": 2,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.8419
+   },
+   "citation_precision": {
+    "k": 2,
+    "n": 2,
+    "rate": 1.0,
+    "lower": 0.1581,
+    "upper": 1.0
+   },
+   "gold_citation": {
+    "k": 2,
+    "n": 2,
+    "rate": 1.0,
+    "lower": 0.1581,
+    "upper": 1.0
+   },
+   "regeneration_rate": {
+    "k": 0,
+    "n": 2,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.8419
+   },
+   "forbidden_content": {
+    "k": 0,
+    "n": 2,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.8419
+   }
+  },
+  "intervals_by_category": {
+   "exact_identifier": {
+    "recall_at_k": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "citation_precision": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "gold_citation": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "regeneration_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "forbidden_content": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    }
+   },
+   "temporal_validity": {
+    "recall_at_k": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "citation_precision": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "gold_citation": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "regeneration_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "forbidden_content": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    }
+   }
+  },
+  "gating": null,
+  "n_gating": 0,
+  "n_ai_draft": 2,
+  "latency": {
+   "retrieval_p50": 3.34,
+   "retrieval_p95": 3.8,
+   "total_p50": 13.8,
+   "total_p95": 36.73
+  },
+  "faithfulness": null
+ },
+ "gates": {
+  "status": "not_gating",
+  "reason": "0 lawyer-reviewed cases (all ai-draft)"
+ },
+ "cases": [
+  {
+   "id": "gd2-009",
+   "category": "exact_identifier",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11",
+    "MX-FED-LFT-ART132-FRACXII-v2026.11",
+    "MX-FED-CPEUM-TRANS78-UNICO-v2026.11",
+    "MX-FED-CPEUM-TRANS89-UNICO-v2026.11",
+    "MX-FED-CPEUM-ART73-FRACXXIII-v2026.11",
+    "MX-FED-CPEUM-TRANS46-UNICO-v2026.11",
+    "MX-FED-CPEUM-ART73-FRACX-v2026.11",
+    "MX-FED-CPEUM-ART2-APARTADOB-FRACXIII-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "answered",
+   "refusal_reason": null,
+   "cited": [
+    "MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11"
+   ],
+   "invalid_cited": [],
+   "cited_gold": true,
+   "regenerations": 0,
+   "retrieval_s": 3.797000000020489,
+   "total_s": 36.73499999998603,
+   "request_id": "18d382ac-cf70-4d72-896e-e492916beb93",
+   "error": null,
+   "query": "¿Qué establece el artículo 123, apartado B, fracción XIII de la Constitución?",
+   "answer": "(I) Planteamiento\n[análisis propio] Se solicita la determinación del contenido normativo del artículo 123, apartado B, fracción XIII de la Constitución Política de los Estados Unidos Mexicanos.\n\n(II) Marco normativo aplicable\n*   Los militares, marinos, integrantes de la Guardia Nacional, personal del servicio exterior, agentes del Ministerio Público, peritos y los miembros de las instituciones policiales, se regirán por sus propias leyes [cite: MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11].\n*   Los agentes del Ministerio Público, los peritos y los miembros de las instituciones policiales de la Federación, las entidades federativas y los Municipios, podrán ser separados de sus cargos si no cumplen con los requisitos que las leyes vigentes en el momento del acto señalen para permanecer en dichas instituciones, o removidos por incurrir en responsabilidad en el desempeño de sus funciones [cite: MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11].\n*   Si la autoridad jurisdiccional resolviere que la separación, remoción, baja, cese o cualquier otra forma de terminación del servicio fue injustificada, el Estado sólo estará obligado a pagar la indemnización y demás prestaciones a que tenga derecho, sin que en ningún caso proceda su reincorporación al servicio, cualquiera que sea el resultado del juicio o medio de defensa que se hubiere promovido [cite: MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11].\n*   Las autoridades federales, de las entidades federativas y municipales, a fin de propiciar el fortalecimiento del sistema de seguridad social del personal del Ministerio Público, de las corporaciones policiales y de los servicios periciales, de sus familias y dependientes, instrumentarán sistemas complementarios de seguridad social [cite: MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11].\n*   El Estado proporcionará a los miembros en el activo del Ejército, Fuerza Aérea, Armada y Guardia Nacional, las prestaciones a que se refiere el inciso f) de la fracción XI de este apartado, en términos similares y a través del organismo encargado de la seguridad social de los componentes de dichas instituciones [cite: MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11].\n\n(III) Criterios jurisprudenciales\n<insuficiente></insuficiente>\n\n(IV) Análisis\n[análisis propio] La fracción XIII establece un régimen jurídico especial para ciertos cuerpos de seguridad y justicia, diferenciando la naturaleza de la separación del cargo (donde no procede la reinstalación en caso de ser injustificada) y estableciendo obligaciones de seguridad social tanto para fuerzas armadas como para cuerpos policiales y periciales.\n\n(V) Fuentes citadas\n*   MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11: Constitución Política de los Estados Unidos Mexicanos, art. 123, Apartado B, fracc. XIII",
+   "cited_texts": {
+    "MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11": [
+     "XIII. Los militares, marinos, integrantes de la Guardia Nacional, personal del servicio exterior, agentes del Ministerio Público, peritos y los miembros de las instituciones policiales, se regirán por sus propias leyes.\n\nPárrafo reformado DOF 30-09-2024\n\nLos agentes del Ministerio Público, los peritos y los miembros de las instituciones policiales de la Federación, las entidades federativas y los Municipios, podrán ser separados de sus cargos si no cumplen con los requisitos que las leyes vigentes en el momento del acto señalen para permanecer en dichas instituciones, o removidos por incurrir en responsabilidad en el desempeño de sus funciones. Si la autoridad jurisdiccional resolviere que la separación, remoción, baja, cese o cualquier otra forma de terminación del servicio fue injustificada, el Estado sólo estará obligado a pagar la indemnización y demás prestaciones a que tenga derecho, sin que en ningún caso proceda su reincorporación al servicio, cualquiera que sea el resultado del juicio o medio de defensa que se hubiere promovido.\n\nPárrafo reformado DOF 29-01-2016\n\nLas autoridades federales, de las entidades federativas y municipales, a fin de propiciar el fortalecimiento del sistema de seguridad social del personal del Ministerio\n\nPúblico, de las corporaciones policiales y de los servicios periciales, de sus familias y dependientes, instrumentarán sistemas complementarios de seguridad social.\n\nPárrafo reformado DOF 29-01-2016\n\nEl Estado proporcionará a los miembros en el activo del Ejército, Fuerza Aérea, Armada y Guardia Nacional, las prestaciones a que se refiere el inciso f) de la fracción XI de este apartado, en términos similares y a través del organismo encargado de la seguridad social de los componentes de dichas instituciones;\n\nPárrafo reformado DOF 30-09-2024 Fracción reformada DOF 10-11-1972, 08-03-1999, 18-06-2008\n\n- XIII bis. El banco central y las entidades de la Administración Pública Federal que formen parte del sistema bancario mexicano regirán sus relaciones laborales con sus trabajadores por lo dispuesto en el presente Apartado.\n\nFracción adicionada DOF 17-11-1982. Reformada DOF 27-06-1990, 20-08-1993",
+     "B. Entre los Poderes de la Unión y sus trabajadores:\n\nPárrafo reformado DOF 08-10-1974, 29-01-2016\n\nI. La jornada diaria máxima de trabajo diurna y nocturna será de ocho y siete horas respectivamente. Las que excedan serán extraordinarias y se pagarán con un ciento por ciento más de la remuneración fijada para el servicio ordinario. En ningún caso el trabajo extraordinario podrá exceder de tres horas diarias ni de tres veces consecutivas;\nII. Por cada seis días de trabajo, disfrutará el trabajador de un día de descanso, cuando menos, con goce de salario íntegro;\nIII. Los trabajadores gozarán de vacaciones que nunca serán menores de veinte días al año;\nIV. Los salarios serán fijados en los presupuestos respectivos sin que su cuantía pueda ser disminuida durante la vigencia de éstos, sujetándose a lo dispuesto en el artículo 127 de esta Constitución y en la ley.\n\nPárrafo reformado DOF 24-08-2009\n\nEn ningún caso los salarios podrán ser inferiores al mínimo para los trabajadores en general en las entidades federativas.\n\nPárrafo reformado DOF 29-01-2016\n\nFracción reformada DOF 27-11-1961\n\nV. A trabajo igual corresponderá salario igual, sin tener en cuenta el sexo ni género. Las leyes establecerán los mecanismos tendientes a reducir y erradicar la brecha salarial de género;\n\nFracción reformada DOF 15-11-2024\n\nVI. Sólo podrán hacerse retenciones, descuentos, deducciones o embargos al salario, en los casos previstos en las leyes;\nVII. La designación del personal se hará mediante sistemas que permitan apreciar los conocimientos y aptitudes de los aspirantes. El Estado organizará escuelas de Administración Pública;\nVIII. Los trabajadores gozarán de derechos de escalafón a fin de que los ascensos se otorguen en función de los conocimientos, aptitudes y antigüedad. En igualdad de condiciones, tendrá prioridad quien represente la única fuente de ingreso en su familia;\n\nFracción reformada DOF 31-12-1974\n\n- XI (sic 05-12-1960). Los trabajadores sólo podrán ser suspendidos o cesados por causa justificada, en los términos que fije la ley.\n\nEn caso de separación injustificada tendrá derecho a optar por la reinstalación en su trabajo o por la indemnización correspondiente, previo el procedimiento legal. En los casos de supresión de plazas, los trabajadores afectados tendrán derecho a que se les otorgue otra equivalente a la suprimida o a la indemnización de ley;\n\nX. Los trabajadores tendrán el derecho de asociarse para la defensa de sus intereses comunes. Podrán, asimismo, hacer uso del derecho de huelga previo el cumplimiento de los requisitos que determine la ley, respecto de una o varias dependencias de los Poderes Públicos, cuando se violen de manera general y sistemática los derechos que este artículo les consagra;\nXI. La seguridad social se organizará conforme a las siguientes bases mínimas:\na) Cubrirá los accidentes y enfermedades profesionales; las enfermedades no profesionales y maternidad; y la jubilación, la invalidez, vejez y muerte.\nb) En caso de accidente o enfermedad, se conservará el derecho al trabajo por el tiempo que determine la ley.\nc) Las mujeres durante el embarazo no realizarán trabajos que exijan un esfuerzo considerable y signifiquen un peligro para su salud en relación con la gestación; gozarán forzosamente de un mes de descanso antes de la fecha fijada aproximadamente para el parto y de otros dos después del mismo, debiendo percibir su salario íntegro y conservar su empleo y los derechos que hubieren adquirido por la relación de trabajo. En el período de lactancia tendrán dos descansos extraordinarios por día, de media hora cada uno, para alimentar a sus hijos. Además, disfrutarán de asistencia médica y obstétrica, de medicinas, de ayudas para la lactancia y del servicio de guarderías infantiles.\n\nInciso reformado DOF 31-12-1974\n\nd) Los familiares de los trabajadores tendrán derecho a asistencia médica y medicinas, en los casos y en la proporción que determine la ley.\ne) Se establecerán centros para vacaciones y para recuperación, así como tiendas económicas para beneficio de los trabajadores y sus familiares.\nf) Se proporcionarán a los trabajadores habitaciones baratas, en arrendamiento o venta, conforme a los programas previamente aprobados. Además, el Estado mediante las aportaciones que haga, establecerá un fondo nacional de la vivienda a fin de constituir depósitos en favor de dichos trabajadores y establecer un sistema de financiamiento que permita otorgar a éstos crédito barato y suficiente para que adquieran en propiedad habitaciones cómodas e higiénicas, o bien para construirlas, repararlas, mejorarlas o pagar pasivos adquiridos por estos conceptos.\n\nLas aportaciones que se hagan a dicho fondo serán enteradas al organismo encargado de la seguridad social regulándose en su Ley y en las que corresponda, la forma y el procedimiento conforme a los cuales se administrará el citado fondo y se otorgarán y adjudicarán los créditos respectivos.\n\nInciso reformado DOF 10-11-1972\n\nXII. Los conflictos individuales, colectivos o intersindicales serán sometidos a un Tribunal Federal de Conciliación y Arbitraje integrado según lo prevenido en la ley reglamentaria. Asimismo, conocerá de los asuntos relacionados con el acceso a la información pública de los sindicatos de los trabajadores al servicio del Estado y de los recursos de revisión que interpongan los particulares respecto de las resoluciones de los mismos.\n\nPárrafo reformado DOF 20-12-2024\n\nLos conflictos entre el Poder Judicial de la Federación y sus servidores, así como los que se susciten entre la Suprema Corte de Justicia y sus empleados, serán resueltos por el Tribunal de Disciplina Judicial.\n\nPárrafo reformado DOF 31-12-1994, 15-09-2024. Publicado sin cambios DOF 20-12-2024\n\nXIII. Los militares, marinos, integrantes de la Guardia Nacional, personal del servicio exterior, agentes del Ministerio Público, peritos y los miembros de las instituciones policiales, se regirán por sus propias leyes.\n\nPárrafo reformado DOF 30-09-2024\n\nLos agentes del Ministerio Público, los peritos y los miembros de las instituciones policiales de la Federación, las entidades federativas y los Municipios, podrán ser separados de sus cargos si no cumplen con los requisitos que las leyes vigentes en el momento del acto señalen para permanecer en dichas instituciones, o removidos por incurrir en responsabilidad en el desempeño de sus funciones. Si la autoridad jurisdiccional resolviere que la separación, remoción, baja, cese o cualquier otra forma de terminación del servicio fue injustificada, el Estado sólo estará obligado a pagar la indemnización y demás prestaciones a que tenga derecho, sin que en ningún caso proceda su reincorporación al servicio, cualquiera que sea el resultado del juicio o medio de defensa que se hubiere promovido.\n\nPárrafo reformado DOF 29-01-2016\n\nLas autoridades federales, de las entidades federativas y municipales, a fin de propiciar el fortalecimiento del sistema de seguridad social del personal del Ministerio\n\nPúblico, de las corporaciones policiales y de los servicios periciales, de sus familias y dependientes, instrumentarán sistemas complementarios de seguridad social.\n\nPárrafo reformado DOF 29-01-2016\n\nEl Estado proporcionará a los miembros en el activo del Ejército, Fuerza Aérea, Armada y Guardia Nacional, las prestaciones a que se refiere el inciso f) de la fracción XI de este apartado, en términos similares y a través del organismo encargado de la seguridad social de los componentes de dichas instituciones;\n\nPárrafo reformado DOF 30-09-2024 Fracción reformada DOF 10-11-1972, 08-03-1999, 18-06-2008\n\n- XIII bis. El banco central y las entidades de la Administración Pública Federal que formen parte del sistema bancario mexicano regirán sus relaciones laborales con sus trabajadores por lo dispuesto en el presente Apartado.\n\nFracción adicionada DOF 17-11-1982. Reformada DOF 27-06-1990, 20-08-1993\n\nXIV. La ley determinará los cargos que serán considerados de confianza. Las personas que los desempeñen disfrutarán de las medidas de protección al salario y gozarán de los beneficios de la seguridad social.\n\nApartado B con fracciones adicionado DOF 05-12-1960"
+    ]
+   },
+   "forbidden_found": []
+  },
+  {
+   "id": "gd2-024",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-TRANS13-PRIMERO-DUP2-v2026.11",
+    "MX-FED-LFT-ART5-v2026.11",
+    "MX-FED-LFT-ART513-INCD-P4-v2026.11",
+    "MX-FED-LFT-ART175BIS-v2026.11",
+    "MX-FED-LFT-ART22BIS-v2026.11",
+    "MX-FED-LFT-ART515-v2026.11",
+    "MX-FED-LFT-ART25-v2026.11",
+    "MX-FED-LFT-ART331BIS-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "answered",
+   "refusal_reason": null,
+   "cited": [
+    "MX-FED-LFT-TRANS13-PRIMERO-DUP2-v2026.11"
+   ],
+   "invalid_cited": [],
+   "cited_gold": true,
+   "regenerations": 0,
+   "retrieval_s": 3.3429999999934807,
+   "total_s": 13.795999999972992,
+   "request_id": "61870996-47e3-464d-b387-95d7949bb083",
+   "error": null,
+   "query": "¿Qué establece actualmente el artículo 15-C de la Ley Federal del Trabajo?",
+   "answer": "(I) Planteamiento\n[análisis propio] El usuario consulta sobre la vigencia y contenido actual del artículo 15-C de la Ley Federal del Trabajo.\n\n(II) Marco normativo aplicable\n<insuficiente></insuficiente>\n\n(III) Criterios jurisprudenciales\n<insuficiente></insuficiente>\n\n(IV) Análisis\n[análisis propio] De acuerdo con la Ley Federal del Trabajo, el artículo 15-C ha sido derogado mediante una reforma publicada en el Diario Oficial de la Federación el 23 de abril de 2021, según se desprende de la lista de artículos derogados en el artículo primero transitorio de la reforma mencionada [cite: MX-FED-LFT-TRANS13-PRIMERO-DUP2-v2026.11].\n\n(V) Fuentes citadas\n* MX-FED-LFT-TRANS13-PRIMERO-DUP2-v2026.11: Ley Federal del Trabajo, Artículo Primero transitorio, decreto DOF 23-04-2021",
+   "cited_texts": {
+    "MX-FED-LFT-TRANS13-PRIMERO-DUP2-v2026.11": [
+     "Artículo Primero. Se reforman los artículos 12; 13; 14; 15; 127, primer párrafo; 1004-A, y 1004-C; se adicionan un tercer párrafo del artículo 41; una fracción VIII al artículo 127, y se derogan los artículos 15A; 15-B; 15-C, y 15-D, de la Ley Federal del Trabajo, para quedar como sigue:\n\n…….."
+    ]
+   },
+   "forbidden_found": []
+  }
+ ],
+ "seconds": 50.6
+}

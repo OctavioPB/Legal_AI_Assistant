@@ -743,6 +743,8 @@ below are the original one-liners and are Accepted.
   generation 3; gd2-024 still declined 5/5 there, so both were rolled back again (see ADR-052). Pending: the model's
   decline on gd2-024 with a clean, dated context (a prompt/model question for prompt-lab); generations 2 and 3 are
   kept retired for a re-test.
+  ADOPTED 2026-11-27 together with ADR-052 as amended (chunker v4, generation 4): no golden case worse than
+  generation 1, see ADR-052 for the runs.
 
 - ADR-050 (Proposed, 2026-11-26): The law is retrieved as of a date: versions carry valid time separately from the time we
   loaded them, and a session may fix the date of the facts. Context: legal questions are about the version in force on
@@ -818,6 +820,18 @@ below are the original one-liners and are Accepted.
   (commits 2217c59, 90f6d10); generation 3 kept retired. Consequences: the parser change is ready and verified; what
   blocks it is the model's behaviour on one case. Pending: why the drafting model declines gd2-024 on generations 2
   and 3 (prompt-lab, ad-hoc runs); lawyer review of the date labels.
+  AMENDED and ADOPTED 2026-11-27 (owner: "headings as hidden units"). Prompt-lab probe, gd2-024's real generation-3
+  prompt sent to gemma4:26b 5 times per variant: as built, declined 5/5; heading lines removed from the gold fragment
+  only, answered 5/5; removed from the other decree fragments only, declined 5/5; the date removed from the gold
+  fragment, declined 5/5; from the other fragments, answered 5/5. A fragment that opens with a long multi-law decree
+  title, next to other dated decrees, is what made the model decline. Chunker v4: each decree heading block is its
+  own unit flagged as navigation (stored, never searched: rag.md), placed before the decree's first unit; the dates
+  stay in transitorio labels. Real corpus vs generation 2: text covered exactly once, 15 ids vanish (none referenced),
+  386 hidden heading units, no searchable unit opens with "DECRETO por". Generation 4 (with ADR-049):
+  `golden-20261127T195859Z-after-hidden-headings-gen4` vs `golden-20261127T173959Z-after-numstart-gen1`: 0 worse /
+  0 better; recall 0.95, leakage 0, refusal accuracy 5/5, false refusal 2/20, citation precision 1.00 on both;
+  gd2-024 answered 4/4 (`...-rep-gen4-{1,2,3}`), now stating "reforma publicada en el DOF el 23-04-2021", and
+  gd2-009 4/4. Generation 4 is live; 1 to 3 are kept retired for rollback.
 
 ## Data flow (query path)
 JWT → middleware sets app.tenant_id → SessionContext validated → jurisdiction predicate →
