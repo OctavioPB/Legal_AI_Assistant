@@ -671,7 +671,7 @@ below are the original one-liners and are Accepted.
   (gd2-024 aside, gd2-021 cross-lingual refused, answered 3/3 before), false refusal 1 -> 2, median answer 39.9 s ->
   43.7 s (longer context). Rejected for now: switched off, code kept and tested. A and B need model downloads
   (FlagEmbedding / Jina-ColBERT), outside the delegation.
-- ADR-038 (Accepted 2026-11-26 for A and B, chosen by the product owner; C and D stay Proposed): The claim "verification is code" is backed by mutation testing, a validator replay suite,
+- ADR-038 (Accepted 2026-11-26 for A and B, chosen by the product owner; D accepted 2026-11-28, decided by Claude under the owner's delegation; C stays Proposed): The claim "verification is code" is backed by mutation testing, a validator replay suite,
   measured latency work and a deterministic check of amounts in OCR text. Context: the validator's tests were written by
   the same team; latency is 35 s median against the blueprint's < 10 s p95; OCR can misread a figure on a page above the
   confidence threshold (ADR-030). Options (independent): (A) mutation testing of `app/validation/` (e.g. mutmut): every
@@ -683,6 +683,13 @@ below are the original one-liners and are Accepted.
   regressions in verification are caught on real outputs; (−) mutation runs are slow; C depends on the runtime
   (Ollama/llama.cpp) supporting it on an 8 GB GPU. Pending: owner's choice; a mutation score baseline; latency
   baseline per profile. Implemented 2026-11-26: (A) `scripts/mutation_check.py`, a standard-library mutation check (mutmut does not run on Windows) with a control run of the unmutated copy and 12 mutants, one per contract check (invalid ids, placeholders, coverage, quotations, citation required, quotation checked against the fragment cited with it, minimum quote words, section gaps, prose refusals, runaway output, the regeneration, the system-written refusal): 12/12 killed, run in CI; (B) `evals/replay.py`: full golden runs now write `replay.jsonl` (raw outputs, full retrieved set, recorded verdicts), `extract-e2e` keeps only what an end-to-end run can replay faithfully, and `tests/validation/test_replay.py` replays 9 real attempts of E2E-LAB-01 (2 skipped as incomplete): 0 verdicts changed. Research: docs/RESEARCH.md §8.
+  D built 2026-11-28: `app/ingestion/amounts.py` reads Spanish amounts in words (to the millions) and compares them
+  with the figure of every "$figure (words NN/100 ...)" in a firm document's units; at upload the cite_ids of the units
+  that disagree go to `client_files.amount_mismatch_units` (migration 0017; ids only, never text) and the documents
+  list shows a notice (Brand.md §9.7.1). Words it cannot read and amounts not written twice are left alone; nothing
+  is corrected. 12 parser tests and one upload test (the $16,000.00 / QUINCE MIL clause flagged, the clean contract
+  not). Mutation testing (A) now has 15 mutants. C (latency: KV reuse is already true, ADR-043; speculative decoding
+  needs ADR-040's runtime) stays Proposed.
 - ADR-039 (Proposed, 2026-11-26): The product's value is measured with a within-subject time-on-task study with practising
   lawyers before any claim of time saved. Context: the business case rests on a survey's expectations (Thomson Reuters
   2025: ~5 h/week expected), not a measurement; no user research, pilot or pricing exists. Options: (A) keep the

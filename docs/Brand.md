@@ -385,6 +385,12 @@ The same frame as §8 (bar, tokens, typography, tone); no tool uses the model fo
   rescan at 300 ppp or more. The viewer adds the same notice above the text for a firm document read by OCR
   ("compárelo con el original antes de citarlo"). Never a colour alone, never a confidence number without words.
 
+### 9.7.1 Amounts that disagree (ADR-038 D, 2026-11-28)
+- A ready document whose amounts disagree between figure and words (code-checked, "$15,000.00 (QUINCE MIL PESOS
+  00/100 M.N.)") shows one `reform-notice` line (⚠ icon, `role=note`) in the documents list: how many passages, that it
+  may be a reading error or one in the original, and to check the document before citing. Never a refusal, never an
+  automatic correction, never colour alone.
+
 ### 9.8 Regime of a citation (ADR-031, 2026-11-26)
 - A matter may declare its labour regime (closed list, a select under the description; "Sin indicar" by default),
   with one sentence saying what it is for and that the warning does not replace the lawyer's review.

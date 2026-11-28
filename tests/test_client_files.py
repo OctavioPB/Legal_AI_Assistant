@@ -647,3 +647,26 @@ def test_reading_as_scanned_skips_the_text_layer_and_bad_scans_fail_closed(firm)
     many = upload(client, ana, _scanned_pdf(["scan"]), **ok).json()
     assert (many["status"], many["error_key"]) == ("failed", "too_many_scanned_pages")
     state.settings = settings()
+
+
+def test_an_amount_whose_figure_and_words_disagree_is_flagged_on_its_unit(firm) -> None:  # type: ignore[no-untyped-def]
+    """ADR-038 (D): OCR can misread a digit; the sum written twice catches it. Only the unit's id
+    is stored, never its text; nothing is corrected."""
+    client, _, j, _, _ = firm
+    ana = auth(client)
+    body = (
+        "CONTRATO DE ARRENDAMIENTO\n\nPRIMERA.- RENTA\n\nLa renta mensual será de $15,000.00 "
+        "(QUINCE MIL PESOS 00/100 M.N.), pagadera por adelantado.\n\nSEGUNDA.- PENA "
+        "CONVENCIONAL\n\nLa pena será de $16,000.00 (QUINCE MIL PESOS 00/100 M.N.) por cada mes.\n"
+    )
+    f = upload(client, ana, body.encode(), title="Arrendamiento", kind="contrato",
+               jurisdiction_id=j["fed"]).json()  # fmt: skip
+    assert f["status"] == "ready", f
+    [flagged] = f["amount_mismatch_units"]
+    units = {
+        u["cite_id"]: u["text"] for u in client.get(f"/files/{f['id']}/text", headers=ana).json()
+    }
+    assert "$16,000.00" in units[flagged] and "$15,000.00" not in units[flagged]
+    clean = upload(client, ana, CONTRACT.encode(), title="Servicios", kind="contrato",
+                   jurisdiction_id=j["fed"]).json()  # fmt: skip
+    assert clean["amount_mismatch_units"] == []

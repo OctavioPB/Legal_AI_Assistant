@@ -256,6 +256,12 @@ function FileRow({ f, place, when, onOpen, onChanged }: { f: ClientFile; place: 
           {t("ocrExcluded", { pages: f.ocr_excluded_pages.join(", ") })}
         </p>
       )}
+      {f.status === "ready" && (f.amount_mismatch_units ?? []).length > 0 && (
+        <p className="reform-notice small" role="note">
+          <span aria-hidden="true">⚠ </span>
+          {t("amountMismatch", { count: String((f.amount_mismatch_units ?? []).length) })}
+        </p>
+      )}
       {f.status === "processing" && <p className="small muted">{t("processingHelp")}</p>}
       <div className="bar-actions">
         {f.status === "ready" && (

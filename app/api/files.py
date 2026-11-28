@@ -28,6 +28,7 @@ from app.api.auth import Principal
 from app.api.conversations import check_matter
 from app.api.deps import AppState, PrincipalDep, StateDep
 from app.db.session import tenant_transaction
+from app.ingestion.amounts import mismatches as amount_mismatches
 from app.ingestion.extract import (
     Format,
     UnsupportedFileError,
@@ -61,7 +62,8 @@ _COLS = (
     "f.id, f.title, f.kind, f.language, f.jurisdiction_id, f.matter_id, f.status, f.error_key, "
     "f.grammar, f.pages, f.chunk_count, f.source_format, f.created_at, f.finished_at, "
     "f.uploaded_by = app_user_id() AS mine, u.display_name AS uploaded_by_name, "
-    "f.document_id, f.file_token, f.ocr_pages, f.ocr_excluded_pages, f.ocr_confidence"
+    "f.document_id, f.file_token, f.ocr_pages, f.ocr_excluded_pages, f.ocr_confidence, "
+    "f.amount_mismatch_units"
 )
 _FROM = "FROM client_files f JOIN users u ON u.id = f.uploaded_by AND u.tenant_id = f.tenant_id"
 
@@ -85,6 +87,8 @@ class FileOut(BaseModel):
     ocr_pages: list[int] = []  # ADR-030: read by OCR and kept
     ocr_excluded_pages: list[int] = []  # read by OCR, under the confidence threshold: left out
     ocr_confidence: float | None = None
+    # ADR-038 (D): units where an amount's figure and its words disagree (ids, never text)
+    amount_mismatch_units: list[str] = []
 
 
 class FileUnit(BaseModel):
@@ -108,6 +112,7 @@ def _out(row: Any, p: Principal, st: AppState) -> FileOut:
         can_delete=row.mine or p.role in ("owner", "admin"),
         ocr_pages=list(row.ocr_pages or []), ocr_excluded_pages=list(row.ocr_excluded_pages or []),
         ocr_confidence=row.ocr_confidence,
+        amount_mismatch_units=list(row.amount_mismatch_units or []),
     )  # fmt: skip
 
 
@@ -375,16 +380,24 @@ def process(st: AppState, job: _Job, data: bytes) -> None:
         except ValueError as exc:  # "no chunks produced": nothing citable in the text
             raise _Failed("no_text") from exc
         with tenant_transaction(st.engine, job.tenant_id, user_id=job.user_id) as conn:
+            # ADR-038 (D): a sum written as a figure and in words must agree (OCR misreads digits)
+            units = conn.execute(
+                text("SELECT cite_id, text FROM chunks WHERE document_id = :d ORDER BY char_start"),
+                {"d": stats.document_id},
+            ).all()
+            amount_bad = [u.cite_id for u in units if amount_mismatches(u.text)]
             done = conn.execute(
                 text(
                     "UPDATE client_files SET status = 'ready', document_id = :d, chunk_count = :n, "
                     "pages = :p, grammar = :g, ocr_pages = :op, ocr_excluded_pages = :ox, "
-                    "ocr_confidence = :oc, ocr_engine = :oe, finished_at = now() WHERE id = :id"
+                    "ocr_confidence = :oc, ocr_engine = :oe, amount_mismatch_units = :am, "
+                    "finished_at = now() WHERE id = :id"
                 ),
                 {"d": stats.document_id, "n": stats.chunks_written, "p": pages, "g": grammar,
                  "op": list(pdf.ocr_pages) if pdf else [],
                  "ox": list(pdf.excluded_pages) if pdf else [],
-                 "oc": pdf.ocr_confidence if pdf else None, "oe": engine, "id": job.file_id},
+                 "oc": pdf.ocr_confidence if pdf else None, "oe": engine, "am": amount_bad,
+                 "id": job.file_id},
             ).rowcount  # fmt: skip
             if not done:  # the row vanished meanwhile (matter deleted): leave no orphan text
                 conn.execute(text("DELETE FROM documents WHERE id = :d"), {"d": stats.document_id})
@@ -396,7 +409,8 @@ def process(st: AppState, job: _Job, data: bytes) -> None:
                 {"chunks": stats.chunks_written, "oversized": len(stats.oversized),
                  "undersized": len(stats.undersized), "seconds": round(stats.seconds, 2),
                  "ocr_pages": len(pdf.ocr_pages) if pdf else 0,
-                 "ocr_excluded_pages": len(pdf.excluded_pages) if pdf else 0},
+                 "ocr_excluded_pages": len(pdf.excluded_pages) if pdf else 0,
+                 "amount_mismatches": len(amount_bad)},
             )  # fmt: skip
     except Exception as exc:
         key = exc.key if isinstance(exc, _Failed) else "internal"

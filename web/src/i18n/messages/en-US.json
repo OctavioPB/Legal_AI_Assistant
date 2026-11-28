@@ -686,7 +686,8 @@
     "forceOcr": "The PDF's text is damaged: read it as scanned",
     "forceOcrHelp": "Tick this if the extracted text shows meaningless characters. Every page will be read as an image (a few seconds per page).",
     "ocrRead": "Pages read by OCR: {pages} (mean confidence {pct}%). Check the extracted text before relying on it.",
-    "ocrExcluded": "Pages left out because they were read with very low quality: {pages}. The assistant will not see or cite them. Rescan them at 300 dpi or more and upload the document again."
+    "ocrExcluded": "Pages left out because they were read with very low quality: {pages}. The assistant will not see or cite them. Rescan them at 300 dpi or more and upload the document again.",
+    "amountMismatch": "Amounts whose figure and words disagree in {count} passage(s) of the document. It may be a reading error or one in the original: check the document before citing them."
   },
   "news": {
     "title": "News",

@@ -491,6 +491,7 @@ export interface ClientFile {
   can_delete: boolean;
   ocr_pages: number[]; // ADR-030: pages read by OCR and kept
   ocr_excluded_pages: number[]; // pages read by OCR under the confidence threshold: left out
+  amount_mismatch_units?: string[]; // ADR-038 D: units where an amount's figure and words disagree
   ocr_confidence: number | null;
 }
 

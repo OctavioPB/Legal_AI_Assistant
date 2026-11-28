@@ -686,7 +686,8 @@
     "forceOcr": "El texto del PDF está dañado: leerlo como escaneado",
     "forceOcrHelp": "Márquelo si al ver el texto extraído aparecen letras sin sentido. Todas las páginas se leerán como imagen (unos segundos por página).",
     "ocrRead": "Páginas leídas por OCR: {pages} (confianza media {pct} %). Revise el texto extraído antes de confiar en él.",
-    "ocrExcluded": "Páginas omitidas por su baja calidad de lectura: {pages}. El asistente no las verá ni las citará. Escanéelas de nuevo a 300 ppp o más y vuelva a subir el documento."
+    "ocrExcluded": "Páginas omitidas por su baja calidad de lectura: {pages}. El asistente no las verá ni las citará. Escanéelas de nuevo a 300 ppp o más y vuelva a subir el documento.",
+    "amountMismatch": "Importes que no coinciden entre la cifra y la letra en {count} fragmento(s) del documento. Puede ser un error de lectura o del original: revise el documento antes de citarlos."
   },
   "news": {
     "title": "Noticias",
