@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     # scores min-max normalised per query). Stays "rrf" unless the measurements say otherwise.
     retrieval_fusion: Literal["rrf", "convex"] = "rrf"
     retrieval_convex_alpha: float = 0.5
+    # ADR-037 (C): add the units the hits refer to ("en los términos del artículo 48") to the
+    # context, after everything else. Off until the golden suite says otherwise.
+    retrieval_crossref: bool = False
+    retrieval_crossref_max: int = 3  # referenced stems (articles or fracciones) per query
+    retrieval_crossref_max_units: int = 6  # units loaded for them
     retrieval_rerank_top: int = 8
     retrieval_context_budget_tokens: int = 12_000
     # tau is CALIBRATED from probe sets (ADR-007), never guessed: None = the gate refuses to run.

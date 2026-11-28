@@ -10,6 +10,7 @@ from sqlalchemy import Connection
 
 from app.ingestion.tokens import TokenCounter
 from app.rag.context import SessionContext
+from app.rag.crossref import referenced_stems
 from app.rag.expansion import build_context
 from app.rag.fusion import convex, rrf
 from app.rag.gate import apply_gate
@@ -124,8 +125,27 @@ def retrieve(
         for i, h in enumerate(hits_by_cite(conn, ctx, wanted, embedder), 1)
     ]
     top = [*top, *carried]
+    # ADR-037 (C): units the hits refer to, LAST: only the budget left over, and they are not hits
+    xref: list[Hit] = []
+    if settings.retrieval_crossref:
+        stems = referenced_stems(top, limit=settings.retrieval_crossref_max)
+        seen = {h.cite_id for h in top}
+        xref = [
+            h.model_copy(update={"rank": len(top) + i})
+            for i, h in enumerate(
+                (
+                    x
+                    for x in hits_by_stem(
+                        conn, ctx, stems, embedder, limit=settings.retrieval_crossref_max_units
+                    )
+                    if x.cite_id not in seen
+                ),
+                1,
+            )
+        ]
     frags = build_context(
-        conn, top, budget_tokens=settings.retrieval_context_budget_tokens, counter=counter,
+        conn, [*top, *xref], budget_tokens=settings.retrieval_context_budget_tokens,
+        counter=counter,
         citable_units=settings.context_citable_units, include_historical=ctx.include_historical,
         apartado=settings.context_unit_apartado,
     )  # fmt: skip
