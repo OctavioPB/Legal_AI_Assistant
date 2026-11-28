@@ -254,19 +254,20 @@ a table of where the build departs from it.
 Golden suite, 25 cases, local models. The run records are in `evals/runs/`. In brackets, the exact 95 %
 (Clopper-Pearson) interval: `uv run python -m evals.run --intervals <run>` (ADR-032).
 
-| Metric | Gemma 4 26B (default), 2026-11-27 | Qwen 3 4B, 2026-11-09 |
+| Metric | Gemma 4 26B (default), 2026-11-28 | Qwen 3 4B, 2026-11-09 |
 |---|---|---|
-| Recall@8 | 19 of 20 [75–100 %] | 20 of 20 [83–100 %] |
+| Recall (gold in the context) | 19 of 20 [75–100 %] | 20 of 20 [83–100 %] |
 | Jurisdiction leakage | 0 of 25 [0–14 %] | 0 of 25 [0–14 %] |
-| Citation precision | 52 of 52 [93–100 %] | 4 of 4 [40–100 %] |
+| Citation precision | 50 of 50 [93–100 %] | 4 of 4 [40–100 %] |
 | Correct refusals | 5 of 5 [48–100 %] | 5 of 5 [48–100 %] |
-| False refusals | 2 of 20 [1–32 %] | 17 of 20 [62–97 %] |
-| Median time per answered case | 47 s | 19 s |
+| False refusals | 1 of 20 [0–25 %] | 17 of 20 [62–97 %] |
+| Median time per answered case | 36 s | 19 s |
 
-The Gemma column is `golden-20261127T195859Z-after-hidden-headings-gen4`, on the live index (generation 4,
-ADR-006); the Qwen column was measured on the earlier index and has not been re-run. Gemma's earlier run
-(2026-11-09) showed 20 of 20 recall and 1 of 20 false refusals: the difference is one or two cases, inside the
-intervals, and the per-case comparison is in the run records.
+The Gemma column is `golden-20261128T064911Z-production-2026-11-28`, the configuration in production: index
+generation 4 (ADR-006, 049, 052), typed records with `dossier_builder_typed@v2` (ADR-033) and five fragments of
+context (ADR-042), with no regeneration needed in any case. The temporal track (ADR-050, 4 cases kept apart) passes
+4 of 4 (`golden-20261128T065129Z-production-temporal-2026-11-28`). The Qwen column was measured on the earlier
+index and free text, and has not been re-run.
 
 Read these with their limits:
 
@@ -406,8 +407,8 @@ and the law use.
   reported, never cited; OCR text can still contain a misread word, and the source viewer says the text came from OCR.
   The brief verifier does not read scans yet.
 - Case law is not loaded; the corpus is statutes.
-- An answer takes about half a minute to a minute with the local 26B model on an 8 GB GPU: 47 s median over
-  the answered cases of the full golden run of 2026-11-27, 28 s on four short cases with
+- An answer takes about half a minute with the local 26B model on an 8 GB GPU: 36 s median over the answered
+  cases of the production golden run of 2026-11-28, 28 s on four short cases with
   `OLLAMA_MAX_LOADED_MODELS=3` (ADR-041; 61 s without it), longer when it regenerates.
 - The refusal threshold was calibrated on statute text with AI-drafted probe sets; a question about a
   firm's own contract fell just under it in the end-to-end case. The same threshold gives the same rates on
