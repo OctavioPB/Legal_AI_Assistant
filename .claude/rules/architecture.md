@@ -763,7 +763,7 @@ below are the original one-liners and are Accepted.
   Consequences: (+) possibly better separation of covered and absent topics, which also tightens tau; (−) a reranker
   changes the score scale, so tau must be recalibrated (ADR-036); C is a new embedding generation. Pending: owner's choice;
   the calibration run with the new reranker. Research: docs/RESEARCH.md §17.
-- ADR-048 (Proposed, 2026-11-26): Lexical and semantic scores are fused by a tuned convex combination instead of fixed RRF.
+- ADR-048 (Rejected 2026-11-28, decided by Claude under the owner's delegation of 2026-11-28; RRF stays): Lexical and semantic scores are fused by a tuned convex combination instead of fixed RRF.
   Context: fusion is RRF with k = 60, untuned (rag.md). Bruch, Gai and Ingber (ACM, 2023, arXiv 2210.11934) find that a
   convex combination of normalised scores beats RRF in and out of domain, needs only a small sample to tune its single
   parameter, and that a tuned RRF generalises poorly. Options: (A) keep RRF k = 60; (B) a convex combination with one
@@ -772,6 +772,15 @@ below are the original one-liners and are Accepted.
   forbids today ("fusion depends only on ranks"), so the rule itself changes, and determinism (stable tie-breaks) must
   still hold; with 25 golden cases the weight must not be fitted to the test set. Pending: owner's choice; retrieval-only
   runs per category for A and B. Research: docs/RESEARCH.md §18.
+  Measured 2026-11-28 on generation 4: RRF vs convex fusion (each arm min-max normalised per query) at alpha 0.3,
+  0.5, 0.7, 0.9, retrieval-only golden (`golden-20261128T0243..-0251..-adr048-*`) and probe sets (`tau-20261128T0245..`
+  to `...0253..`). Every setting: recall@8 0.95, leakage 0, distractor rate 0.16, char recall 0.890 (char precision
+  0.1334 -> 0.1324), probe gold in top 8 for 75/81, AUC 0.935, at τ 0.58 87.6 % / 80.3 %. Convex changed the hit set
+  of 1-2 cases (gd2-014/015), below rank 8 or away from gold. Why: the dense reranker re-orders the fused pool by
+  cosine, so fusion only decides which candidates sit at the edge of the 20-candidate pool. Decision: keep RRF (it
+  reads ranks only, as rag.md requires). The convex code stays behind `retrieval_fusion` (tested) to re-measure if the
+  reranker changes, which is when the pool's composition would matter (ADR-047). Found while measuring: run records
+  did not include the fusion and other switches; they now do.
 - ADR-049 (Accepted 2026-11-27, option B chosen by the product owner and adopted as index generation 4 with ADR-052): Each chunk is contextualised for retrieval by deterministic text (its article's lead-in and
   the full chapter titles) before any model-written context. Context: Anthropic's contextual retrieval (2024) prepends
   chunk-specific context before embedding and lexical indexing and reports retrieval failures down about 35 % with

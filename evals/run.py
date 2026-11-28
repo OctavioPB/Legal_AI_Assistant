@@ -191,6 +191,10 @@ def _config(
             "refusal_tau", "refusal_min_fragments", "retrieval_arm_top", "retrieval_rrf_k",
             "retrieval_rrf_top", "retrieval_rerank_top", "retrieval_context_budget_tokens",
             "context_citable_units", "validator_quote_min_words", "validator_coverage_min_words",
+            # every switch that changes retrieval or generation is part of the run's identity
+            "retrieval_fusion", "retrieval_convex_alpha", "retrieval_crossref",
+            "retrieval_crossref_max", "retrieval_crossref_max_units", "retrieval_explicit_reference",
+            "context_unit_apartado", "typed_records_workflows", "lexical_match", "rerank_breadcrumb",
         ) if hasattr(settings, k)},
         "resolved_models": registry.pinned_ids(),
         "embedder": {"model": embedder.model, "revision": embedder.revision},
