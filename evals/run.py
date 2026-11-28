@@ -255,7 +255,8 @@ def run_case(
     with tenant_transaction(engine, tenant) as conn:
         jid = _jurisdiction_id(conn, s.jurisdiction)
         ctx = load_session_context(conn, tenant, jid, language=_LANG[s.language],  # type: ignore[arg-type]
-                                   include_historical=s.include_historical)  # fmt: skip
+                                   include_historical=s.include_historical,
+                                   as_of=s.as_of)  # fmt: skip
         if not full:
             r = retrieve(conn, ctx, case.query, embedder=deps.embedder, reranker=deps.reranker,
                          counter=deps.counter, settings=deps.settings)  # fmt: skip

@@ -129,7 +129,8 @@
     "reason": {
       "retrieval": {
         "no_hits": "No source from this jurisdiction related to the question was retrieved.",
-        "below_threshold": "The retrieved sources are not relevant enough to the question."
+        "below_threshold": "The retrieved sources are not relevant enough to the question.",
+        "no_version_as_of": "The corpus holds no version of the law with known validity dates covering the date given."
       },
       "validation": {
         "model_declined": "The model could not support an answer with the retrieved sources.",

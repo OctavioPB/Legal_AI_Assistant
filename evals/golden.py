@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import statistics
 from collections.abc import Iterable
+from datetime import date
 from pathlib import Path
 from typing import Any, Literal
 
@@ -59,6 +60,7 @@ class Session(BaseModel):
         "dossier_builder"
     )
     include_historical: bool = False
+    as_of: date | None = None  # ADR-050: the law as of this date (the temporal track)
 
 
 class GoldenCase(BaseModel):

@@ -129,7 +129,8 @@
     "reason": {
       "retrieval": {
         "no_hits": "No se recuperó ninguna fuente de esta jurisdicción relacionada con la consulta.",
-        "below_threshold": "Las fuentes recuperadas no son suficientemente pertinentes para la consulta."
+        "below_threshold": "Las fuentes recuperadas no son suficientemente pertinentes para la consulta.",
+        "no_version_as_of": "No hay en el corpus una versión de la norma con fechas de vigencia conocidas que cubra la fecha indicada."
       },
       "validation": {
         "model_declined": "El modelo no pudo sustentar una respuesta con las fuentes recuperadas.",

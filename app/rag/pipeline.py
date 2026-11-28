@@ -13,7 +13,7 @@ from app.rag.context import SessionContext
 from app.rag.crossref import referenced_stems
 from app.rag.expansion import build_context
 from app.rag.fusion import convex, rrf
-from app.rag.gate import apply_gate
+from app.rag.gate import apply_gate, refusal_block
 from app.rag.search import QueryEmbedder, hits_by_cite, hits_by_stem, lexical_arm, semantic_arm
 from app.rag.types import Fragment, Hit, Refusal
 from app.settings import Settings
@@ -111,6 +111,14 @@ def retrieve(
         if pinned
         else apply_gate(top, tau=settings.refusal_tau, min_fragments=settings.refusal_min_fragments)
     )
+    if refusal is not None and ctx.as_of is not None and refusal.reason_key == "retrieval.no_hits":
+        # ADR-050: nothing in scope is dated to cover that day; say so instead of "no sources"
+        refusal = refusal.model_copy(
+            update={
+                "reason_key": "retrieval.no_version_as_of",
+                "block": refusal_block("retrieval.no_version_as_of"),
+            }
+        )
     sem_ids = tuple(h.cite_id for h in sem)
     lex_ids = tuple(h.cite_id for h in lex)
     if refusal is not None:
