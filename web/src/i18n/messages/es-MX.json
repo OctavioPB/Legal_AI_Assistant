@@ -129,7 +129,8 @@
     "reason": {
       "retrieval": {
         "no_hits": "No se recuperó ninguna fuente de esta jurisdicción relacionada con la consulta.",
-        "below_threshold": "Las fuentes recuperadas no son suficientemente pertinentes para la consulta."
+        "below_threshold": "Las fuentes recuperadas no son suficientemente pertinentes para la consulta.",
+        "no_version_as_of": "No hay en el corpus una versión de la norma con fechas de vigencia conocidas que cubra la fecha indicada."
       },
       "validation": {
         "model_declined": "El modelo no pudo sustentar una respuesta con las fuentes recuperadas.",
@@ -157,7 +158,8 @@
     "identifier": "Identificador",
     "reformed": "Esta disposición cambió después de citarse ({change}, {date}). Versión vigente:",
     "firmDocument": "Documento del despacho",
-    "section": "Sección completa"
+    "section": "Sección completa",
+    "ocr": "Este documento se leyó con reconocimiento de texto (OCR) en las páginas {pages}, con una confianza media de {pct} %. El texto puede tener errores de lectura: compárelo con el original antes de citarlo."
   },
   "footer": {
     "disclaimer": "Herramienta de investigación. No sustituye el criterio profesional del abogado."
@@ -190,7 +192,12 @@
       "title": "Fuentes citadas",
       "empty": "Las fuentes citadas aparecerán aquí. Seleccione una para leer el texto original.",
       "open": "Abrir texto completo",
-      "loading": "Cargando extracto…"
+      "loading": "Cargando extracto…",
+      "regime": "Régimen especial de la LFT: {name}",
+      "applicability": {
+        "special_regime": "Este artículo pertenece al régimen especial «{name}», distinto del que indicó el asunto. Compruebe que aplica antes de usarlo.",
+        "collective_regime": "Este artículo es de derecho colectivo («{name}») y el asunto es de una relación individual. Compruebe que aplica antes de usarlo."
+      }
     },
     "chat": {
       "title": "Conversar",
@@ -277,7 +284,10 @@
       "change": "Cambiar",
       "done": "Listo",
       "personaHelp": "El perfil orienta el vocabulario y el orden de las fuentes; no amplía ni restringe la jurisdicción.",
-      "historicalHelp": "Actívelo solo si necesita saber qué decía una norma antes de una reforma."
+      "historicalHelp": "Actívelo solo si necesita saber qué decía una norma antes de una reforma.",
+      "asOf": "Derecho vigente a la fecha (opcional)",
+      "asOfHelp": "La fecha de los hechos. Solo se consultan versiones de la norma cuya vigencia conocida cubre esa fecha; si no hay ninguna, el sistema lo dice en lugar de responder con el texto actual.",
+      "asOfCurrent": "Derecho vigente al {date}"
     },
     "model": {
       "label": "Modelo",
@@ -301,7 +311,8 @@
       "remoteWarning": "Con este modelo, su pregunta, el historial de la conversación y los fragmentos de ley recuperados se envían a Anthropic para generar cada respuesta. No lo use si el despacho no lo ha autorizado para el asunto.",
       "fixed": "Modelo: {name}",
       "fixedRemote": "externo"
-    }
+    },
+    "asOfChip": "Derecho al {date}"
   },
   "home": {
     "eyebrow": "Investigación jurídica verificable",
@@ -409,7 +420,15 @@
       "error": "No se pudo guardar.",
       "saved": "Guardada en el asunto."
     },
-    "filesIn": "Documentos del asunto"
+    "filesIn": "Documentos del asunto",
+    "regime": {
+      "label": "Régimen laboral del asunto",
+      "help": "Opcional. Si lo indica, el asistente avisará cuando cite un artículo de otro régimen (por ejemplo, del trabajo del campo en un despido ordinario). El aviso no sustituye su revisión.",
+      "none": "Sin indicar",
+      "ordinary": "Relación individual ordinaria",
+      "collective": "Relaciones colectivas o huelga",
+      "special": "Trabajo especial: {name}"
+    }
   },
   "laws": {
     "title": "Leyes",
@@ -596,7 +615,7 @@
     "intro": "Suba contratos, escritos, resoluciones o una norma que no esté cargada. El asistente podrá citarlos en sus conversaciones, igual que cita la ley.",
     "uploadTitle": "Subir un documento",
     "file": "Archivo",
-    "fileHelp": "PDF con texto, Word (.docx) o texto plano. Máximo 25 MB. Un PDF escaneado (solo imágenes) no se puede leer.",
+    "fileHelp": "PDF, Word (.docx) o texto plano. Máximo 25 MB. Las páginas escaneadas de un PDF se leen con reconocimiento de texto (OCR) en este equipo.",
     "docTitle": "Nombre del documento",
     "docTitlePlaceholder": "Contrato de prestación de servicios 2026",
     "docTitleHelp": "Así aparecerá en las citas. Si lo deja vacío se usa el nombre del archivo.",
@@ -643,7 +662,11 @@
       "embedder_unavailable": "El motor de búsqueda local no respondió. Compruebe que la aplicación esté iniciada y súbalo de nuevo.",
       "generation_mismatch": "El índice de búsqueda cambió de versión y este documento no puede mezclarse con él. Avise a quien administra el sistema.",
       "interrupted": "El procesamiento se interrumpió (la aplicación se cerró). Elimínelo y súbalo de nuevo.",
-      "internal": "Ocurrió un error al procesarlo. Elimínelo e inténtelo de nuevo."
+      "internal": "Ocurrió un error al procesarlo. Elimínelo e inténtelo de nuevo.",
+      "ocr_unavailable": "El PDF tiene páginas escaneadas y este equipo no tiene instalado el reconocimiento de texto (Tesseract). Pida a quien administra el sistema que lo instale (docs/LOCAL_DEMO.md).",
+      "ocr_failed": "El reconocimiento de texto falló en una página. Compruebe que el archivo se abre bien y súbalo de nuevo.",
+      "ocr_low_confidence": "Todas las páginas escaneadas se leyeron con muy poca calidad, así que no se guardó nada. Escanee el documento de nuevo a 300 ppp o más.",
+      "too_many_scanned_pages": "El documento tiene demasiadas páginas escaneadas para leerlas de una vez. Divídalo en partes y súbalas por separado."
     },
     "showText": "Ver el texto extraído",
     "hideText": "Ocultar el texto",
@@ -659,7 +682,12 @@
       "busy": "Hay demasiadas solicitudes. Espere un momento e inténtelo de nuevo.",
       "matter": "El asunto ya no está disponible. Elija otro o súbalo sin asunto.",
       "generic": "No se pudo subir el documento. Inténtelo de nuevo."
-    }
+    },
+    "forceOcr": "El texto del PDF está dañado: leerlo como escaneado",
+    "forceOcrHelp": "Márquelo si al ver el texto extraído aparecen letras sin sentido. Todas las páginas se leerán como imagen (unos segundos por página).",
+    "ocrRead": "Páginas leídas por OCR: {pages} (confianza media {pct} %). Revise el texto extraído antes de confiar en él.",
+    "ocrExcluded": "Páginas omitidas por su baja calidad de lectura: {pages}. El asistente no las verá ni las citará. Escanéelas de nuevo a 300 ppp o más y vuelva a subir el documento.",
+    "amountMismatch": "Importes que no coinciden entre la cifra y la letra en {count} fragmento(s) del documento. Puede ser un error de lectura o del original: revise el documento antes de citarlos."
   },
   "news": {
     "title": "Noticias",

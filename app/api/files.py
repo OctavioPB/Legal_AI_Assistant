@@ -27,8 +27,8 @@ from starlette.concurrency import run_in_threadpool
 from app.api.auth import Principal
 from app.api.conversations import check_matter
 from app.api.deps import AppState, PrincipalDep, StateDep
-from app.api.verify import _parse_pdf
 from app.db.session import tenant_transaction
+from app.ingestion.amounts import mismatches as amount_mismatches
 from app.ingestion.extract import (
     Format,
     UnsupportedFileError,
@@ -41,6 +41,13 @@ from app.ingestion.normalizer_mx import normalize_text
 from app.ingestion.normalizer_mx import parse as parse_mx
 from app.ingestion.normalizer_us import normalize_us_text
 from app.ingestion.normalizer_us import parse as parse_us
+from app.ingestion.ocr import OcrConfig, OcrEngine, OcrFailedError, OcrMode, tesseract_reader
+from app.ingestion.pdf_read import (
+    OcrUnavailableError,
+    PdfText,
+    TooManyScannedPagesError,
+    read_pdf,
+)
 from app.ingestion.store import VersionMismatchError, ingest_document
 from app.orchestration.resilient import ProviderError
 
@@ -55,7 +62,8 @@ _COLS = (
     "f.id, f.title, f.kind, f.language, f.jurisdiction_id, f.matter_id, f.status, f.error_key, "
     "f.grammar, f.pages, f.chunk_count, f.source_format, f.created_at, f.finished_at, "
     "f.uploaded_by = app_user_id() AS mine, u.display_name AS uploaded_by_name, "
-    "f.document_id, f.file_token"
+    "f.document_id, f.file_token, f.ocr_pages, f.ocr_excluded_pages, f.ocr_confidence, "
+    "f.amount_mismatch_units"
 )
 _FROM = "FROM client_files f JOIN users u ON u.id = f.uploaded_by AND u.tenant_id = f.tenant_id"
 
@@ -76,6 +84,11 @@ class FileOut(BaseModel):
     mine: bool
     uploaded_by_name: str
     can_delete: bool
+    ocr_pages: list[int] = []  # ADR-030: read by OCR and kept
+    ocr_excluded_pages: list[int] = []  # read by OCR, under the confidence threshold: left out
+    ocr_confidence: float | None = None
+    # ADR-038 (D): units where an amount's figure and its words disagree (ids, never text)
+    amount_mismatch_units: list[str] = []
 
 
 class FileUnit(BaseModel):
@@ -97,6 +110,9 @@ def _out(row: Any, p: Principal, st: AppState) -> FileOut:
         source_format=row.source_format, created_at=row.created_at, mine=row.mine,
         uploaded_by_name=row.uploaded_by_name,
         can_delete=row.mine or p.role in ("owner", "admin"),
+        ocr_pages=list(row.ocr_pages or []), ocr_excluded_pages=list(row.ocr_excluded_pages or []),
+        ocr_confidence=row.ocr_confidence,
+        amount_mismatch_units=list(row.amount_mismatch_units or []),
     )  # fmt: skip
 
 
@@ -158,9 +174,11 @@ async def upload_file(
     language: Literal["es", "en"] = "es",
     jurisdiction_id: int = Query(ge=1),
     matter_id: uuid.UUID | None = None,
+    force_ocr: bool = False,
 ) -> FileOut:
     """Body: the file's bytes (PDF, .docx or plain text; recognised by content). 202: the row is
-    `processing`; poll `GET /files/{id}`."""
+    `processing`; poll `GET /files/{id}`. `force_ocr`: read every page of a PDF as scanned (its
+    text layer is legible but wrong); pages without a text layer are read by OCR anyway."""
     st.limits.check(str(p.tenant_id), str(p.user_id))
     data = bytearray()
     async for part in request.stream():
@@ -189,15 +207,17 @@ async def upload_file(
         file_id: uuid.UUID = conn.execute(
             text(
                 "INSERT INTO client_files (tenant_id, uploaded_by, matter_id, title, kind, "
-                "language, jurisdiction_id, file_token, source_format) "
-                "VALUES (:t, :u, :m, :title, :k, :l, :j, :tok, :f) RETURNING id"
+                "language, jurisdiction_id, file_token, source_format, force_ocr) "
+                "VALUES (:t, :u, :m, :title, :k, :l, :j, :tok, :f, :o) RETURNING id"
             ),
             {"t": p.tenant_id, "u": p.user_id, "m": matter_id, "title": title, "k": kind,
-             "l": language, "j": jurisdiction_id, "tok": token, "f": fmt},
+             "l": language, "j": jurisdiction_id, "tok": token, "f": fmt,
+             "o": force_ocr and fmt == "pdf"},
         ).scalar_one()  # fmt: skip
     job = _Job(file_id=file_id, tenant_id=p.tenant_id, user_id=p.user_id, title=title, kind=kind,
                language=language, jurisdiction_id=jurisdiction_id, country=j.country,
-               matter_id=matter_id, token=token, fmt=fmt)  # fmt: skip
+               matter_id=matter_id, token=token, fmt=fmt,
+               force_ocr=force_ocr and fmt == "pdf")  # fmt: skip
     await run_in_threadpool(st.jobs.submit, lambda: process(st, job, payload))
     with tenant_transaction(st.engine, p.tenant_id, user_id=p.user_id) as conn:
         return _out(_one(conn, file_id), p, st)
@@ -233,6 +253,7 @@ class _Job(BaseModel):
     matter_id: uuid.UUID | None
     token: str
     fmt: Format
+    force_ocr: bool = False
 
 
 class _Failed(Exception):
@@ -270,28 +291,68 @@ def choose_grammar(
     return "mx" if found >= min_articles else "generic"
 
 
-def _extract(st: AppState, job: _Job, data: bytes) -> tuple[str, int | None]:
+def _pdf_parser(st: AppState) -> Any:
+    if st.pdf_parser is None:
+        from app.ingestion.parser import DoclingParser
+
+        st.pdf_parser = DoclingParser()
+    return st.pdf_parser
+
+
+def _page_reader(st: AppState, cfg: OcrConfig) -> tuple[Any, str | None]:
+    """The OCR page reader and its provenance label; tests inject `st.page_reader`."""
+    if st.page_reader is not None:
+        return st.page_reader, str(getattr(st.page_reader, "label", "injected"))
+    engine = OcrEngine.find(cfg)
+    if engine is None:
+        return None, None
+    try:
+        label = f"tesseract {engine.version()} {engine.languages}"
+    except Exception:  # an executable that does not run: no OCR, and the upload says so
+        return None, None
+    return tesseract_reader(engine, cfg), label[:80]
+
+
+Extracted = tuple[str, int | None, PdfText | None, str | None]
+
+
+def _extract(st: AppState, job: _Job, data: bytes) -> Extracted:
     if job.fmt == "pdf":
+        cfg = OcrConfig.from_settings(st.settings)
+        reader, engine = _page_reader(st, cfg)
         try:
-            parsed, _warnings = _parse_pdf(data, st)
+            pdf = read_pdf(
+                data, _pdf_parser(st), mode=OcrMode.ALWAYS if job.force_ocr else OcrMode.AUTO,
+                cfg=cfg, reader=reader, max_ocr_pages=st.settings.ocr_max_pages,
+            )  # fmt: skip
+        except OcrUnavailableError as exc:
+            raise _Failed("ocr_unavailable") from exc
+        except TooManyScannedPagesError as exc:
+            raise _Failed("too_many_scanned_pages") from exc
+        except OcrFailedError as exc:
+            log.warning("client file %s: OCR failed (%s)", job.file_id, exc)
+            raise _Failed("ocr_failed") from exc
         except Exception as exc:  # a damaged or encrypted PDF: the parser's own errors vary
             log.warning("client file %s: PDF could not be parsed (%s)", job.file_id,
                         type(exc).__name__)  # fmt: skip
             raise _Failed("unreadable") from exc
-        return parsed, None
+        if not pdf.text.strip() and pdf.excluded_pages:
+            raise _Failed("ocr_low_confidence")  # every scanned page was too poor to trust
+        used = engine if (pdf.ocr_pages or pdf.excluded_pages) else None
+        return pdf.text, pdf.page_count, pdf, used
     if job.fmt == "docx":
         try:
-            return docx_text(data), None
+            return docx_text(data), None, None, None
         except UnsupportedFileError as exc:
             raise _Failed("unreadable") from exc
-    return plain_text(data), None
+    return plain_text(data), None, None, None
 
 
 def process(st: AppState, job: _Job, data: bytes) -> None:
     """Never raises: the outcome is the row's status. Nothing of the file survives a failure."""
     s = st.settings
     try:
-        raw, pages = _extract(st, job, data)
+        raw, pages, pdf, engine = _extract(st, job, data)
         del data
         if len(raw.strip()) < 20:
             raise _Failed("no_text")  # typically a scanned PDF: there is no text layer to read
@@ -319,12 +380,23 @@ def process(st: AppState, job: _Job, data: bytes) -> None:
         except ValueError as exc:  # "no chunks produced": nothing citable in the text
             raise _Failed("no_text") from exc
         with tenant_transaction(st.engine, job.tenant_id, user_id=job.user_id) as conn:
+            # ADR-038 (D): a sum written as a figure and in words must agree (OCR misreads digits)
+            units = conn.execute(
+                text("SELECT cite_id, text FROM chunks WHERE document_id = :d ORDER BY char_start"),
+                {"d": stats.document_id},
+            ).all()
+            amount_bad = [u.cite_id for u in units if amount_mismatches(u.text)]
             done = conn.execute(
                 text(
                     "UPDATE client_files SET status = 'ready', document_id = :d, chunk_count = :n, "
-                    "pages = :p, grammar = :g, finished_at = now() WHERE id = :id"
+                    "pages = :p, grammar = :g, ocr_pages = :op, ocr_excluded_pages = :ox, "
+                    "ocr_confidence = :oc, ocr_engine = :oe, amount_mismatch_units = :am, "
+                    "finished_at = now() WHERE id = :id"
                 ),
                 {"d": stats.document_id, "n": stats.chunks_written, "p": pages, "g": grammar,
+                 "op": list(pdf.ocr_pages) if pdf else [],
+                 "ox": list(pdf.excluded_pages) if pdf else [],
+                 "oc": pdf.ocr_confidence if pdf else None, "oe": engine, "am": amount_bad,
                  "id": job.file_id},
             ).rowcount  # fmt: skip
             if not done:  # the row vanished meanwhile (matter deleted): leave no orphan text
@@ -335,7 +407,10 @@ def process(st: AppState, job: _Job, data: bytes) -> None:
                 {"action": "ingest", "file_id": str(job.file_id), "format": job.fmt,
                  "grammar": grammar},
                 {"chunks": stats.chunks_written, "oversized": len(stats.oversized),
-                 "undersized": len(stats.undersized), "seconds": round(stats.seconds, 2)},
+                 "undersized": len(stats.undersized), "seconds": round(stats.seconds, 2),
+                 "ocr_pages": len(pdf.ocr_pages) if pdf else 0,
+                 "ocr_excluded_pages": len(pdf.excluded_pages) if pdf else 0,
+                 "amount_mismatches": len(amount_bad)},
             )  # fmt: skip
     except Exception as exc:
         key = exc.key if isinstance(exc, _Failed) else "internal"

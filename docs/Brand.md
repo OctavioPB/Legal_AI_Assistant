@@ -378,6 +378,36 @@ The same frame as §8 (bar, tokens, typography, tone); no tool uses the model fo
 - Viewer (§11.4) for a firm document: a "Documento del despacho" badge instead of
   Vigente/No vigente and "Sección completa" instead of "Artículo completo".
 - While something is processing the list updates itself and the end is announced (`role=status`).
+- OCR (ADR-030, 2026-11-26): under the file field, the checkbox "El texto del PDF está dañado: leerlo como
+  escaneado" with one sentence of help (when to tick it, and that it is slower). A ready card read by OCR says
+  "Páginas leídas por OCR: … (confianza media N %)" as a plain small line; pages left out use the notice style of
+  §11.4 (`reform-notice`, ⌕ icon, `role=note`): which pages, that the assistant will not see or cite them, and to
+  rescan at 300 ppp or more. The viewer adds the same notice above the text for a firm document read by OCR
+  ("compárelo con el original antes de citarlo"). Never a colour alone, never a confidence number without words.
+
+### 9.7.1 Amounts that disagree (ADR-038 D, 2026-11-28)
+- A ready document whose amounts disagree between figure and words (code-checked, "$15,000.00 (QUINCE MIL PESOS
+  00/100 M.N.)") shows one `reform-notice` line (⚠ icon, `role=note`) in the documents list: how many passages, that it
+  may be a reading error or one in the original, and to check the document before citing. Never a refusal, never an
+  automatic correction, never colour alone.
+
+### 9.8 Regime of a citation (ADR-031, 2026-11-26)
+- A matter may declare its labour regime (closed list, a select under the description; "Sin indicar" by default),
+  with one sentence saying what it is for and that the warning does not replace the lawyer's review.
+- A source card of a special-regime LFT article says so in a small muted line ("Régimen especial de la LFT: …").
+- When the article's regime contradicts the matter's, the card shows the notice style of §11.4 instead (`reform-notice`,
+  ⚠ icon, `role=note`): which regime, that it differs from the matter's, and to check that it applies. Never a refusal,
+  never colour alone; the regime name is the law's own chapter title.
+
+### 9.10 Law as of a date (ADR-050, 2026-11-28)
+- The scope panel of a NEW conversation offers one optional date field, "Derecho vigente a la fecha (opcional)", a
+  native `input type=date` (`max` today, the `.field` pattern of §4) with one sentence under it saying what it does
+  and that the system says so when no dated version covers the date. Setting it disables "Incluir versiones
+  anteriores (no vigentes)" (they exclude each other); the one-line scope then reads "Derecho vigente al {fecha}".
+- An existing conversation shows the date as one more `scope-chip` ("Derecho al {fecha}"), fixed like the rest.
+- A dated turn that finds no version is the ordinary `Refusal` of §3.2 with its own reason text, never an error.
+- The date is per conversation and is not remembered between conversations (the date of the facts belongs to
+  each case).
 
 ## 10. OPB style (v2, 2026-11-08): how it is applied
 

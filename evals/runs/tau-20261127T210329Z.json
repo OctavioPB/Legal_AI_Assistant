@@ -1,0 +1,4460 @@
+{
+ "run_id": "tau-20261127T210329Z",
+ "embedder": {
+  "model": "bge-m3",
+  "revision": "790764642607"
+ },
+ "reranker": "bge-m3-dense-cosine",
+ "auc": 0.9347,
+ "probes": "tau_probes_v1.json",
+ "probes_authored_by": "ai-draft",
+ "n_covered": 81,
+ "n_absent": 66,
+ "pick": {
+  "tau": 0.61,
+  "absent_refused": 0.9545454545454546,
+  "covered_answered": 0.7283950617283951
+ },
+ "min_fragments": [
+  {
+   "m": 1,
+   "auc": 0.9347,
+   "pick": {
+    "tau": 0.61,
+    "absent_refused": 0.9545454545454546,
+    "covered_answered": 0.7283950617283951
+   }
+  },
+  {
+   "m": 2,
+   "auc": 0.9228,
+   "pick": {
+    "tau": 0.605,
+    "absent_refused": 0.9696969696969697,
+    "covered_answered": 0.654320987654321
+   }
+  },
+  {
+   "m": 3,
+   "auc": 0.9126,
+   "pick": {
+    "tau": 0.595,
+    "absent_refused": 0.9545454545454546,
+    "covered_answered": 0.5802469135802469
+   }
+  }
+ ],
+ "corpus_generation": 4,
+ "results": [
+  {
+   "kind": "covered",
+   "topic": "rescisión sin responsabilidad del patrón",
+   "session": "fed",
+   "wording": "causas de rescisión de la relación de trabajo sin responsabilidad para el patrón",
+   "best": 0.7982606767076665,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART47-CAPUT-v2026.11",
+     0.798
+    ],
+    [
+     "MX-FED-LFT-ART51-v2026.11",
+     0.744
+    ],
+    [
+     "MX-FED-LFT-ART353G-v2026.11",
+     0.703
+    ]
+   ],
+   "scores": [
+    0.7983,
+    0.7443,
+    0.7028,
+    0.6954,
+    0.6877
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "rescisión sin responsabilidad del patrón",
+   "session": "fed",
+   "wording": "¿cuándo puede el patrón despedir a un trabajador sin pagarle indemnización?",
+   "best": 0.6628207497505387,
+   "gold_rank": 6,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACXXII-v2026.11",
+     0.663
+    ],
+    [
+     "MX-FED-LFT-ART46-v2026.11",
+     0.649
+    ],
+    [
+     "MX-FED-LFT-ART49-v2026.11",
+     0.634
+    ]
+   ],
+   "scores": [
+    0.6628,
+    0.6493,
+    0.6336,
+    0.6164,
+    0.6123
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "rescisión sin responsabilidad del patrón",
+   "session": "fed",
+   "wording": "grounds for terminating an employee without liability for the employer",
+   "best": 0.6545807672720214,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART47-CAPUT-v2026.11",
+     0.655
+    ],
+    [
+     "MX-FED-LFT-ART46-v2026.11",
+     0.638
+    ],
+    [
+     "MX-FED-LFT-ART51-v2026.11",
+     0.634
+    ]
+   ],
+   "scores": [
+    0.6546,
+    0.6383,
+    0.6336,
+    0.6114,
+    0.6041
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "indemnización por despido injustificado",
+   "session": "fed",
+   "wording": "indemnización de tres meses de salario por despido injustificado",
+   "best": 0.6267346618559185,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACXXII-v2026.11",
+     0.627
+    ],
+    [
+     "MX-FED-LFT-ART48-v2026.11",
+     0.603
+    ],
+    [
+     "MX-FED-LFT-ART491-v2026.11",
+     0.577
+    ]
+   ],
+   "scores": [
+    0.6267,
+    0.6033,
+    0.5768,
+    0.5767,
+    0.5699
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "indemnización por despido injustificado",
+   "session": "fed",
+   "wording": "me despidieron sin causa, ¿qué me corresponde?",
+   "best": 0.6183245428600542,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACXXII-v2026.11",
+     0.618
+    ],
+    [
+     "MX-FED-LFT-ART51-v2026.11",
+     0.608
+    ],
+    [
+     "MX-FED-LFT-ART291M-v2026.11",
+     0.59
+    ]
+   ],
+   "scores": [
+    0.6183,
+    0.6081,
+    0.5902,
+    0.5859,
+    0.5851
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "indemnización por despido injustificado",
+   "session": "fed",
+   "wording": "severance pay after a wrongful dismissal in Mexico",
+   "best": 0.5828312484384994,
+   "gold_rank": 5,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART341-v2026.11",
+     0.583
+    ],
+    [
+     "MX-FED-LFT-TRANS1-PARR8-v2026.11",
+     0.556
+    ],
+    [
+     "MX-FED-CPEUM-ART127-CAPUT-v2026.11",
+     0.553
+    ]
+   ],
+   "scores": [
+    0.5828,
+    0.5557,
+    0.5533,
+    0.5492,
+    0.546
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "jornada máxima de trabajo",
+   "session": "fed",
+   "wording": "duración máxima de la jornada diurna de trabajo",
+   "best": 0.7438002707965251,
+   "gold_rank": 4,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACI-v2026.11",
+     0.744
+    ],
+    [
+     "MX-FED-CPEUM-ART123-APARTADOB-FRACI-v2026.11",
+     0.702
+    ],
+    [
+     "MX-FED-LFT-ART59-v2026.11",
+     0.699
+    ]
+   ],
+   "scores": [
+    0.7438,
+    0.7024,
+    0.6986,
+    0.6949,
+    0.6463
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "jornada máxima de trabajo",
+   "session": "fed",
+   "wording": "¿cuántas horas puedo trabajar al día?",
+   "best": 0.6698951193919539,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOB-FRACI-v2026.11",
+     0.67
+    ],
+    [
+     "MX-FED-LFT-ART61-v2026.11",
+     0.659
+    ],
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACI-v2026.11",
+     0.638
+    ]
+   ],
+   "scores": [
+    0.6699,
+    0.6586,
+    0.6377,
+    0.6338,
+    0.631
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "jornada máxima de trabajo",
+   "session": "fed",
+   "wording": "maximum daily working hours",
+   "best": 0.6888511960795092,
+   "gold_rank": 4,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOB-FRACI-v2026.11",
+     0.689
+    ],
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACI-v2026.11",
+     0.685
+    ],
+    [
+     "MX-FED-LFT-ART59-v2026.11",
+     0.645
+    ]
+   ],
+   "scores": [
+    0.6889,
+    0.6852,
+    0.6454,
+    0.6391,
+    0.626
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "vacaciones anuales",
+   "session": "fed",
+   "wording": "días de vacaciones que corresponden al trabajador por año de servicio",
+   "best": 0.7033520200708046,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART76-v2026.11",
+     0.703
+    ],
+    [
+     "MX-FED-LFT-ART199-v2026.11",
+     0.687
+    ],
+    [
+     "MX-FED-LFT-ART77-v2026.11",
+     0.682
+    ]
+   ],
+   "scores": [
+    0.7034,
+    0.6866,
+    0.6818,
+    0.6727,
+    0.6605
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "vacaciones anuales",
+   "session": "fed",
+   "wording": "¿cuántos días de vacaciones me tocan al cumplir un año?",
+   "best": 0.7036602739451712,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART76-v2026.11",
+     0.704
+    ],
+    [
+     "MX-FED-LFT-ART199-v2026.11",
+     0.691
+    ],
+    [
+     "MX-FED-LFT-ART179-v2026.11",
+     0.676
+    ]
+   ],
+   "scores": [
+    0.7037,
+    0.6911,
+    0.6755,
+    0.6606,
+    0.6554
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "vacaciones anuales",
+   "session": "fed",
+   "wording": "annual paid vacation days for employees",
+   "best": 0.7054602994930868,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOB-FRACIII-v2026.11",
+     0.705
+    ],
+    [
+     "MX-FED-LFT-ART76-v2026.11",
+     0.667
+    ],
+    [
+     "MX-FED-LFT-ART199-v2026.11",
+     0.666
+    ]
+   ],
+   "scores": [
+    0.7055,
+    0.6668,
+    0.666,
+    0.6278,
+    0.6225
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "aguinaldo",
+   "session": "fed",
+   "wording": "el aguinaldo anual equivalente a quince días de salario",
+   "best": 0.6413833721080713,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART87-v2026.11",
+     0.641
+    ],
+    [
+     "MX-FED-LFT-ART502-v2026.11",
+     0.526
+    ],
+    [
+     "MX-FED-LFT-ART495-v2026.11",
+     0.515
+    ]
+   ],
+   "scores": [
+    0.6414,
+    0.526,
+    0.5151,
+    0.5047,
+    0.4995
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "aguinaldo",
+   "session": "fed",
+   "wording": "¿cuándo se paga el aguinaldo y de cuánto es?",
+   "best": 0.6826250609207053,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART87-v2026.11",
+     0.683
+    ],
+    [
+     "MX-FED-LFT-ART334BIS-v2026.11",
+     0.531
+    ],
+    [
+     "MX-FED-LFT-ART235-v2026.11",
+     0.523
+    ]
+   ],
+   "scores": [
+    0.6826,
+    0.5313,
+    0.5225,
+    0.5194,
+    0.5175
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "aguinaldo",
+   "session": "fed",
+   "wording": "year-end bonus owed to workers",
+   "best": 0.6194448854595601,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART87-v2026.11",
+     0.619
+    ],
+    [
+     "MX-FED-LFT-ART113-v2026.11",
+     0.573
+    ],
+    [
+     "MX-FED-LFT-ART79-v2026.11",
+     0.552
+    ]
+   ],
+   "scores": [
+    0.6194,
+    0.5726,
+    0.5516,
+    0.5478,
+    0.5453
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "huelga",
+   "session": "fed",
+   "wording": "definición de huelga suspensión temporal del trabajo",
+   "best": 0.7054810629726967,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART440-v2026.11",
+     0.705
+    ],
+    [
+     "MX-FED-LFT-ART447-v2026.11",
+     0.649
+    ],
+    [
+     "MX-FED-LFT-ART443-v2026.11",
+     0.594
+    ]
+   ],
+   "scores": [
+    0.7055,
+    0.6491,
+    0.594,
+    0.572,
+    0.5686
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "huelga",
+   "session": "fed",
+   "wording": "¿qué es una huelga y quién puede declararla?",
+   "best": 0.6603250184471116,
+   "gold_rank": 3,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART929-v2026.11",
+     0.66
+    ],
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACXVIII-v2026.11",
+     0.651
+    ],
+    [
+     "MX-FED-LFT-ART440-v2026.11",
+     0.631
+    ]
+   ],
+   "scores": [
+    0.6603,
+    0.6509,
+    0.6306,
+    0.6263,
+    0.6213
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "huelga",
+   "session": "fed",
+   "wording": "right to strike and its legal definition",
+   "best": 0.5876340369597711,
+   "gold_rank": 4,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOB-FRACX-v2026.11",
+     0.588
+    ],
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACXVIII-v2026.11",
+     0.574
+    ],
+    [
+     "MX-FED-LFT-ART450-v2026.11",
+     0.562
+    ]
+   ],
+   "scores": [
+    0.5876,
+    0.5742,
+    0.5621,
+    0.5549,
+    0.5547
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "trabajo de menores",
+   "session": "fed",
+   "wording": "prohibición de utilizar el trabajo de menores de quince años",
+   "best": 0.7220846456916534,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART22BIS-v2026.11",
+     0.722
+    ],
+    [
+     "MX-FED-LFT-ART175-v2026.11",
+     0.72
+    ],
+    [
+     "MX-FED-LFT-ART267-v2026.11",
+     0.706
+    ]
+   ],
+   "scores": [
+    0.7221,
+    0.7201,
+    0.7064,
+    0.6857,
+    0.6723
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "trabajo de menores",
+   "session": "fed",
+   "wording": "¿a qué edad puede trabajar un adolescente?",
+   "best": 0.6780246545725346,
+   "gold_rank": 3,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART331BIS-v2026.11",
+     0.678
+    ],
+    [
+     "MX-FED-LFT-ART988-v2026.11",
+     0.676
+    ],
+    [
+     "MX-FED-LFT-ART22BIS-v2026.11",
+     0.639
+    ]
+   ],
+   "scores": [
+    0.678,
+    0.6761,
+    0.639,
+    0.6365,
+    0.6251
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "trabajo de menores",
+   "session": "fed",
+   "wording": "minimum age for employment",
+   "best": 0.6610755361249062,
+   "gold_rank": 3,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-CAPUT-v2026.11",
+     0.661
+    ],
+    [
+     "MX-FED-LFT-ART988-v2026.11",
+     0.657
+    ],
+    [
+     "MX-FED-LFT-ART174-v2026.11",
+     0.645
+    ]
+   ],
+   "scores": [
+    0.6611,
+    0.6573,
+    0.6453,
+    0.6269,
+    0.6185
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "libertad de expresión",
+   "session": "fed",
+   "wording": "la manifestación de las ideas no será objeto de inquisición judicial",
+   "best": 0.5763207992652699,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART6-CAPUT-v2026.11",
+     0.576
+    ],
+    [
+     "MX-FED-CPEUM-ART7-v2026.11",
+     0.514
+    ],
+    [
+     "MX-FED-LFT-ART873F-FRACIV-v2026.11",
+     0.493
+    ]
+   ],
+   "scores": [
+    0.5763,
+    0.514,
+    0.4934,
+    0.485,
+    0.471
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "libertad de expresión",
+   "session": "fed",
+   "wording": "¿la Constitución protege la libertad de expresión?",
+   "best": 0.6145421535819815,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART7-v2026.11",
+     0.615
+    ],
+    [
+     "MX-FED-CPEUM-ART6-CAPUT-v2026.11",
+     0.563
+    ],
+    [
+     "MX-FED-CPEUM-ART6-APARTADOA-FRACII-v2026.11",
+     0.514
+    ]
+   ],
+   "scores": [
+    0.6145,
+    0.5627,
+    0.5137,
+    0.5073,
+    0.5017
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "libertad de expresión",
+   "session": "fed",
+   "wording": "constitutional protection of freedom of speech",
+   "best": 0.5534457775951889,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART7-v2026.11",
+     0.553
+    ],
+    [
+     "MX-FED-CPEUM-ART6-CAPUT-v2026.11",
+     0.542
+    ],
+    [
+     "MX-FED-CPF-PARR3-v2026.11.13",
+     0.536
+    ]
+   ],
+   "scores": [
+    0.5534,
+    0.542,
+    0.5357,
+    0.5149,
+    0.5122
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "principio pro persona y derechos humanos",
+   "session": "fed",
+   "wording": "todas las personas gozarán de los derechos humanos reconocidos en la Constitución",
+   "best": 0.6385685180039433,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART4-P2-v2026.11",
+     0.639
+    ],
+    [
+     "MX-FED-CPEUM-ART1-v2026.11",
+     0.63
+    ],
+    [
+     "MX-FED-CPEUM-ART6-APARTADOA-FRACIII-v2026.11",
+     0.57
+    ]
+   ],
+   "scores": [
+    0.6386,
+    0.6296,
+    0.57,
+    0.5606,
+    0.5557
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "principio pro persona y derechos humanos",
+   "session": "fed",
+   "wording": "¿qué es el principio pro persona?",
+   "best": 0.4651066841687899,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART20-APARTADOA-v2026.11",
+     0.465
+    ],
+    [
+     "MX-FED-CPF-ART387-FRACI-v2026.11.13",
+     0.451
+    ],
+    [
+     "MX-FED-CCF-ART1390-v2026.11",
+     0.449
+    ]
+   ],
+   "scores": [
+    0.4651,
+    0.4512,
+    0.4493,
+    0.4424,
+    0.4258
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "principio pro persona y derechos humanos",
+   "session": "fed",
+   "wording": "human rights recognized in the Mexican Constitution",
+   "best": 0.6735968819130925,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART1-v2026.11",
+     0.674
+    ],
+    [
+     "MX-FED-CPEUM-ART97-FRACI-v2026.11",
+     0.637
+    ],
+    [
+     "MX-FED-CPEUM-ART2-APARTADOD-v2026.11",
+     0.617
+    ]
+   ],
+   "scores": [
+    0.6736,
+    0.6374,
+    0.6169,
+    0.5793,
+    0.5717
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prisión preventiva",
+   "session": "fed",
+   "wording": "prisión preventiva oficiosa por delitos graves",
+   "best": 0.6090113273047792,
+   "gold_rank": 3,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART55-v2026.11.13",
+     0.609
+    ],
+    [
+     "MX-FED-CPEUM-TRANS95-CUARTO-v2026.11",
+     0.608
+    ],
+    [
+     "MX-FED-CPEUM-ART19-P1-v2026.11",
+     0.562
+    ]
+   ],
+   "scores": [
+    0.609,
+    0.6077,
+    0.5616,
+    0.5468,
+    0.5434
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prisión preventiva",
+   "session": "fed",
+   "wording": "¿cuándo puede un juez ordenar prisión preventiva?",
+   "best": 0.659380436117712,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART19-P1-v2026.11",
+     0.659
+    ],
+    [
+     "MX-FED-CPF-ART55-v2026.11.13",
+     0.647
+    ],
+    [
+     "MX-FED-CPF-TRANS118-QUINTO-v2026.11.13",
+     0.619
+    ]
+   ],
+   "scores": [
+    0.6594,
+    0.6474,
+    0.6194,
+    0.6185,
+    0.5845
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prisión preventiva",
+   "session": "fed",
+   "wording": "pretrial detention requirements",
+   "best": 0.606298791563414,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART19-P1-v2026.11",
+     0.606
+    ],
+    [
+     "MX-FED-CPF-ART84-v2026.11.13",
+     0.574
+    ],
+    [
+     "MX-FED-CPF-ART55-v2026.11.13",
+     0.569
+    ]
+   ],
+   "scores": [
+    0.6063,
+    0.5739,
+    0.5689,
+    0.5512,
+    0.5365
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "derechos del imputado",
+   "session": "fed",
+   "wording": "derechos de toda persona imputada presunción de inocencia",
+   "best": 0.7888298132227098,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART20-APARTADOB-CAPUT-v2026.11",
+     0.789
+    ],
+    [
+     "MX-FED-CPEUM-ART20-APARTADOB-FRACI-v2026.11",
+     0.629
+    ],
+    [
+     "MX-FED-CPEUM-ART6-APARTADOA-FRACIII-v2026.11",
+     0.608
+    ]
+   ],
+   "scores": [
+    0.7888,
+    0.6288,
+    0.6078,
+    0.5859,
+    0.5775
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "derechos del imputado",
+   "session": "fed",
+   "wording": "¿qué derechos tengo si me acusan de un delito?",
+   "best": 0.6303454628296418,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART20-APARTADOC-v2026.11",
+     0.63
+    ],
+    [
+     "MX-FED-CPEUM-ART20-APARTADOB-FRACVIII-v2026.11",
+     0.625
+    ],
+    [
+     "MX-FED-CPEUM-ART20-APARTADOB-FRACIII-v2026.11",
+     0.625
+    ]
+   ],
+   "scores": [
+    0.6303,
+    0.625,
+    0.6249,
+    0.6214,
+    0.5837
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "derechos del imputado",
+   "session": "fed",
+   "wording": "rights of the accused and presumption of innocence",
+   "best": 0.6662585940644516,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART20-APARTADOB-FRACI-v2026.11",
+     0.666
+    ],
+    [
+     "MX-FED-CPEUM-ART20-APARTADOB-CAPUT-v2026.11",
+     0.648
+    ],
+    [
+     "MX-FED-CPEUM-ART20-APARTADOC-v2026.11",
+     0.591
+    ]
+   ],
+   "scores": [
+    0.6663,
+    0.6485,
+    0.5914,
+    0.5679,
+    0.5605
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "expropiación",
+   "session": "fed",
+   "wording": "expropiación por causa de utilidad pública y mediante indemnización",
+   "best": 0.6849959196172045,
+   "gold_rank": 3,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART1043-v2026.11",
+     0.685
+    ],
+    [
+     "MX-FED-CCF-ART2410-v2026.11",
+     0.659
+    ],
+    [
+     "MX-FED-CPEUM-ART27-PARR1-FRACVI-v2026.11",
+     0.656
+    ]
+   ],
+   "scores": [
+    0.685,
+    0.6589,
+    0.6556,
+    0.6383,
+    0.6264
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "expropiación",
+   "session": "fed",
+   "wording": "¿puede el Estado quitarme mi terreno?",
+   "best": 0.5673086518605794,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART910-v2026.11",
+     0.567
+    ],
+    [
+     "MX-FED-CPEUM-ART27-PARR1-FRACVIII-INCC-v2026.11",
+     0.563
+    ],
+    [
+     "MX-FED-CCF-ART1131-v2026.11",
+     0.553
+    ]
+   ],
+   "scores": [
+    0.5673,
+    0.5633,
+    0.5526,
+    0.5483,
+    0.5431
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "expropiación",
+   "session": "fed",
+   "wording": "expropriation for public use with compensation",
+   "best": 0.6260097306839923,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART27-PARR1-FRACVI-v2026.11",
+     0.626
+    ],
+    [
+     "MX-FED-CCF-ART836-v2026.11",
+     0.613
+    ],
+    [
+     "MX-FED-CCF-ART1043-v2026.11",
+     0.607
+    ]
+   ],
+   "scores": [
+    0.626,
+    0.6131,
+    0.6068,
+    0.5842,
+    0.5606
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prescripción adquisitiva",
+   "session": "fed",
+   "wording": "prescripción positiva de bienes inmuebles por posesión",
+   "best": 0.7173003283703415,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART1136-v2026.11",
+     0.717
+    ],
+    [
+     "MX-FED-CCF-ART3048-v2026.11",
+     0.714
+    ],
+    [
+     "MX-FED-CCF-ART3055-v2026.11",
+     0.692
+    ]
+   ],
+   "scores": [
+    0.7173,
+    0.7138,
+    0.6919,
+    0.6728,
+    0.6676
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prescripción adquisitiva",
+   "session": "fed",
+   "wording": "¿en cuánto tiempo puedo adquirir un inmueble por posesión?",
+   "best": 0.6828026049795607,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART1154-v2026.11",
+     0.683
+    ],
+    [
+     "MX-FED-CCF-ART1152-v2026.11",
+     0.66
+    ],
+    [
+     "MX-FED-CCF-ART3055-v2026.11",
+     0.637
+    ]
+   ],
+   "scores": [
+    0.6828,
+    0.6596,
+    0.6372,
+    0.6234,
+    0.6054
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prescripción adquisitiva",
+   "session": "fed",
+   "wording": "adverse possession of real property",
+   "best": 0.5801798250437542,
+   "gold_rank": 8,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART390BIS-v2026.11.13",
+     0.58
+    ],
+    [
+     "MX-FED-CPF-ART382-v2026.11.13",
+     0.57
+    ],
+    [
+     "MX-FED-CPF-ART380-v2026.11.13",
+     0.567
+    ]
+   ],
+   "scores": [
+    0.5802,
+    0.5699,
+    0.5667,
+    0.564,
+    0.5568
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "compraventa",
+   "session": "fed",
+   "wording": "el contrato de compraventa obliga a transferir la propiedad de una cosa por un precio cierto",
+   "best": 0.695212519047741,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2248-v2026.11",
+     0.695
+    ],
+    [
+     "MX-FED-CCF-ART2250-v2026.11",
+     0.609
+    ],
+    [
+     "MX-FED-CCF-ART2249-v2026.11",
+     0.596
+    ]
+   ],
+   "scores": [
+    0.6952,
+    0.609,
+    0.5956,
+    0.595,
+    0.5894
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "compraventa",
+   "session": "fed",
+   "wording": "¿qué es un contrato de compraventa?",
+   "best": 0.593313136583858,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2248-v2026.11",
+     0.593
+    ],
+    [
+     "MX-FED-CCF-ART2250-v2026.11",
+     0.562
+    ],
+    [
+     "MX-FED-CCF-ART2258-v2026.11",
+     0.552
+    ]
+   ],
+   "scores": [
+    0.5933,
+    0.5623,
+    0.5525,
+    0.551,
+    0.5508
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "compraventa",
+   "session": "fed",
+   "wording": "sales contract elements price and object",
+   "best": 0.5972662762664795,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2250-v2026.11",
+     0.597
+    ],
+    [
+     "MX-FED-CCF-ART1825-v2026.11",
+     0.586
+    ],
+    [
+     "MX-FED-CCF-ART1794-v2026.11",
+     0.564
+    ]
+   ],
+   "scores": [
+    0.5973,
+    0.5865,
+    0.5641,
+    0.5555,
+    0.5546
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "arrendamiento",
+   "session": "fed",
+   "wording": "contrato de arrendamiento obligaciones del arrendador y arrendatario",
+   "best": 0.7306089347030363,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2412-v2026.11",
+     0.731
+    ],
+    [
+     "MX-FED-CCF-ART2425-v2026.11",
+     0.726
+    ],
+    [
+     "MX-FED-CCF-ART2448F-v2026.11",
+     0.703
+    ]
+   ],
+   "scores": [
+    0.7306,
+    0.7262,
+    0.7035,
+    0.6923,
+    0.6773
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "arrendamiento",
+   "session": "fed",
+   "wording": "¿qué obligaciones tiene el inquilino?",
+   "best": 0.6457709542621733,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2425-v2026.11",
+     0.646
+    ],
+    [
+     "MX-FED-CCF-ART2412-v2026.11",
+     0.629
+    ],
+    [
+     "MX-FED-LFT-ART151-v2026.11",
+     0.621
+    ]
+   ],
+   "scores": [
+    0.6458,
+    0.6287,
+    0.6206,
+    0.616,
+    0.6128
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "arrendamiento",
+   "session": "fed",
+   "wording": "lease agreement obligations of landlord and tenant",
+   "best": 0.6566645355826013,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2412-v2026.11",
+     0.657
+    ],
+    [
+     "MX-FED-CCF-ART2425-v2026.11",
+     0.651
+    ],
+    [
+     "MX-FED-CCF-ART2409-v2026.11",
+     0.628
+    ]
+   ],
+   "scores": [
+    0.6567,
+    0.6515,
+    0.6275,
+    0.6225,
+    0.6204
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "homicidio",
+   "session": "fed",
+   "wording": "homicidio calificado penalidad prisión",
+   "best": 0.6919431677653406,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART320-v2026.11.13",
+     0.692
+    ],
+    [
+     "MX-FED-CPF-ART307-v2026.11.13",
+     0.616
+    ],
+    [
+     "MX-FED-CPF-ART308-v2026.11.13",
+     0.605
+    ]
+   ],
+   "scores": [
+    0.6919,
+    0.6163,
+    0.6048,
+    0.6027,
+    0.5877
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "homicidio",
+   "session": "fed",
+   "wording": "¿cuántos años de cárcel tiene el homicidio?",
+   "best": 0.676611308931783,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART308-v2026.11.13",
+     0.677
+    ],
+    [
+     "MX-FED-CPF-ART307-v2026.11.13",
+     0.666
+    ],
+    [
+     "MX-FED-CPF-ART320-v2026.11.13",
+     0.634
+    ]
+   ],
+   "scores": [
+    0.6766,
+    0.6659,
+    0.6341,
+    0.6071,
+    0.5972
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "homicidio",
+   "session": "fed",
+   "wording": "penalty for aggravated homicide",
+   "best": 0.6027338876919414,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART307-v2026.11.13",
+     0.603
+    ],
+    [
+     "MX-FED-CPF-ART320-v2026.11.13",
+     0.598
+    ],
+    [
+     "MX-FED-CPF-ART308-v2026.11.13",
+     0.577
+    ]
+   ],
+   "scores": [
+    0.6027,
+    0.5978,
+    0.5771,
+    0.5685,
+    0.5653
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "robo",
+   "session": "fed",
+   "wording": "delito de robo se impondrá pena según el valor de lo robado",
+   "best": 0.7177634086302066,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART371-v2026.11.13",
+     0.718
+    ],
+    [
+     "MX-FED-CPF-ART369-v2026.11.13",
+     0.701
+    ],
+    [
+     "MX-FED-CPF-ART372-v2026.11.13",
+     0.699
+    ]
+   ],
+   "scores": [
+    0.7178,
+    0.7007,
+    0.6994,
+    0.6798,
+    0.679
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "robo",
+   "session": "fed",
+   "wording": "¿qué castigo tiene el robo?",
+   "best": 0.621387987569913,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART368BIS-v2026.11.13",
+     0.621
+    ],
+    [
+     "MX-FED-CPF-ART376TER-v2026.11.13",
+     0.608
+    ],
+    [
+     "MX-FED-CPF-ART370-v2026.11.13",
+     0.599
+    ]
+   ],
+   "scores": [
+    0.6214,
+    0.6079,
+    0.5987,
+    0.5904,
+    0.5883
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "robo",
+   "session": "fed",
+   "wording": "theft penalties depending on value",
+   "best": 0.6560999718738895,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART370-v2026.11.13",
+     0.656
+    ],
+    [
+     "MX-FED-CPF-ART368TER-v2026.11.13",
+     0.651
+    ],
+    [
+     "MX-FED-CPF-ART371-v2026.11.13",
+     0.65
+    ]
+   ],
+   "scores": [
+    0.6561,
+    0.6513,
+    0.6495,
+    0.6398,
+    0.6385
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "legítima defensa",
+   "session": "fed",
+   "wording": "causas de exclusión del delito legítima defensa",
+   "best": 0.5690413426573757,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART16-v2026.11.13",
+     0.569
+    ],
+    [
+     "MX-FED-CPF-ART15-CAPUT-v2026.11.13",
+     0.513
+    ],
+    [
+     "MX-FED-CPF-ART61-v2026.11.13",
+     0.509
+    ]
+   ],
+   "scores": [
+    0.569,
+    0.5131,
+    0.5095,
+    0.4822,
+    0.4774
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "legítima defensa",
+   "session": "fed",
+   "wording": "¿cuándo no hay delito por defenderse?",
+   "best": 0.5583019745242803,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART15-FRACIV-v2026.11.13",
+     0.558
+    ],
+    [
+     "MX-FED-CPF-ART15-FRACI-v2026.11.13",
+     0.538
+    ],
+    [
+     "MX-FED-CPF-ART379-v2026.11.13",
+     0.535
+    ]
+   ],
+   "scores": [
+    0.5583,
+    0.5383,
+    0.5355,
+    0.5318,
+    0.522
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "legítima defensa",
+   "session": "fed",
+   "wording": "self-defense as an exclusion of criminal liability",
+   "best": 0.590061285826976,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART15-CAPUT-v2026.11.13",
+     0.59
+    ],
+    [
+     "MX-FED-CPF-ART15-FRACI-v2026.11.13",
+     0.583
+    ],
+    [
+     "MX-FED-CPEUM-ART20-APARTADOB-FRACI-v2026.11",
+     0.565
+    ]
+   ],
+   "scores": [
+    0.5901,
+    0.5826,
+    0.5654,
+    0.5571,
+    0.5425
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "fraude",
+   "session": "fed",
+   "wording": "delito de fraude engaño o aprovechamiento del error",
+   "best": 0.6412891087047432,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART386-v2026.11.13",
+     0.641
+    ],
+    [
+     "MX-FED-CPF-ART388-v2026.11.13",
+     0.623
+    ],
+    [
+     "MX-FED-CPF-ART389BIS-v2026.11.13",
+     0.62
+    ]
+   ],
+   "scores": [
+    0.6413,
+    0.6234,
+    0.6196,
+    0.6133,
+    0.5988
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "fraude",
+   "session": "fed",
+   "wording": "¿qué pena tiene estafar a alguien?",
+   "best": 0.6489106468561068,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART386-v2026.11.13",
+     0.649
+    ],
+    [
+     "MX-FED-CPF-ART388-v2026.11.13",
+     0.601
+    ],
+    [
+     "MX-FED-CPF-ART242-v2026.11.13",
+     0.599
+    ]
+   ],
+   "scores": [
+    0.6489,
+    0.6014,
+    0.5988,
+    0.5887,
+    0.5883
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "fraude",
+   "session": "fed",
+   "wording": "fraud offense definition and penalty",
+   "best": 0.666624377263191,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART386-v2026.11.13",
+     0.667
+    ],
+    [
+     "MX-FED-CPF-ART389-v2026.11.13",
+     0.606
+    ],
+    [
+     "MX-FED-CPF-ART389BIS-v2026.11.13",
+     0.583
+    ]
+   ],
+   "scores": [
+    0.6666,
+    0.6063,
+    0.5826,
+    0.5797,
+    0.5654
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prescripción adquisitiva en Nuevo León",
+   "session": "nl",
+   "wording": "prescripción adquisitiva de buena fe de bienes inmuebles",
+   "best": 0.636926937661613,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-NL-CCNL-ART1149-v2026.11",
+     0.637
+    ],
+    [
+     "MX-FED-CCF-ART3048-v2026.11",
+     0.63
+    ],
+    [
+     "MX-FED-CCF-ART1155-v2026.11",
+     0.613
+    ]
+   ],
+   "scores": [
+    0.6369,
+    0.6295,
+    0.6129,
+    0.6054,
+    0.6023
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prescripción adquisitiva en Nuevo León",
+   "session": "nl",
+   "wording": "¿cómo se adquiere un inmueble por posesión en Nuevo León?",
+   "best": 0.5731691541007571,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-NL-CCNL-ART1446BIS-v2026.11",
+     0.573
+    ],
+    [
+     "MX-NL-CCNL-ART795-v2026.11",
+     0.569
+    ],
+    [
+     "MX-NL-CCNL-ART1151-v2026.11",
+     0.553
+    ]
+   ],
+   "scores": [
+    0.5732,
+    0.5693,
+    0.5527,
+    0.5341,
+    0.5338
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "prescripción adquisitiva en Nuevo León",
+   "session": "nl",
+   "wording": "how to acquire real property by possession in Nuevo León",
+   "best": 0.5575616161780794,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-NL-CCNL-ART795-v2026.11",
+     0.558
+    ],
+    [
+     "MX-NL-CCNL-ART736-v2026.11",
+     0.543
+    ],
+    [
+     "MX-NL-CCNL-ART828-v2026.11",
+     0.54
+    ]
+   ],
+   "scores": [
+    0.5576,
+    0.5432,
+    0.5397,
+    0.5323,
+    0.5315
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "matrimonio en Nuevo León",
+   "session": "nl",
+   "wording": "requisitos para contraer matrimonio",
+   "best": 0.6719588743137378,
+   "gold_rank": 3,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART148-v2026.11",
+     0.672
+    ],
+    [
+     "MX-FED-CCF-ART97-v2026.11",
+     0.667
+    ],
+    [
+     "MX-NL-CCNL-ART148-v2026.11",
+     0.661
+    ]
+   ],
+   "scores": [
+    0.672,
+    0.6666,
+    0.6613,
+    0.6526,
+    0.6307
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "matrimonio en Nuevo León",
+   "session": "nl",
+   "wording": "¿qué se necesita para casarse?",
+   "best": 0.6368009654315379,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART97-v2026.11",
+     0.637
+    ],
+    [
+     "MX-NL-CCNL-ART148-v2026.11",
+     0.626
+    ],
+    [
+     "MX-NL-CCNL-ART156-v2026.11",
+     0.609
+    ]
+   ],
+   "scores": [
+    0.6368,
+    0.6256,
+    0.609,
+    0.6067,
+    0.586
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "matrimonio en Nuevo León",
+   "session": "nl",
+   "wording": "requirements to get married",
+   "best": 0.6481031328141762,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-NL-CCNL-ART148-v2026.11",
+     0.648
+    ],
+    [
+     "MX-FED-CCF-ART148-v2026.11",
+     0.645
+    ],
+    [
+     "MX-NL-CCNL-ART156-v2026.11",
+     0.642
+    ]
+   ],
+   "scores": [
+    0.6481,
+    0.6452,
+    0.6417,
+    0.6411,
+    0.6279
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "justicia cívica Monterrey",
+   "session": "mty",
+   "wording": "faltas administrativas y sanciones del reglamento de justicia cívica",
+   "best": 0.6924682033130707,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RJCMTY-ART14-v2026.11",
+     0.692
+    ],
+    [
+     "MX-MTY-RJCMTY-ART6-v2026.11",
+     0.646
+    ],
+    [
+     "MX-MTY-RJCMTY-ART50-v2026.11",
+     0.638
+    ]
+   ],
+   "scores": [
+    0.6925,
+    0.6457,
+    0.6375,
+    0.6364,
+    0.6218
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "justicia cívica Monterrey",
+   "session": "mty",
+   "wording": "¿qué pasa si cometo una falta administrativa en Monterrey?",
+   "best": 0.6502383028439567,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RJCMTY-ART12-v2026.11",
+     0.65
+    ],
+    [
+     "MX-MTY-RJCMTY-TRANS1-SEGUNDO-v2026.11",
+     0.638
+    ],
+    [
+     "MX-MTY-RJCMTY-ART13-v2026.11",
+     0.595
+    ]
+   ],
+   "scores": [
+    0.6502,
+    0.6377,
+    0.5947,
+    0.5791,
+    0.5715
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "justicia cívica Monterrey",
+   "session": "mty",
+   "wording": "civic justice administrative offenses in Monterrey",
+   "best": 0.5918474269737078,
+   "gold_rank": 3,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RAPMTY-ART58-FRACVI-v2026.11",
+     0.592
+    ],
+    [
+     "MX-MTY-RAPMTY-ART30-v2026.11",
+     0.586
+    ],
+    [
+     "MX-MTY-RJCMTY-ART89-v2026.11",
+     0.575
+    ]
+   ],
+   "scores": [
+    0.5918,
+    0.5862,
+    0.5753,
+    0.5664,
+    0.5604
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "administración pública municipal",
+   "session": "mty",
+   "wording": "atribuciones de las secretarías de la administración pública municipal",
+   "best": 0.6643778480182527,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RAPMTY-ART16-v2026.11",
+     0.664
+    ],
+    [
+     "MX-MTY-RAPMTY-ART88-v2026.11",
+     0.655
+    ],
+    [
+     "MX-MTY-RAPMTY-ART21-v2026.11",
+     0.653
+    ]
+   ],
+   "scores": [
+    0.6644,
+    0.6553,
+    0.6527,
+    0.6499,
+    0.6471
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "administración pública municipal",
+   "session": "mty",
+   "wording": "¿qué hace la Secretaría de Seguridad municipal?",
+   "best": 0.6731794464781706,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RAPMTY-ART54-v2026.11",
+     0.673
+    ],
+    [
+     "MX-MTY-RJCMTY-ART26-v2026.11",
+     0.594
+    ],
+    [
+     "MX-MTY-RAPMTY-ART64-FRACV-v2026.11",
+     0.587
+    ]
+   ],
+   "scores": [
+    0.6732,
+    0.5937,
+    0.5868,
+    0.5733,
+    0.5535
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "administración pública municipal",
+   "session": "mty",
+   "wording": "powers of the municipal government departments",
+   "best": 0.6369715162072994,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RAPMTY-ART11-v2026.11",
+     0.637
+    ],
+    [
+     "MX-FED-CPEUM-ART115-FRACII-v2026.11",
+     0.613
+    ],
+    [
+     "MX-MTY-RAPMTY-ART56-FRACXXX-v2026.11",
+     0.609
+    ]
+   ],
+   "scores": [
+    0.637,
+    0.6132,
+    0.6089,
+    0.6066,
+    0.6029
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "whistleblower retaliation California",
+   "session": "ca",
+   "wording": "employer retaliation against an employee who discloses information to the government",
+   "best": 0.7116432651897713,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC1102P5-SUBB-v2025",
+     0.712
+    ],
+    [
+     "US-CA-LAB-SEC1102P5-SUBA-v2025",
+     0.657
+    ],
+    [
+     "US-CA-LAB-SEC1102P5-SUBE-v2025",
+     0.636
+    ]
+   ],
+   "scores": [
+    0.7116,
+    0.6566,
+    0.6357,
+    0.6011,
+    0.5988
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "whistleblower retaliation California",
+   "session": "ca",
+   "wording": "can my boss fire me for reporting a violation?",
+   "best": 0.6139034304208856,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC432P3-SUBD-v2025",
+     0.614
+    ],
+    [
+     "US-CA-LAB-SEC2930-SUBA-v2025",
+     0.612
+    ],
+    [
+     "US-CA-LAB-SEC6409P1-SUBB-v2025",
+     0.61
+    ]
+   ],
+   "scores": [
+    0.6139,
+    0.6121,
+    0.6096,
+    0.6082,
+    0.6078
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "whistleblower retaliation California",
+   "session": "ca",
+   "wording": "represalias del patrón contra un trabajador que denuncia",
+   "best": 0.5472164801409359,
+   "gold_rank": 3,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC132A-SUB3-v2025",
+     0.547
+    ],
+    [
+     "US-CA-LAB-SEC132A-SUB1-v2025",
+     0.545
+    ],
+    [
+     "US-CA-LAB-SEC1102P5-SUBF-v2025",
+     0.541
+    ]
+   ],
+   "scores": [
+    0.5472,
+    0.5446,
+    0.5414,
+    0.5358,
+    0.535
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "meal and rest periods California",
+   "session": "ca",
+   "wording": "meal period and rest break premium pay",
+   "best": 0.6541401192750146,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC885-v2025",
+     0.654
+    ],
+    [
+     "US-CA-LAB-SEC512P1-v2025",
+     0.62
+    ],
+    [
+     "US-CA-LAB-SEC226P2-SUBA-v2025",
+     0.613
+    ]
+   ],
+   "scores": [
+    0.6541,
+    0.6202,
+    0.6132,
+    0.609,
+    0.6007
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "meal and rest periods California",
+   "session": "ca",
+   "wording": "does an employer have to give me a lunch break?",
+   "best": 0.7247995892460279,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC512-SUBA-v2025",
+     0.725
+    ],
+    [
+     "US-CA-LAB-SEC512P1-v2025",
+     0.682
+    ],
+    [
+     "US-CA-LAB-SEC1030-v2025",
+     0.682
+    ]
+   ],
+   "scores": [
+    0.7248,
+    0.682,
+    0.6818,
+    0.6686,
+    0.6634
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "meal and rest periods California",
+   "session": "ca",
+   "wording": "descansos y comidas obligatorias en California",
+   "best": 0.5773586781473219,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC512P1-v2025",
+     0.577
+    ],
+    [
+     "US-CA-LAB-SEC516-v2025",
+     0.575
+    ],
+    [
+     "US-CA-LAB-SEC226P7-v2025",
+     0.555
+    ]
+   ],
+   "scores": [
+    0.5774,
+    0.5753,
+    0.5554,
+    0.531,
+    0.5258
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "overtime California",
+   "session": "ca",
+   "wording": "overtime compensation for work over eight hours in a day",
+   "best": 0.7263947892517568,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC511-SUBB-v2025",
+     0.726
+    ],
+    [
+     "US-CA-LAB-SEC510-v2025",
+     0.721
+    ],
+    [
+     "US-CA-LAB-SEC204P3-SUBA-v2025",
+     0.687
+    ]
+   ],
+   "scores": [
+    0.7264,
+    0.7214,
+    0.6866,
+    0.6842,
+    0.6786
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "overtime California",
+   "session": "ca",
+   "wording": "how much overtime pay am I owed?",
+   "best": 0.6565293211129644,
+   "gold_rank": 4,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC511-SUBB-v2025",
+     0.657
+    ],
+    [
+     "US-CA-LAB-SEC204P3-SUBC-v2025",
+     0.655
+    ],
+    [
+     "US-CA-LAB-SEC204P3-SUBA-v2025",
+     0.653
+    ]
+   ],
+   "scores": [
+    0.6565,
+    0.6553,
+    0.6526,
+    0.6494,
+    0.626
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "overtime California",
+   "session": "ca",
+   "wording": "pago de horas extra en California",
+   "best": 0.6060902538376806,
+   "gold_rank": 8,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC511-SUBB-v2025",
+     0.606
+    ],
+    [
+     "US-CA-LAB-SEC751P8-SUBB-v2025",
+     0.599
+    ],
+    [
+     "US-CA-LAB-SEC248P3-SUBB-SUB3-v2025",
+     0.589
+    ]
+   ],
+   "scores": [
+    0.6061,
+    0.5993,
+    0.5893,
+    0.5893,
+    0.5828
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "minimum wage California",
+   "session": "ca",
+   "wording": "minimum wage rate for employees",
+   "best": 0.6912046983387712,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC1197-v2025",
+     0.691
+    ],
+    [
+     "US-CA-LAB-SEC1182P12-SUBB-v2025",
+     0.679
+    ],
+    [
+     "US-CA-LAB-SEC1182P11-v2025",
+     0.674
+    ]
+   ],
+   "scores": [
+    0.6912,
+    0.6787,
+    0.6745,
+    0.6715,
+    0.6674
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "minimum wage California",
+   "session": "ca",
+   "wording": "what is the legal minimum wage?",
+   "best": 0.6837181957383482,
+   "gold_rank": 2,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC1197-v2025",
+     0.684
+    ],
+    [
+     "US-CA-LAB-SEC1182P11-v2025",
+     0.626
+    ],
+    [
+     "US-CA-LAB-SEC1182P12-SUBA-v2025",
+     0.623
+    ]
+   ],
+   "scores": [
+    0.6837,
+    0.6262,
+    0.6231,
+    0.6219,
+    0.6189
+   ]
+  },
+  {
+   "kind": "covered",
+   "topic": "minimum wage California",
+   "session": "ca",
+   "wording": "salario mínimo en California",
+   "best": 0.5950166249784112,
+   "gold_rank": 1,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC1182P14-SUBG-v2025",
+     0.595
+    ],
+    [
+     "US-CA-LAB-SEC1182P15-SUBG-v2025",
+     0.595
+    ],
+    [
+     "US-CA-LAB-SEC4453-SUBA-SUB10-v2025",
+     0.581
+    ]
+   ],
+   "scores": [
+    0.595,
+    0.595,
+    0.5814,
+    0.5525,
+    0.5427
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "impuesto sobre la renta",
+   "session": "fed",
+   "wording": "tasa del impuesto sobre la renta de personas morales",
+   "best": 0.48322567651892345,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART28-v2026.11",
+     0.483
+    ],
+    [
+     "MX-FED-CCF-ART25-v2026.11",
+     0.481
+    ],
+    [
+     "MX-FED-CPF-TRANS130-QUINTO-v2026.11.13",
+     0.479
+    ]
+   ],
+   "scores": [
+    0.4832,
+    0.4815,
+    0.4787,
+    0.4597,
+    0.4569
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "impuesto sobre la renta",
+   "session": "fed",
+   "wording": "¿cuánto ISR debo pagar este año?",
+   "best": 0.49070882975019275,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-TRANS8-TERCERO-v2026.11",
+     0.491
+    ],
+    [
+     "MX-FED-LFT-ART101-v2026.11",
+     0.475
+    ],
+    [
+     "MX-FED-LFT-ART966TER-v2026.11",
+     0.472
+    ]
+   ],
+   "scores": [
+    0.4907,
+    0.4746,
+    0.4718,
+    0.4688,
+    0.4683
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "impuesto sobre la renta",
+   "session": "fed",
+   "wording": "corporate income tax rate",
+   "best": 0.4984791558600628,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2395-v2026.11",
+     0.498
+    ],
+    [
+     "MX-FED-CPF-TRANS130-QUINTO-v2026.11.13",
+     0.485
+    ],
+    [
+     "MX-FED-LFT-ART120-v2026.11",
+     0.467
+    ]
+   ],
+   "scores": [
+    0.4985,
+    0.4849,
+    0.4667,
+    0.4596,
+    0.4579
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "patentes y marcas",
+   "session": "fed",
+   "wording": "requisitos para registrar una patente",
+   "best": 0.5825265223288767,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART3051-v2026.11",
+     0.583
+    ],
+    [
+     "MX-FED-CCF-ART2924-v2026.11",
+     0.562
+    ],
+    [
+     "MX-FED-LFT-ART153G-v2026.11",
+     0.55
+    ]
+   ],
+   "scores": [
+    0.5825,
+    0.5617,
+    0.5497,
+    0.5433,
+    0.5227
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "patentes y marcas",
+   "session": "fed",
+   "wording": "¿cómo registro una marca ante el IMPI?",
+   "best": 0.5055962998088116,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART3046-v2026.11",
+     0.506
+    ],
+    [
+     "MX-FED-CCF-ART3051-v2026.11",
+     0.479
+    ],
+    [
+     "MX-FED-CCF-TRANS26-CUARTO-v2026.11",
+     0.474
+    ]
+   ],
+   "scores": [
+    0.5056,
+    0.4786,
+    0.4745,
+    0.4743,
+    0.4714
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "patentes y marcas",
+   "session": "fed",
+   "wording": "how to file a trademark application",
+   "best": 0.5112995739268033,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART872-APARTADOA-v2026.11",
+     0.511
+    ],
+    [
+     "MX-FED-LFT-ART872-CAPUT-v2026.11",
+     0.5
+    ],
+    [
+     "MX-FED-CCF-TRANS37-SEPTIMO-v2026.11",
+     0.492
+    ]
+   ],
+   "scores": [
+    0.5113,
+    0.4997,
+    0.4923,
+    0.4848,
+    0.4846
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho aeronáutico",
+   "session": "fed",
+   "wording": "responsabilidad de las aerolíneas por equipaje perdido",
+   "best": 0.5715673500868511,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2650-v2026.11",
+     0.572
+    ],
+    [
+     "MX-FED-CCF-ART2669-v2026.11",
+     0.553
+    ],
+    [
+     "MX-FED-CCF-ART2653-v2026.11",
+     0.535
+    ]
+   ],
+   "scores": [
+    0.5716,
+    0.5535,
+    0.5348,
+    0.5228,
+    0.5189
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho aeronáutico",
+   "session": "fed",
+   "wording": "¿qué derechos tengo si cancelan mi vuelo?",
+   "best": 0.5938048270759116,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART228-v2026.11",
+     0.594
+    ],
+    [
+     "MX-FED-LFT-ART237-v2026.11",
+     0.593
+    ],
+    [
+     "MX-FED-LFT-ART244-v2026.11",
+     0.569
+    ]
+   ],
+   "scores": [
+    0.5938,
+    0.5927,
+    0.5691,
+    0.5584,
+    0.5555
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho aeronáutico",
+   "session": "fed",
+   "wording": "airline liability for delayed flights",
+   "best": 0.6335875870017967,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2650-v2026.11",
+     0.634
+    ],
+    [
+     "MX-FED-LFT-ART231-v2026.11",
+     0.555
+    ],
+    [
+     "MX-FED-LFT-ART228-v2026.11",
+     0.552
+    ]
+   ],
+   "scores": [
+    0.6336,
+    0.5553,
+    0.5518,
+    0.5437,
+    0.5415
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "concurso mercantil",
+   "session": "fed",
+   "wording": "procedimiento de concurso mercantil y quiebra de una empresa",
+   "best": 0.5847229805345907,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART2965-v2026.11",
+     0.585
+    ],
+    [
+     "MX-FED-LFT-ART114-v2026.11",
+     0.554
+    ],
+    [
+     "MX-FED-CCF-ART2173-v2026.11",
+     0.546
+    ]
+   ],
+   "scores": [
+    0.5847,
+    0.5539,
+    0.5459,
+    0.523,
+    0.5152
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "concurso mercantil",
+   "session": "fed",
+   "wording": "¿cómo declaro la quiebra de mi negocio?",
+   "best": 0.5288611055463085,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART920-v2026.11",
+     0.529
+    ],
+    [
+     "MX-FED-CCF-ART2173-v2026.11",
+     0.526
+    ],
+    [
+     "MX-FED-LFT-ART929-v2026.11",
+     0.525
+    ]
+   ],
+   "scores": [
+    0.5289,
+    0.5261,
+    0.5254,
+    0.5159,
+    0.5089
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "concurso mercantil",
+   "session": "fed",
+   "wording": "corporate bankruptcy proceedings",
+   "best": 0.5010698683766583,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART11BIS-APARTADOB-FRACXXIII-v2026.11.13",
+     0.501
+    ],
+    [
+     "MX-FED-LFT-ART763-v2026.11",
+     0.494
+    ],
+    [
+     "MX-FED-LFT-TRANS1-PARR15-v2026.11",
+     0.494
+    ]
+   ],
+   "scores": [
+    0.5011,
+    0.494,
+    0.4939,
+    0.4816,
+    0.4797
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "migración y visas",
+   "session": "fed",
+   "wording": "requisitos para obtener una visa de residente temporal",
+   "best": 0.5120146144055777,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART513-INCD-P5-DUP2-v2026.11",
+     0.512
+    ],
+    [
+     "MX-FED-LFT-ART513-INCD-P3-v2026.11",
+     0.511
+    ],
+    [
+     "MX-FED-LFT-ART555-v2026.11",
+     0.501
+    ]
+   ],
+   "scores": [
+    0.512,
+    0.5112,
+    0.5009,
+    0.4974,
+    0.484
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "migración y visas",
+   "session": "fed",
+   "wording": "¿cómo tramito la residencia permanente?",
+   "best": 0.503109191069799,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART145-v2026.11",
+     0.503
+    ],
+    [
+     "MX-FED-CCF-ART29-v2026.11",
+     0.501
+    ],
+    [
+     "MX-FED-LFT-ART353A-v2026.11",
+     0.494
+    ]
+   ],
+   "scores": [
+    0.5031,
+    0.5009,
+    0.4943,
+    0.4913,
+    0.4855
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "migración y visas",
+   "session": "fed",
+   "wording": "immigration visa requirements",
+   "best": 0.5223376517948317,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART82-v2026.11",
+     0.522
+    ],
+    [
+     "MX-FED-CPEUM-ART11-v2026.11",
+     0.521
+    ],
+    [
+     "MX-FED-LFT-ART555-v2026.11",
+     0.517
+    ]
+   ],
+   "scores": [
+    0.5223,
+    0.5213,
+    0.5174,
+    0.5113,
+    0.5039
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho ambiental",
+   "session": "fed",
+   "wording": "manifestación de impacto ambiental para una obra",
+   "best": 0.553340794076411,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART415-FRACII-v2026.11.13",
+     0.553
+    ],
+    [
+     "MX-FED-CCF-ART1062-v2026.11",
+     0.541
+    ],
+    [
+     "MX-FED-CPF-ART420BIS-v2026.11.13",
+     0.52
+    ]
+   ],
+   "scores": [
+    0.5533,
+    0.5406,
+    0.5204,
+    0.5202,
+    0.5031
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho ambiental",
+   "session": "fed",
+   "wording": "¿necesito permiso ambiental para construir?",
+   "best": 0.5088727974315276,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART1107-v2026.11",
+     0.509
+    ],
+    [
+     "MX-FED-CPF-TRANS105-TERCERO-v2026.11.13",
+     0.503
+    ],
+    [
+     "MX-FED-CCF-ART1084-v2026.11",
+     0.502
+    ]
+   ],
+   "scores": [
+    0.5089,
+    0.5034,
+    0.5024,
+    0.5019,
+    0.4931
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho ambiental",
+   "session": "fed",
+   "wording": "environmental impact assessment",
+   "best": 0.5718200549210236,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART415-FRACII-v2026.11.13",
+     0.572
+    ],
+    [
+     "MX-FED-CPF-ART421-v2026.11.13",
+     0.554
+    ],
+    [
+     "MX-FED-CPF-ART420QUATER-v2026.11.13",
+     0.549
+    ]
+   ],
+   "scores": [
+    0.5718,
+    0.5543,
+    0.5493,
+    0.5329,
+    0.5327
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "juicio de amparo",
+   "session": "fed",
+   "wording": "plazo para promover el juicio de amparo indirecto",
+   "best": 0.5540001060065689,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-TRANS11-SEGUNDO-v2026.11",
+     0.554
+    ],
+    [
+     "MX-FED-CPEUM-TRANS47-DECIMOPRIMERO-v2026.11",
+     0.544
+    ],
+    [
+     "MX-FED-LFT-ART763BIS-v2026.11",
+     0.527
+    ]
+   ],
+   "scores": [
+    0.554,
+    0.5435,
+    0.5273,
+    0.5263,
+    0.5177
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "juicio de amparo",
+   "session": "fed",
+   "wording": "¿cómo presento un amparo?",
+   "best": 0.6349711480280971,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART107-FRACXI-v2026.11",
+     0.635
+    ],
+    [
+     "MX-FED-CPEUM-ART107-FRACVII-v2026.11",
+     0.629
+    ],
+    [
+     "MX-FED-CPEUM-ART107-FRACIV-v2026.11",
+     0.628
+    ]
+   ],
+   "scores": [
+    0.635,
+    0.6293,
+    0.6281,
+    0.609,
+    0.6005
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "juicio de amparo",
+   "session": "fed",
+   "wording": "deadline to file an amparo lawsuit",
+   "best": 0.5444855486507363,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-TRANS3-PARR1-v2026.11.13",
+     0.544
+    ],
+    [
+     "MX-FED-CPEUM-ART107-FRACXVI-v2026.11",
+     0.539
+    ],
+    [
+     "MX-FED-CPEUM-ART107-FRACIII-v2026.11",
+     0.537
+    ]
+   ],
+   "scores": [
+    0.5445,
+    0.5391,
+    0.5368,
+    0.535,
+    0.5269
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "seguridad social IMSS",
+   "session": "fed",
+   "wording": "cuotas obrero patronales del IMSS",
+   "best": 0.5734414950839173,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART371-FRACXII-v2026.11",
+     0.573
+    ],
+    [
+     "MX-FED-LFT-ART277-v2026.11",
+     0.532
+    ],
+    [
+     "MX-FED-LFT-TRANS14-SEPTIMO-P1-v2026.11",
+     0.522
+    ]
+   ],
+   "scores": [
+    0.5734,
+    0.5316,
+    0.5218,
+    0.503,
+    0.49
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "seguridad social IMSS",
+   "session": "fed",
+   "wording": "¿cuánto se paga al seguro social por empleado?",
+   "best": 0.5960264924071553,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-TRANS14-SEPTIMO-P1-v2026.11",
+     0.596
+    ],
+    [
+     "MX-FED-LFT-ART334BIS-v2026.11",
+     0.572
+    ],
+    [
+     "MX-FED-LFT-ART291F-v2026.11",
+     0.569
+    ]
+   ],
+   "scores": [
+    0.596,
+    0.572,
+    0.5693,
+    0.5661,
+    0.5531
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "seguridad social IMSS",
+   "session": "fed",
+   "wording": "social security contributions",
+   "best": 0.5762079359221116,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-TRANS139-CUARTO-v2026.11",
+     0.576
+    ],
+    [
+     "MX-FED-LFT-ART146-v2026.11",
+     0.576
+    ],
+    [
+     "MX-FED-LFT-ART371-FRACXII-v2026.11",
+     0.562
+    ]
+   ],
+   "scores": [
+    0.5762,
+    0.5757,
+    0.5625,
+    0.5597,
+    0.5358
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "protección de datos personales",
+   "session": "fed",
+   "wording": "aviso de privacidad y derechos ARCO",
+   "best": 0.48418343587534857,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-PARR3-v2026.11",
+     0.484
+    ],
+    [
+     "MX-FED-CPF-PARR3-v2026.11.13",
+     0.484
+    ],
+    [
+     "MX-FED-CPEUM-ART4-P2-v2026.11",
+     0.46
+    ]
+   ],
+   "scores": [
+    0.4842,
+    0.4842,
+    0.4598,
+    0.4597,
+    0.4486
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "protección de datos personales",
+   "session": "fed",
+   "wording": "¿cómo ejerzo mis derechos de acceso a mis datos personales?",
+   "best": 0.6075687511554845,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART6-APARTADOA-FRACVIII-v2026.11",
+     0.608
+    ],
+    [
+     "MX-FED-CPEUM-ART6-APARTADOA-FRACII-v2026.11",
+     0.603
+    ],
+    [
+     "MX-FED-CPEUM-ART6-APARTADOA-FRACIII-v2026.11",
+     0.597
+    ]
+   ],
+   "scores": [
+    0.6076,
+    0.6031,
+    0.5972,
+    0.592,
+    0.5628
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "protección de datos personales",
+   "session": "fed",
+   "wording": "personal data protection rights",
+   "best": 0.5977705635184015,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART73-FRACXXIXO-v2026.11",
+     0.598
+    ],
+    [
+     "MX-FED-CPEUM-ART6-APARTADOA-FRACIII-v2026.11",
+     0.576
+    ],
+    [
+     "MX-FED-CPEUM-ART6-APARTADOA-FRACVIII-v2026.11",
+     0.575
+    ]
+   ],
+   "scores": [
+    0.5978,
+    0.5756,
+    0.5749,
+    0.5704,
+    0.5636
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "hidrocarburos",
+   "session": "fed",
+   "wording": "permisos para exploración petrolera en aguas profundas",
+   "best": 0.5752473648610278,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-TRANS72-SEXTO-P1-v2026.11",
+     0.575
+    ],
+    [
+     "MX-FED-CPEUM-TRANS72-OCTAVO-v2026.11",
+     0.567
+    ],
+    [
+     "MX-FED-CPEUM-TRANS72-NOVENO-v2026.11",
+     0.535
+    ]
+   ],
+   "scores": [
+    0.5752,
+    0.5666,
+    0.535,
+    0.5114,
+    0.4971
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "hidrocarburos",
+   "session": "fed",
+   "wording": "¿quién regula la extracción de hidrocarburos?",
+   "best": 0.5750122300046633,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-TRANS72-SEXTO-P1-v2026.11",
+     0.575
+    ],
+    [
+     "MX-FED-CPEUM-TRANS72-CUARTO-v2026.11",
+     0.55
+    ],
+    [
+     "MX-FED-CPEUM-TRANS72-NOVENO-v2026.11",
+     0.547
+    ]
+   ],
+   "scores": [
+    0.575,
+    0.5498,
+    0.5472,
+    0.5397,
+    0.5384
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "hidrocarburos",
+   "session": "fed",
+   "wording": "offshore oil exploration permits",
+   "best": 0.5902565032796074,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-TRANS72-OCTAVO-v2026.11",
+     0.59
+    ],
+    [
+     "MX-FED-CPEUM-TRANS72-SEXTO-P1-v2026.11",
+     0.562
+    ],
+    [
+     "MX-FED-CPEUM-TRANS72-NOVENO-v2026.11",
+     0.543
+    ]
+   ],
+   "scores": [
+    0.5903,
+    0.5625,
+    0.5427,
+    0.5335,
+    0.5261
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "receta de cocina",
+   "session": "fed",
+   "wording": "receta de pastel de chocolate con tres huevos",
+   "best": 0.3547247068724324,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART313-v2026.11",
+     0.355
+    ],
+    [
+     "MX-FED-CPEUM-ART96-FRACII-INCA-v2026.11",
+     0.341
+    ],
+    [
+     "MX-FED-CCF-ART1553-v2026.11",
+     0.34
+    ]
+   ],
+   "scores": [
+    0.3547,
+    0.3413,
+    0.3402,
+    0.3338,
+    0.3291
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "receta de cocina",
+   "session": "fed",
+   "wording": "¿cómo preparo unas enchiladas verdes?",
+   "best": 0.36055844954355953,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART513-FRACV-INCC-P11-v2026.11",
+     0.361
+    ],
+    [
+     "MX-FED-CPEUM-ART96-FRACII-INCA-v2026.11",
+     0.358
+    ],
+    [
+     "MX-FED-LFT-ART513-FRACV-DUP17-v2026.11",
+     0.356
+    ]
+   ],
+   "scores": [
+    0.3606,
+    0.358,
+    0.3558,
+    0.3556,
+    0.3444
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "receta de cocina",
+   "session": "fed",
+   "wording": "how to bake a chocolate cake",
+   "best": 0.37232363416104786,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART931-FRACIX-v2026.11",
+     0.372
+    ],
+    [
+     "MX-FED-LFT-ART897C-v2026.11",
+     0.358
+    ],
+    [
+     "MX-FED-CCF-ART1553-v2026.11",
+     0.357
+    ]
+   ],
+   "scores": [
+    0.3723,
+    0.3579,
+    0.3569,
+    0.3553,
+    0.3548
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "deportes",
+   "session": "fed",
+   "wording": "resultado del partido de fútbol de anoche",
+   "best": 0.5169874797744618,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-PARR3-v2026.11",
+     0.517
+    ],
+    [
+     "MX-FED-CPEUM-PARR2-v2026.11",
+     0.517
+    ],
+    [
+     "MX-FED-CPF-PARR3-v2026.11.13",
+     0.517
+    ]
+   ],
+   "scores": [
+    0.517,
+    0.517,
+    0.517,
+    0.517,
+    0.4578
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "deportes",
+   "session": "fed",
+   "wording": "¿quién ganó el campeonato de la liga?",
+   "best": 0.3672347921330641,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART43-v2026.11",
+     0.367
+    ],
+    [
+     "MX-FED-CPEUM-ART46-v2026.11",
+     0.356
+    ],
+    [
+     "MX-FED-LFT-ART296-v2026.11",
+     0.346
+    ]
+   ],
+   "scores": [
+    0.3672,
+    0.3556,
+    0.3464,
+    0.3428,
+    0.3401
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "deportes",
+   "session": "fed",
+   "wording": "who won the football championship",
+   "best": 0.39491490340041757,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-PARR3-v2026.11.13",
+     0.395
+    ],
+    [
+     "MX-FED-CPEUM-TRANS59-SEGUNDO-v2026.11",
+     0.371
+    ],
+    [
+     "MX-FED-CCF-ART2975-v2026.11",
+     0.368
+    ]
+   ],
+   "scores": [
+    0.3949,
+    0.3712,
+    0.3685,
+    0.3684,
+    0.3629
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "programación",
+   "session": "fed",
+   "wording": "cómo ordenar una lista en Python",
+   "best": 0.47558038018012655,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART96-FRACII-INCC-v2026.11",
+     0.476
+    ],
+    [
+     "MX-FED-CPEUM-ART56-FRACVI-v2026.11",
+     0.449
+    ],
+    [
+     "MX-FED-LFT-ART745BIS-v2026.11",
+     0.448
+    ]
+   ],
+   "scores": [
+    0.4756,
+    0.449,
+    0.4477,
+    0.4453,
+    0.4429
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "programación",
+   "session": "fed",
+   "wording": "escribe una función que invierta una cadena",
+   "best": 0.41573489254568574,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART1853-v2026.11",
+     0.416
+    ],
+    [
+     "MX-FED-CCF-ART2854-v2026.11",
+     0.404
+    ],
+    [
+     "MX-FED-CPEUM-TRANS72-SEPTIMO-v2026.11",
+     0.404
+    ]
+   ],
+   "scores": [
+    0.4157,
+    0.4041,
+    0.404,
+    0.4018,
+    0.4018
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "programación",
+   "session": "fed",
+   "wording": "how to sort a list in Python",
+   "best": 0.45931541398955106,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART96-FRACII-INCC-v2026.11",
+     0.459
+    ],
+    [
+     "MX-FED-CCF-ART2976-v2026.11",
+     0.447
+    ],
+    [
+     "MX-FED-CPEUM-ART56-FRACVI-v2026.11",
+     0.443
+    ]
+   ],
+   "scores": [
+    0.4593,
+    0.4468,
+    0.4434,
+    0.4339,
+    0.4191
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "medicina",
+   "session": "fed",
+   "wording": "tratamiento para el dolor de cabeza y la migraña",
+   "best": 0.478731157980205,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART513-PARR1-FRACI-P7-v2026.11",
+     0.479
+    ],
+    [
+     "MX-FED-LFT-ART513-PARR1-FRACI-P4-v2026.11",
+     0.431
+    ],
+    [
+     "MX-FED-LFT-ART513-FRACV-INCC-P42-v2026.11",
+     0.425
+    ]
+   ],
+   "scores": [
+    0.4787,
+    0.4311,
+    0.4247,
+    0.4236,
+    0.4195
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "medicina",
+   "session": "fed",
+   "wording": "¿qué medicina tomo para la gripa?",
+   "best": 0.4470207528191905,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART434-P2-v2026.11.13",
+     0.447
+    ],
+    [
+     "MX-FED-CPF-ART434-P3-v2026.11.13",
+     0.447
+    ],
+    [
+     "MX-FED-LFT-ART132-FRACXIX-v2026.11",
+     0.442
+    ]
+   ],
+   "scores": [
+    0.447,
+    0.4469,
+    0.4423,
+    0.424,
+    0.4233
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "medicina",
+   "session": "fed",
+   "wording": "treatment for a persistent headache",
+   "best": 0.5294720331669207,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART513-PARR1-FRACI-P7-v2026.11",
+     0.529
+    ],
+    [
+     "MX-FED-LFT-ART513-PARR1-FRACI-P2-v2026.11",
+     0.489
+    ],
+    [
+     "MX-FED-LFT-ART513-PARR1-FRACI-P8-v2026.11",
+     0.465
+    ]
+   ],
+   "scores": [
+    0.5295,
+    0.4887,
+    0.465,
+    0.4629,
+    0.4468
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "clima y viajes",
+   "session": "fed",
+   "wording": "pronóstico del clima para mañana en Guadalajara",
+   "best": 0.435211052046304,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACI-v2026.11",
+     0.435
+    ],
+    [
+     "MX-FED-LFT-ART221-v2026.11",
+     0.385
+    ],
+    [
+     "MX-FED-CPEUM-ART123-APARTADOB-FRACI-v2026.11",
+     0.36
+    ]
+   ],
+   "scores": [
+    0.4352,
+    0.3848,
+    0.3605,
+    0.3572,
+    0.3561
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "clima y viajes",
+   "session": "fed",
+   "wording": "¿qué hotel me recomiendas en Cancún?",
+   "best": 0.4015945249565737,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART513-INCD-P5-DUP2-v2026.11",
+     0.402
+    ],
+    [
+     "MX-FED-LFT-ART513-INCD-P8-v2026.11",
+     0.393
+    ],
+    [
+     "MX-FED-CCF-ART2667-v2026.11",
+     0.384
+    ]
+   ],
+   "scores": [
+    0.4016,
+    0.393,
+    0.3836,
+    0.3819,
+    0.3653
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "clima y viajes",
+   "session": "fed",
+   "wording": "best hotels in Cancun",
+   "best": 0.3755884120002401,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-LFT-ART513-INCD-P5-DUP2-v2026.11",
+     0.376
+    ],
+    [
+     "MX-FED-LFT-ART513-INCD-P8-v2026.11",
+     0.357
+    ],
+    [
+     "MX-FED-CPEUM-ART73-FRACXXIXK-v2026.11",
+     0.35
+    ]
+   ],
+   "scores": [
+    0.3756,
+    0.3567,
+    0.3504,
+    0.345,
+    0.3383
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "mercados financieros",
+   "session": "fed",
+   "wording": "precio de las acciones de Apple hoy",
+   "best": 0.4038741798438628,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART783-v2026.11",
+     0.404
+    ],
+    [
+     "MX-FED-CCF-ART2320-v2026.11",
+     0.382
+    ],
+    [
+     "MX-FED-LFT-ART513-FRACV-INCC-P35-v2026.11",
+     0.362
+    ]
+   ],
+   "scores": [
+    0.4039,
+    0.3819,
+    0.3622,
+    0.3595,
+    0.3573
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "mercados financieros",
+   "session": "fed",
+   "wording": "¿conviene comprar bitcoin ahora?",
+   "best": 0.4265884617360739,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART1138-v2026.11",
+     0.427
+    ],
+    [
+     "MX-FED-CCF-TRANS50-SEXTO-v2026.11",
+     0.409
+    ],
+    [
+     "MX-FED-CCF-ART2321-v2026.11",
+     0.401
+    ]
+   ],
+   "scores": [
+    0.4266,
+    0.4088,
+    0.4013,
+    0.3969,
+    0.3956
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "mercados financieros",
+   "session": "fed",
+   "wording": "should I buy tech stocks this week",
+   "best": 0.4036138795141309,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CPF-ART434-P1-v2026.11.13",
+     0.404
+    ],
+    [
+     "MX-FED-LFT-ART153K-FRACIII-v2026.11",
+     0.4
+    ],
+    [
+     "MX-FED-CPEUM-TRANS68-QUINTO-v2026.11",
+     0.399
+    ]
+   ],
+   "scores": [
+    0.4036,
+    0.3997,
+    0.3993,
+    0.3824,
+    0.3823
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "municipio hermano: San Pedro",
+   "session": "mty",
+   "wording": "permiso de construcción en San Pedro Garza García",
+   "best": 0.5234099367041669,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RAPMTY-ART100-FRACIX-v2026.11",
+     0.523
+    ],
+    [
+     "MX-MTY-RAPMTY-ART61-FRACIX-v2026.11",
+     0.494
+    ],
+    [
+     "MX-MTY-RAPMTY-ART61-FRACX-v2026.11",
+     0.484
+    ]
+   ],
+   "scores": [
+    0.5234,
+    0.4943,
+    0.4836,
+    0.4834,
+    0.4712
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "municipio hermano: San Pedro",
+   "session": "mty",
+   "wording": "reglamento de zonificación de San Pedro Garza García",
+   "best": 0.440161034245737,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RAPMTY-ART42-FRACXIV-v2026.11",
+     0.44
+    ],
+    [
+     "MX-MTY-RJCMTY-ART1-v2026.11",
+     0.44
+    ],
+    [
+     "MX-MTY-RAPMTY-ART107-FRACXVIII-v2026.11",
+     0.432
+    ]
+   ],
+   "scores": [
+    0.4402,
+    0.4397,
+    0.432,
+    0.4287,
+    0.4264
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "municipio hermano: San Pedro",
+   "session": "mty",
+   "wording": "building permit in San Pedro Garza García",
+   "best": 0.5156467096537511,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-MTY-RAPMTY-ART100-FRACIX-v2026.11",
+     0.516
+    ],
+    [
+     "MX-MTY-RAPMTY-ART61-FRACIX-v2026.11",
+     0.489
+    ],
+    [
+     "MX-MTY-RAPMTY-ART100-FRACV-v2026.11",
+     0.484
+    ]
+   ],
+   "scores": [
+    0.5156,
+    0.4888,
+    0.4843,
+    0.4833,
+    0.4813
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "estado hermano: Jalisco",
+   "session": "nl",
+   "wording": "código civil de Jalisco sobre la posesión",
+   "best": 0.606990814590314,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-FED-CCF-ART795-v2026.11",
+     0.607
+    ],
+    [
+     "MX-NL-CCNL-ART795-v2026.11",
+     0.601
+    ],
+    [
+     "MX-FED-CCF-ART794-v2026.11",
+     0.593
+    ]
+   ],
+   "scores": [
+    0.607,
+    0.6009,
+    0.5928,
+    0.5883,
+    0.5844
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "estado hermano: Jalisco",
+   "session": "nl",
+   "wording": "¿qué dice la ley de Jalisco sobre herencias?",
+   "best": 0.5444059802889598,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-NL-CCNL-ART1177-v2026.11",
+     0.544
+    ],
+    [
+     "MX-FED-CCF-ART1668-v2026.11",
+     0.536
+    ],
+    [
+     "MX-NL-CCNL-ART1532-v2026.11",
+     0.535
+    ]
+   ],
+   "scores": [
+    0.5444,
+    0.5358,
+    0.5353,
+    0.5302,
+    0.5302
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "estado hermano: Jalisco",
+   "session": "nl",
+   "wording": "Jalisco inheritance rules",
+   "best": 0.524680779152242,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "MX-NL-CCNL-ART1530-v2026.11",
+     0.525
+    ],
+    [
+     "MX-NL-CCNL-ART736-v2026.11",
+     0.523
+    ],
+    [
+     "MX-FED-CPEUM-ART123-APARTADOA-FRACXXVIII-v2026.11",
+     0.522
+    ]
+   ],
+   "scores": [
+    0.5247,
+    0.523,
+    0.522,
+    0.5117,
+    0.509
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "California Vehicle Code",
+   "session": "ca",
+   "wording": "fines for speeding on a California highway",
+   "best": 0.579486288984305,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC1309P6-SUBA-v2025",
+     0.579
+    ],
+    [
+     "US-CA-LAB-SEC6429-v2025",
+     0.56
+    ],
+    [
+     "US-CA-LAB-SEC6903-v2025",
+     0.548
+    ]
+   ],
+   "scores": [
+    0.5795,
+    0.5604,
+    0.5478,
+    0.5207,
+    0.512
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "California Vehicle Code",
+   "session": "ca",
+   "wording": "California vehicle registration deadline",
+   "best": 0.588010743167335,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC1308P2-SUBB-v2025",
+     0.588
+    ],
+    [
+     "US-CA-LAB-SEC2675-SUBC-v2025",
+     0.578
+    ],
+    [
+     "US-CA-LAB-SEC1696P4-v2025",
+     0.572
+    ]
+   ],
+   "scores": [
+    0.588,
+    0.5782,
+    0.5722,
+    0.5541,
+    0.5513
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "California Vehicle Code",
+   "session": "ca",
+   "wording": "multas por exceso de velocidad en California",
+   "best": 0.6007753988115125,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC1309P6-SUBA-v2025",
+     0.601
+    ],
+    [
+     "US-CA-LAB-SEC6431-SUBB-v2025",
+     0.588
+    ],
+    [
+     "US-CA-LAB-SEC6427-SUBB-v2025",
+     0.585
+    ]
+   ],
+   "scores": [
+    0.6008,
+    0.5879,
+    0.5849,
+    0.5698,
+    0.5414
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "California Family Code",
+   "session": "ca",
+   "wording": "child custody after divorce in California",
+   "best": 0.5293310774832689,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC3714-v2025",
+     0.529
+    ],
+    [
+     "US-CA-LAB-SEC3071P7-v2025",
+     0.526
+    ],
+    [
+     "US-CA-LAB-SEC2510-SUBA-v2025",
+     0.517
+    ]
+   ],
+   "scores": [
+    0.5293,
+    0.5257,
+    0.517,
+    0.5067,
+    0.4765
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "California Family Code",
+   "session": "ca",
+   "wording": "community property division in a California divorce",
+   "best": 0.5136180837861154,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC3714-v2025",
+     0.514
+    ],
+    [
+     "US-CA-LAB-SEC925-v2025",
+     0.511
+    ],
+    [
+     "US-CA-LAB-SEC5500P5-SUBD-v2025",
+     0.508
+    ]
+   ],
+   "scores": [
+    0.5136,
+    0.5109,
+    0.508,
+    0.4911,
+    0.4713
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "California Family Code",
+   "session": "ca",
+   "wording": "custodia de hijos en un divorcio en California",
+   "best": 0.4899543008735603,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC1706-SUBB-v2025",
+     0.49
+    ],
+    [
+     "US-CA-LAB-SEC1164-SUBB-v2025",
+     0.488
+    ],
+    [
+     "US-CA-LAB-SEC3071P7-v2025",
+     0.482
+    ]
+   ],
+   "scores": [
+    0.49,
+    0.4883,
+    0.4815,
+    0.4798,
+    0.4715
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho mexicano en sesión de California",
+   "session": "ca",
+   "wording": "causas de rescisión de la relación de trabajo sin responsabilidad para el patrón",
+   "best": 0.5601923978554777,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC3208P3-SUBE-v2025",
+     0.56
+    ],
+    [
+     "US-CA-LAB-SEC2921-v2025",
+     0.545
+    ],
+    [
+     "US-CA-LAB-SEC3864-v2025",
+     0.545
+    ]
+   ],
+   "scores": [
+    0.5602,
+    0.545,
+    0.5445,
+    0.5445,
+    0.5396
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho mexicano en sesión de California",
+   "session": "ca",
+   "wording": "Ley Federal del Trabajo aguinaldo",
+   "best": 0.5235779323039521,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC10001-CAPUT-v2025",
+     0.524
+    ],
+    [
+     "US-CA-LAB-SEC1182P15-CAPUT-v2025",
+     0.519
+    ],
+    [
+     "US-CA-LAB-SEC514P5-CAPUT-v2025",
+     0.513
+    ]
+   ],
+   "scores": [
+    0.5236,
+    0.5188,
+    0.5135,
+    0.5096,
+    0.506
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "derecho mexicano en sesión de California",
+   "session": "ca",
+   "wording": "artículo 47 de la Ley Federal del Trabajo",
+   "best": 0.6454284271270734,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC4600P7-CAPUT-v2025",
+     0.645
+    ],
+    [
+     "US-CA-LAB-SEC4702-CAPUT-v2025",
+     0.613
+    ],
+    [
+     "US-CA-LAB-SEC248P7-CAPUT-v2025",
+     0.607
+    ]
+   ],
+   "scores": [
+    0.6454,
+    0.6132,
+    0.6068,
+    0.5995,
+    0.5975
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "GDPR",
+   "session": "ca",
+   "wording": "GDPR data transfer to third countries",
+   "best": 0.4698232644203643,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC138P6-SUBC-v2025",
+     0.47
+    ],
+    [
+     "US-CA-LAB-SEC138P7-SUBD-v2025",
+     0.458
+    ],
+    [
+     "US-CA-LAB-SEC2504-SUBA-v2025",
+     0.455
+    ]
+   ],
+   "scores": [
+    0.4698,
+    0.4581,
+    0.4552,
+    0.4469,
+    0.4467
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "GDPR",
+   "session": "ca",
+   "wording": "right to be forgotten under European law",
+   "best": 0.4575024583910029,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC432P7-SUBD-v2025",
+     0.458
+    ],
+    [
+     "US-CA-LAB-SEC1510-SUBF-v2025",
+     0.456
+    ],
+    [
+     "US-CA-LAB-SEC230P2-SUBB-v2025",
+     0.456
+    ]
+   ],
+   "scores": [
+    0.4575,
+    0.4561,
+    0.456,
+    0.4487,
+    0.4475
+   ]
+  },
+  {
+   "kind": "absent",
+   "topic": "GDPR",
+   "session": "ca",
+   "wording": "derecho al olvido en la Unión Europea",
+   "best": 0.40247339375446395,
+   "gold_rank": null,
+   "n_hits": 8,
+   "top": [
+    [
+     "US-CA-LAB-SEC4208-v2025",
+     0.402
+    ],
+    [
+     "US-CA-LAB-SEC927-v2025",
+     0.396
+    ],
+    [
+     "US-CA-LAB-SEC4227-v2025",
+     0.396
+    ]
+   ],
+   "scores": [
+    0.4025,
+    0.3962,
+    0.3957,
+    0.3935,
+    0.3916
+   ]
+  }
+ ]
+}

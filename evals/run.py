@@ -30,6 +30,7 @@ from evals.golden import (
     CaseResult,
     GoldenCase,
     Jurisdiction,
+    Span,
     case_ok,
     compare,
     gate_report,
@@ -58,7 +59,11 @@ def preflight(conn: Connection, cases: list[GoldenCase]) -> list[str]:
     }  # fmt: skip
     found = set(
         conn.execute(
-            text("SELECT cite_id FROM chunks WHERE cite_id = ANY(:ids)"), {"ids": sorted(exact)}
+            text(
+                "SELECT cite_id FROM chunks WHERE cite_id = ANY(:ids) "
+                "AND generation = app_generation()"  # ADR-006: the superuser sees every generation
+            ),
+            {"ids": sorted(exact)},
         ).scalars()
     )
     for c in cases:
@@ -67,7 +72,10 @@ def preflight(conn: Connection, cases: list[GoldenCase]) -> list[str]:
             for p in ids:
                 if p.endswith("*"):
                     n = conn.execute(
-                        text("SELECT count(*) FROM chunks WHERE cite_id LIKE :p"),
+                        text(
+                            "SELECT count(*) FROM chunks WHERE cite_id LIKE :p "
+                            "AND generation = app_generation()"
+                        ),
                         {"p": p[:-1].replace("%", r"\%").replace("_", r"\_") + "%"},
                     ).scalar_one()
                     if not n:
@@ -101,7 +109,7 @@ def _scope(conn: Connection, ids: list[str]) -> dict[str, Jurisdiction]:
     rows = conn.execute(
         text(
             "SELECT cite_id, country, level, state_code, municipality FROM chunks "
-            "WHERE cite_id = ANY(:ids)"
+            "WHERE cite_id = ANY(:ids) AND generation = app_generation()"
         ),
         {"ids": ids},
     ).all()
@@ -114,6 +122,47 @@ def _scope(conn: Connection, ids: list[str]) -> dict[str, Jurisdiction]:
 
 
 # ---- run record -------------------------------------------------------------------------------------
+def _like_prefix(prefix: str) -> str:
+    """A LIKE pattern matching `prefix` literally (cite ids hold `_`, a LIKE wildcard)."""
+    return prefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+
+
+def spans(
+    conn: Connection, hits: list[str], gold: tuple[str, ...]
+) -> tuple[list[Span], list[Span]]:
+    """ADR-037 (D): the source character ranges of the top-k hits and of every gold unit (exact ids
+    and 'PREFIX*' stems), read under the run's own RLS context (active generation only)."""
+    exact = [g for g in gold if not g.endswith("*")]
+    likes = [_like_prefix(g[:-1]) for g in gold if g.endswith("*")]
+    rows = conn.execute(
+        text(
+            "SELECT cite_id, document_id::text AS doc, char_start, char_end FROM chunks "
+            "WHERE cite_id = ANY(:ids) OR cite_id LIKE ANY(:likes)"
+        ),
+        {"ids": list(hits) + exact, "likes": likes or ["\\%none"]},
+    ).all()
+    want = set(hits)
+    hit_spans = [(r.doc, r.char_start, r.char_end) for r in rows if r.cite_id in want]
+    gold_spans = [
+        (r.doc, r.char_start, r.char_end) for r in rows if any(matches(r.cite_id, g) for g in gold)
+    ]
+    return hit_spans, gold_spans
+
+
+def _safe_spans(
+    conn: Connection, hits: list[str], case: GoldenCase
+) -> tuple[list[Span], list[Span]] | None:
+    """A metric must never fail a case: a lookup error leaves the char metrics empty."""
+    gold = (*case.gold_chunks, *case.gold_alternatives)
+    if not gold:
+        return None
+    try:
+        with conn.begin_nested():
+            return spans(conn, hits, gold)
+    except Exception:
+        return None
+
+
 def _git() -> tuple[str | None, bool]:
     try:
         commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT,
@@ -132,14 +181,20 @@ def _config(
     gen = conn.execute(
         text(
             "SELECT DISTINCT embedding_model, embedding_revision, chunker_version, "
-            "chunk_thresholds::text AS th FROM chunks"
+            "chunk_thresholds::text AS th FROM chunks WHERE generation = app_generation()"
         )
     ).all()
+    # ADR-006: which index generation the run measured (provenance, like the model ids)
+    index_generation = conn.execute(text("SELECT app_generation()")).scalar()
     return {
         "settings": {k: getattr(settings, k) for k in (
             "refusal_tau", "refusal_min_fragments", "retrieval_arm_top", "retrieval_rrf_k",
             "retrieval_rrf_top", "retrieval_rerank_top", "retrieval_context_budget_tokens",
             "context_citable_units", "validator_quote_min_words", "validator_coverage_min_words",
+            # every switch that changes retrieval or generation is part of the run's identity
+            "retrieval_fusion", "retrieval_convex_alpha", "retrieval_crossref",
+            "retrieval_crossref_max", "retrieval_crossref_max_units", "retrieval_explicit_reference",
+            "context_unit_apartado", "typed_records_workflows", "lexical_match", "rerank_breadcrumb",
         ) if hasattr(settings, k)},
         "resolved_models": registry.pinned_ids(),
         "embedder": {"model": embedder.model, "revision": embedder.revision},
@@ -149,6 +204,7 @@ def _config(
             {"embedding_model": g[0], "embedding_revision": g[1], "chunker_version": g[2], "thresholds": g[3]}
             for g in gen
         ],
+        "index_generation": index_generation,
     }  # fmt: skip
 
 
@@ -181,7 +237,13 @@ def _eval_tenant(settings: Any) -> uuid.UUID:
 
 
 def run_case(
-    engine: Engine, tenant: uuid.UUID, case: GoldenCase, deps: Any, *, full: bool
+    engine: Engine,
+    tenant: uuid.UUID,
+    case: GoldenCase,
+    deps: Any,
+    *,
+    full: bool,
+    replay_out: list[dict[str, Any]] | None = None,
 ) -> CaseResult:
     from app.chat.service import ChatRequest, answer_query
     from app.db.session import tenant_transaction
@@ -193,13 +255,15 @@ def run_case(
     with tenant_transaction(engine, tenant) as conn:
         jid = _jurisdiction_id(conn, s.jurisdiction)
         ctx = load_session_context(conn, tenant, jid, language=_LANG[s.language],  # type: ignore[arg-type]
-                                   include_historical=s.include_historical)  # fmt: skip
+                                   include_historical=s.include_historical,
+                                   as_of=s.as_of)  # fmt: skip
         if not full:
             r = retrieve(conn, ctx, case.query, embedder=deps.embedder, reranker=deps.reranker,
                          counter=deps.counter, settings=deps.settings)  # fmt: skip
             hits = [h.cite_id for h in r.hits]
             return score_case(case, hits, _scope(conn, hits), gate_refused=r.refusal is not None,
-                              retrieval_s=time.monotonic() - t0)  # fmt: skip
+                              retrieval_s=time.monotonic() - t0,
+                              spans=_safe_spans(conn, hits, case))  # fmt: skip
         req = ChatRequest(query=case.query, persona=s.persona, workflow=s.workflow)  # type: ignore[arg-type]
         stamps: dict[str, float] = {}
 
@@ -208,8 +272,17 @@ def run_case(
 
         res = answer_query(conn, ctx, req, deps, mark)
         tr = deps.tracer.get(tenant, res.request_id)
+        if replay_out is not None:  # ADR-038 B: raw outputs + the full retrieved set, for replay
+            from evals.replay import record
+
+            texts = {k: list(v) for k, v in tr.retrieved_texts.items()}
+            replay_out.extend(
+                record(f"{case.id}#{n}", "golden", s.workflow, a.output, texts, a.verdict)
+                for n, a in enumerate(tr.attempts, 1)
+            )
         hits = [h.cite_id for h in tr.hits]
         scope = _scope(conn, hits)
+        char_spans = _safe_spans(conn, hits, case)
     gen_at = stamps.get("generating") or stamps.get("validating")
     return score_case(
         case, hits, scope, gate_refused=res.status == "refused" and not tr.attempts,
@@ -218,7 +291,7 @@ def run_case(
         regenerations=max(0, len(tr.attempts) - 1),
         retrieval_s=(gen_at - t0) if gen_at else time.monotonic() - t0,
         total_s=time.monotonic() - t0, request_id=str(res.request_id), answer=res.answer,
-        texts={k: list(v) for k, v in tr.retrieved_texts.items()},
+        texts={k: list(v) for k, v in tr.retrieved_texts.items()}, spans=char_spans,
     )  # fmt: skip
 
 
@@ -240,9 +313,21 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--retrieval-only", action="store_true", help="no model calls (deterministic)")
     ap.add_argument("--preflight-only", action="store_true")
     ap.add_argument("--compare", nargs=2, metavar=("RUN_A", "RUN_B"))
+    ap.add_argument("--intervals", metavar="RUN",
+                    help="ADR-032: exact 95 %% intervals of a stored run, re-scored from its cases")  # fmt: skip
     ap.add_argument("--model-profile", choices=["gemma", "qwen", "claude"],
                     help="ADR-024: answer with this profile (default: the server default)")  # fmt: skip
     a = ap.parse_args(argv)
+
+    if a.intervals:
+        path = (
+            Path(a.intervals) if Path(a.intervals).exists() else RUNS / a.intervals / "report.json"
+        )
+        stored = [CaseResult.model_validate(c) for c in read_run(path)["cases"]]
+        s = summarize(stored)
+        out = {"overall": s["intervals"], "by_category": s["intervals_by_category"]}
+        sys.stdout.write(json.dumps(out, ensure_ascii=False, indent=1) + "\n")
+        return 0
 
     if a.compare:
         paths = [Path(p) if Path(p).exists() else RUNS / p / "report.json" for p in a.compare]
@@ -275,10 +360,12 @@ def main(argv: list[str] | None = None) -> int:
 
     tenant = _eval_tenant(state.settings)
     results: list[CaseResult] = []
+    replay_records: list[dict[str, Any]] = []
     t0 = time.monotonic()
     for c in cases:
         try:
-            r = run_case(engine, tenant, c, deps, full=not a.retrieval_only)
+            r = run_case(engine, tenant, c, deps, full=not a.retrieval_only,
+                         replay_out=replay_records)  # fmt: skip
         except Exception as exc:  # one case failing never hides the others
             r = CaseResult(id=c.id, category=c.category, gating=c.gating, expected=c.expected_behavior,
                            has_gold=bool(c.gold_chunks), hits=(), gold_rank=None, leaked=(),
@@ -310,6 +397,10 @@ def main(argv: list[str] | None = None) -> int:
     }  # fmt: skip
     out = RUNS / run_id
     out.mkdir(parents=True, exist_ok=True)
+    if replay_records:
+        from evals.replay import write as write_replay
+
+        write_replay(out / "replay.jsonl", replay_records)
     (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1, default=str),
                                      encoding="utf-8")  # fmt: skip
     sys.stdout.write(json.dumps({"overall": summary["overall"], "gates": report["gates"]},

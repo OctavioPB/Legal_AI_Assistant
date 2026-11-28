@@ -28,8 +28,8 @@ from tests import helpers
 # top of its base kind (ADR-018: the user anchor).
 TENANT_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "documents": ("tenant_id", ("corpus", "matter_scoped")),
-    "doc_nodes": ("tenant_id", ("corpus", "matter_scoped")),
-    "chunks": ("tenant_id", ("corpus", "matter_scoped")),
+    "doc_nodes": ("tenant_id", ("corpus", "matter_scoped", "generation_scoped")),
+    "chunks": ("tenant_id", ("corpus", "matter_scoped", "generation_scoped")),
     "client_files": ("tenant_id", ("private", "matter_scoped")),
     "corpus_changes": ("tenant_id", ("corpus",)),
     "cite_lineage": ("tenant_id", ("corpus",)),
@@ -58,7 +58,7 @@ USER_SCOPED = [
     t for t, (_, kinds) in TENANT_TABLES.items() if len(kinds) > 1 and "matter_scoped" not in kinds
 ]
 # Global, non-tenant data: read-only catalogs and alembic bookkeeping.
-GLOBAL_TABLES = {"jurisdictions", "personas", "alembic_version"}
+GLOBAL_TABLES = {"jurisdictions", "personas", "alembic_version", "index_generations"}
 CORPUS_TABLES = [t for t, (_, kinds) in TENANT_TABLES.items() if "corpus" in kinds]
 
 

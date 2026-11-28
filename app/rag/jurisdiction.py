@@ -43,7 +43,17 @@ def build_jurisdiction_predicate(ctx: SessionContext, *, alias: str = "chunks") 
             f"AND {a}.municipality = :j_muni)"
         )
     parts = [f"{a}.country = :j_country", "(" + " OR ".join(scopes) + ")", f"NOT {a}.is_navigation"]
-    if not ctx.include_historical:
+    if ctx.as_of is not None:
+        # ADR-050: the version in force on that date, whatever is current today. A version whose
+        # validity is unknown is never assumed to cover it (refused, not guessed); a firm document
+        # is not a version of a law and is always searched.
+        params["j_asof"] = ctx.as_of.isoformat()  # a string: the predicate is logged as JSON
+        parts.append(
+            f"{a}.document_id IN (SELECT d.id FROM documents d WHERE d.doc_type = 'client_file' "
+            "OR (d.valid_from IS NOT NULL AND d.valid_from <= CAST(:j_asof AS date) "
+            "AND (d.valid_to IS NULL OR CAST(:j_asof AS date) < d.valid_to)))"
+        )
+    elif not ctx.include_historical:
         parts.append(f"{a}.is_current")
     if ctx.matter_id is None:
         parts.append(f"{a}.matter_id IS NULL")

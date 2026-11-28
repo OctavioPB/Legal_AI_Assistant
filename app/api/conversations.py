@@ -17,7 +17,7 @@ import queue
 import threading
 import uuid
 from collections.abc import Iterator
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
@@ -77,11 +77,17 @@ class ConversationIn(BaseModel):
     case: CaseIn | None = None
     matter_id: uuid.UUID | None = None
     model_profile: ProfileKey | None = None  # ADR-024; None = the server's local default
+    # ADR-050: the date of the facts; the law is read as of it (None: today's current text)
+    as_of: date | None = None
 
     @model_validator(mode="after")
     def _case_only_for_cases(self) -> ConversationIn:
         if (self.kind == "case") != (self.case is not None):
             raise ValueError("a case needs `case`; other kinds must not send it")
+        if self.as_of is not None and self.include_historical:
+            raise ValueError("as_of and include_historical exclude each other")
+        if self.as_of is not None and not date(1900, 1, 1) <= self.as_of <= date.today():
+            raise ValueError("as_of must be a past date (the date of the facts)")
         return self
 
 
@@ -117,6 +123,7 @@ class ConversationOut(BaseModel):
     matter_id: uuid.UUID | None = None
     mine: bool = True
     model_profile: str = "gemma"
+    as_of: date | None = None  # ADR-050
 
 
 class MessageOut(BaseModel):
@@ -126,7 +133,7 @@ class MessageOut(BaseModel):
     content: str
     status: Literal["answered", "refused"] | None
     refusal_reason: str | None
-    citations: list[dict[str, str]]
+    citations: list[dict[str, str | None]]
     request_id: uuid.UUID | None
     created_at: datetime
 
@@ -139,7 +146,9 @@ class ConversationDetail(BaseModel):
 _CONV_COLS = (
     "c.id, c.kind, c.title, c.language, c.jurisdiction_id, c.persona, c.include_historical, "
     "c.case_side, c.case_facts, c.case_claim, c.created_at, c.updated_at, c.matter_id, "
-    "c.user_id = app_user_id() AS mine, c.model_profile"
+    "c.user_id = app_user_id() AS mine, c.model_profile, c.as_of_date, "
+    # ADR-031: the matter's declared regime (RLS: NULL when the matter is not visible)
+    "(SELECT m.labor_regime FROM matters m WHERE m.id = c.matter_id) AS labor_regime"
 )
 
 
@@ -154,7 +163,7 @@ def _conv(row: Any, count: int = 0) -> ConversationOut:
         jurisdiction_id=row.jurisdiction_id, persona=row.persona,
         include_historical=row.include_historical, case=case, created_at=row.created_at,
         updated_at=row.updated_at, message_count=count, matter_id=row.matter_id, mine=row.mine,
-        model_profile=row.model_profile,
+        model_profile=row.model_profile, as_of=row.as_of_date,
     )  # fmt: skip
 
 
@@ -276,9 +285,9 @@ def create_conversation(body: ConversationIn, p: PrincipalDep, st: StateDep) -> 
             text(
                 "INSERT INTO conversations AS c (tenant_id, user_id, kind, title, language, "
                 "jurisdiction_id, persona, include_historical, case_side, case_facts, case_claim, "
-                "matter_id, model_profile) "
+                "matter_id, model_profile, as_of_date) "
                 "VALUES (:t, :u, :k, :title, :lang, :j, :persona, :h, :side, :facts, :claim, :m, "
-                ":profile) "
+                ":profile, :asof) "
                 f"RETURNING {_CONV_COLS}"
             ),
             {
@@ -295,6 +304,7 @@ def create_conversation(body: ConversationIn, p: PrincipalDep, st: StateDep) -> 
                 "claim": c.claim if c else None,
                 "m": body.matter_id,
                 "profile": profile,
+                "asof": body.as_of,
             },
         ).one()
     return _conv(row)
@@ -362,8 +372,9 @@ def _request_for(row: Any, msgs: list[MessageOut], body: MessageIn) -> ChatReque
         seen: list[str] = []
         for m in reversed(msgs):  # newest first, so the carry limit keeps the recent sources
             for c in m.citations:
-                if c["cite_id"] not in seen:
-                    seen.append(c["cite_id"])
+                cid = c["cite_id"]
+                if cid and cid not in seen:
+                    seen.append(cid)
         carry = tuple(seen)
     case = (
         CaseBrief(side=row.case_side, facts=row.case_facts, claim=row.case_claim or "")
@@ -372,7 +383,7 @@ def _request_for(row: Any, msgs: list[MessageOut], body: MessageIn) -> ChatReque
     )
     return ChatRequest(
         query=body.text, persona=row.persona, workflow=workflow, history=history, carry=carry,
-        case=case,
+        case=case, labor_regime=row.labor_regime,
     )  # fmt: skip
 
 
@@ -438,6 +449,7 @@ def post_message(
                 ctx = load_session_context(
                     conn, p.tenant_id, row.jurisdiction_id, language=row.language,
                     include_historical=row.include_historical, matter_id=row.matter_id,
+                    as_of=row.as_of_date,
                 )  # fmt: skip
                 result = answer_query(conn, ctx, req, deps, lambda s: events.put(("stage", s)))
                 seq = (msgs[-1].seq if msgs else 0) + 1

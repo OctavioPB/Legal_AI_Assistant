@@ -258,3 +258,26 @@ def test_the_user_turn_keeps_the_newest_history_within_its_limits() -> None:
                                  case=CaseBrief(side="defensa", facts=huge)), "en", Settings())  # fmt: skip
     assert "Side I represent: defense" in case and case.endswith("Current message:\narg")
     assert len(case) < Settings().conversation_case_max_chars + 100  # the case has its own limit
+
+
+def test_a_conversation_can_fix_the_date_of_the_facts_and_it_reaches_retrieval(world) -> None:  # type: ignore[no-untyped-def]
+    """ADR-050: the as-of date is chosen at creation, validated, returned, and every turn searches
+    the law as of it. The seeded corpus has no dated version, so a dated turn is refused with its
+    own reason instead of answering from today's text."""
+    client, _, llm, corpus, *_ = world
+    h = auth(client)
+    dated = create(client, h, corpus, as_of="2024-05-01")
+    assert dated["as_of"] == "2024-05-01"
+    events = send(client, h, dated["id"], "artículo 47 rescisión certificados falsos probidad")
+    result = events[-1][1]["result"]
+    assert (
+        result["status"] == "refused" and result["refusal_reason"] == "retrieval.no_version_as_of"
+    )
+    assert llm.calls == []  # refused before any model call
+    undated = create(client, h, corpus)
+    assert undated["as_of"] is None
+    base = {"kind": "chat", "title": "t", "jurisdiction_id": corpus["fed"], "persona": "labor"}
+    future = {**base, "as_of": "2999-01-01"}
+    assert client.post("/conversations", json=future, headers=h).status_code == 422
+    both = {**base, "as_of": "2024-05-01", "include_historical": True}
+    assert client.post("/conversations", json=both, headers=h).status_code == 422

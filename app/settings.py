@@ -28,11 +28,26 @@ class Settings(BaseSettings):
     retrieval_arm_top: int = 40
     retrieval_rrf_k: int = 60
     retrieval_rrf_top: int = 20
-    retrieval_rerank_top: int = 8
+    # ADR-048: "rrf" (ranks only) or "convex" (alpha * semantic + (1 - alpha) * lexical, each arm's
+    # scores min-max normalised per query). Stays "rrf" unless the measurements say otherwise.
+    retrieval_fusion: Literal["rrf", "convex"] = "rrf"
+    retrieval_convex_alpha: float = 0.5
+    # ADR-037 (C): add the units the hits refer to ("en los términos del artículo 48") to the
+    # context, after everything else. Off until the golden suite says otherwise.
+    retrieval_crossref: bool = False
+    retrieval_crossref_max: int = 3  # referenced stems (articles or fracciones) per query
+    retrieval_crossref_max_units: int = 6  # units loaded for them
+    # ADR-042 (D), 2026-11-28: 5 instead of 8. Same golden outcome on every case, regenerations
+    # 0.16 -> 0.04, p90 answer 71.9 s -> 49.2 s, char precision 0.133 -> 0.201 (recall 0.89 -> 0.85)
+    retrieval_rerank_top: int = 5
     retrieval_context_budget_tokens: int = 12_000
     # tau is CALIBRATED from probe sets (ADR-007), never guessed: None = the gate refuses to run.
     refusal_tau: float | None = None
     refusal_min_fragments: int = 1  # ADR-007(c): evaluate >= m fragments above tau
+    # ADR-033: workflows that answer as typed records (JSON schema) instead of free text, adopted
+    # for Dossier Builder on 2026-11-28 after 3 golden runs per arm. Only used with a model client
+    # that has `supports_schema` (Ollama); the Claude profile keeps free text. Set () to turn off.
+    typed_records_workflows: tuple[str, ...] = ("dossier_builder",)
 
     # --- local model stack (ADR-014): every model runs on this machine through Ollama -------
     ollama_url: str = "http://localhost:11434"
@@ -115,6 +130,13 @@ class Settings(BaseSettings):
     client_file_max_chars: int = 3_000_000  # extracted text (about 1 000 pages)
     client_file_stale_minutes: int = 60  # a job "processing" for longer was interrupted
     client_file_min_articles: int = 3  # fewer articles than this: not a statute, generic grammar
+    # OCR of scanned pages of a firm's PDF (ADR-030; values from Markdown-Conversor's ADR-017)
+    ocr_languages: str = "spa+eng"
+    ocr_dpi: int = 300  # Tesseract's recommended minimum for body text
+    ocr_min_confidence: float = 0.6  # a page under this mean word confidence is left out
+    ocr_max_pages: int = 200  # scanned pages per upload (~3-4 s each on CPU: ~12 minutes)
+    ocr_tesseract_cmd: str | None = None  # default: PATH, then C:/Program Files/Tesseract-OCR
+    ocr_tessdata: str | None = None  # default: %LOCALAPPDATA%/legalai or tomd/tessdata
     validator_quote_min_words: int = 5  # a quoted run shorter than this is not checked
     validator_coverage_min_words: int = 6  # shorter units (headings, labels) need no citation
 
@@ -124,6 +146,8 @@ class Settings(BaseSettings):
             raise ValueError("need 0 < rerank_top <= rrf_top <= arm_top")
         if self.retrieval_rrf_k < 1 or self.refusal_min_fragments < 1:
             raise ValueError("rrf_k and refusal_min_fragments must be >= 1")
+        if not 0.0 <= self.retrieval_convex_alpha <= 1.0:
+            raise ValueError("retrieval_convex_alpha must be within [0, 1]")
         return self
 
     def url(self, user: str, password: str, database: str | None = None) -> URL:

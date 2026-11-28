@@ -36,6 +36,16 @@ def test_the_doctor_checks_the_pins_and_tau_the_api_actually_loads() -> None:
     assert by_name["refusal tau calibrated (ADR-007)"].status == "PASS"
 
 
+def test_the_ocr_check_passes_with_tesseract_and_warns_without_it() -> None:
+    """ADR-030: scanned uploads need Tesseract with spa+eng; without it they fail (WARN, not FAIL)."""
+    ok = doctor.check_ocr(Settings())
+    assert ok.status == "PASS", ok.detail
+    gone = doctor.check_ocr(Settings(ocr_tesseract_cmd="Z:/no/tesseract.exe"))
+    assert gone.status == "WARN"
+    unknown = doctor.check_ocr(Settings(ocr_languages="spa+xyz"))
+    assert unknown.status == "WARN" and "xyz" in unknown.detail
+
+
 def sabotage(admin_engine: Engine, statement: str, check: object) -> list[str]:
     with admin_engine.connect() as conn:
         conn.execute(text(statement))
@@ -156,3 +166,12 @@ def test_the_reform_watcher_checks(admin_engine: Engine, ingestor_engine: Engine
     (tmp_path / "tau.yaml").write_text("tau: 0.5\ncalibrated_on: '29991231'\n", encoding="utf-8")
     with admin_engine.connect() as conn:
         assert by_name(conn)["tau calibrated after the last reform (ADR-007/017)"].status == "PASS"
+
+
+def test_the_residency_check_reads_the_variable_ollama_starts_with() -> None:
+    """ADR-041: one model at a time cost ~25 s per answer (measured); the check warns until it is >= 2."""
+    assert doctor.check_model_residency({}).status == "WARN"
+    assert doctor.check_model_residency({"OLLAMA_MAX_LOADED_MODELS": "1"}).status == "WARN"
+    assert doctor.check_model_residency({"OLLAMA_MAX_LOADED_MODELS": "x"}).status == "WARN"
+    ok = doctor.check_model_residency({"OLLAMA_MAX_LOADED_MODELS": "3"})
+    assert ok.status == "PASS" and ok.detail == "OLLAMA_MAX_LOADED_MODELS=3"

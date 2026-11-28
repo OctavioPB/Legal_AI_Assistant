@@ -10,9 +10,10 @@ from sqlalchemy import Connection
 
 from app.ingestion.tokens import TokenCounter
 from app.rag.context import SessionContext
+from app.rag.crossref import referenced_stems
 from app.rag.expansion import build_context
-from app.rag.fusion import rrf
-from app.rag.gate import apply_gate
+from app.rag.fusion import convex, rrf
+from app.rag.gate import apply_gate, refusal_block
 from app.rag.search import QueryEmbedder, hits_by_cite, hits_by_stem, lexical_arm, semantic_arm
 from app.rag.types import Fragment, Hit, Refusal
 from app.settings import Settings
@@ -66,11 +67,19 @@ def retrieve(
         conn, ctx, query, top=settings.retrieval_arm_top, match=settings.lexical_match
     )
     by_cite = {h.cite_id: h for h in (*lex, *sem)}
-    fused = rrf(
-        [[h.cite_id for h in sem], [h.cite_id for h in lex]],
-        k=settings.retrieval_rrf_k,
-        top=settings.retrieval_rrf_top,
-    )
+    if settings.retrieval_fusion == "convex":  # ADR-048, measured against RRF
+        a = settings.retrieval_convex_alpha
+        fused = convex(
+            [[(h.cite_id, h.score) for h in sem], [(h.cite_id, h.score) for h in lex]],
+            weights=(a, 1.0 - a),
+            top=settings.retrieval_rrf_top,
+        )
+    else:
+        fused = rrf(
+            [[h.cite_id for h in sem], [h.cite_id for h in lex]],
+            k=settings.retrieval_rrf_k,
+            top=settings.retrieval_rrf_top,
+        )
     cands = [by_cite[c] for c, _ in fused]
     # ADR-022: units the query names explicitly (resolved by the citation grammar, under the same
     # predicate) are candidates too, and go first whatever their similarity score
@@ -102,6 +111,14 @@ def retrieve(
         if pinned
         else apply_gate(top, tau=settings.refusal_tau, min_fragments=settings.refusal_min_fragments)
     )
+    if refusal is not None and ctx.as_of is not None and refusal.reason_key == "retrieval.no_hits":
+        # ADR-050: nothing in scope is dated to cover that day; say so instead of "no sources"
+        refusal = refusal.model_copy(
+            update={
+                "reason_key": "retrieval.no_version_as_of",
+                "block": refusal_block("retrieval.no_version_as_of"),
+            }
+        )
     sem_ids = tuple(h.cite_id for h in sem)
     lex_ids = tuple(h.cite_id for h in lex)
     if refusal is not None:
@@ -116,8 +133,27 @@ def retrieve(
         for i, h in enumerate(hits_by_cite(conn, ctx, wanted, embedder), 1)
     ]
     top = [*top, *carried]
+    # ADR-037 (C): units the hits refer to, LAST: only the budget left over, and they are not hits
+    xref: list[Hit] = []
+    if settings.retrieval_crossref:
+        stems = referenced_stems(top, limit=settings.retrieval_crossref_max)
+        seen = {h.cite_id for h in top}
+        xref = [
+            h.model_copy(update={"rank": len(top) + i})
+            for i, h in enumerate(
+                (
+                    x
+                    for x in hits_by_stem(
+                        conn, ctx, stems, embedder, limit=settings.retrieval_crossref_max_units
+                    )
+                    if x.cite_id not in seen
+                ),
+                1,
+            )
+        ]
     frags = build_context(
-        conn, top, budget_tokens=settings.retrieval_context_budget_tokens, counter=counter,
+        conn, [*top, *xref], budget_tokens=settings.retrieval_context_budget_tokens,
+        counter=counter,
         citable_units=settings.context_citable_units, include_historical=ctx.include_historical,
         apartado=settings.context_unit_apartado,
     )  # fmt: skip

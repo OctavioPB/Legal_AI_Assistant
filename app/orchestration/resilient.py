@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
+from typing import Any
 
 from app.orchestration.aliases import AliasName, AliasRegistry
 from app.orchestration.client import LLMClient, LLMResult
@@ -114,8 +115,20 @@ class ResilientClient:
                 todo.extend(self._registry.spec(cur).fallbacks)
         return out
 
+    @property
+    def supports_schema(self) -> bool:
+        """ADR-033: as capable as the client it wraps."""
+        return bool(getattr(self._inner, "supports_schema", False))
+
     def complete(
-        self, alias: AliasName, *, system: str, user: str, max_tokens: int, tenant_id: str
+        self,
+        alias: AliasName,
+        *,
+        system: str,
+        user: str,
+        max_tokens: int,
+        tenant_id: str,
+        schema: Mapping[str, Any] | None = None,
     ) -> LLMResult:
         failures: list[tuple[str, str]] = []
         for candidate in self._chain(alias):
@@ -126,6 +139,7 @@ class ResilientClient:
                 user=user,
                 max_tokens=max_tokens,
                 tenant_id=tenant_id,
+                **({"schema": schema} if schema is not None else {}),
             )
             try:
                 result = future.result(timeout=self._timeout)

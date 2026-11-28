@@ -184,10 +184,35 @@ def check_search_config(conn: Connection) -> list[Check]:
 
 
 def check_generations(conn: Connection) -> list[Check]:
+    from app.ingestion.chunker import CHUNKER_VERSION
     from app.ops.tripwires import collect_metrics
 
     m = collect_metrics(conn)
+    gens = conn.execute(
+        text("SELECT id, status, chunker_version FROM index_generations ORDER BY id")
+    ).all()
+    active = [g for g in gens if g.status == "active"]
+    building = [str(g.id) for g in gens if g.status == "building"]
+    live_cv = active[0].chunker_version if active else None
+    if active and live_cv is None:  # generation 1 as migrated: read it from its chunks
+        live_cv = conn.execute(
+            text("SELECT min(chunker_version) FROM chunks WHERE generation = :g"),
+            {"g": active[0].id},
+        ).scalar()
     return [
+        Check("exactly one index generation is active (ADR-006)",
+              "PASS" if len(active) == 1 else "FAIL",
+              f"active {active[0].id}" if active else "none"),
+        Check("no index generation left half-built (ADR-006)",
+              "PASS" if not building else "WARN",
+              "none" if not building else f"building: {', '.join(building)} "
+              "(fill + activate, or prune)"),
+        Check("the live index was cut by this code's chunker (ADR-006)",
+              "PASS" if live_cv in (None, CHUNKER_VERSION) else "WARN",
+              f"code v{CHUNKER_VERSION}, live v{live_cv}" + (
+                  "" if live_cv in (None, CHUNKER_VERSION)
+                  else ": new documents are refused until `app.ingestion.rebuild` builds and "
+                  "activates a generation")),
         Check("one embedding/chunker generation is live (invariant 5)",
               "PASS" if m["live_generations"] <= 1 else "FAIL", f"{int(m['live_generations'])} live"),
         Check("no chunk exceeds the embedder window (ADR-012)",
@@ -215,7 +240,70 @@ def check_repo(settings: Settings, registry: AliasRegistry | None = None) -> lis
                      f"unpinned: {', '.join(unpinned)}" if unpinned else ""))  # fmt: skip
     out.append(Check("refusal tau calibrated (ADR-007)", "WARN" if settings.refusal_tau is None else "PASS",
                      "tau is None: the gate refuses to run" if settings.refusal_tau is None else f"tau={settings.refusal_tau}"))  # fmt: skip
+    out.append(check_ocr(settings))
+    out.append(check_model_residency())
     return out
+
+
+def _windows_env(name: str) -> str | None:
+    """A variable from the Windows user, then machine, environment (where the tray Ollama reads it).
+    `sys.platform` (not `os.name`) so mypy skips this branch when it checks for Linux, as CI does."""
+    if sys.platform == "win32":
+        import winreg
+
+        for hive, key in ((winreg.HKEY_CURRENT_USER, "Environment"),
+                          (winreg.HKEY_LOCAL_MACHINE,
+                           r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment")):  # fmt: skip
+            try:
+                with winreg.OpenKey(hive, key) as k:
+                    return str(winreg.QueryValueEx(k, name)[0])
+            except OSError:
+                continue
+    return None
+
+
+def check_model_residency(env: dict[str, str] | None = None) -> Check:
+    """ADR-041 (measured 2026-11-26): with Ollama keeping one model at a time, every turn unloads the drafting
+    model to embed the query and reloads it to generate (~20 s), then reloads the embedder (~4.5 s): the median
+    answer went from 61 s to 28 s on the same cases with OLLAMA_MAX_LOADED_MODELS=3. The running server's
+    environment cannot be read, so this checks the variable it is started with (process, then the Windows user
+    and machine scopes)."""
+    import os
+
+    value = (env if env is not None else os.environ).get("OLLAMA_MAX_LOADED_MODELS")
+    if value is None and env is None:
+        value = _windows_env("OLLAMA_MAX_LOADED_MODELS")
+    name = "Ollama keeps the embedder and the drafting model loaded (ADR-041)"
+    if value is None or not value.strip().isdigit() or int(value) < 2:
+        return Check(
+            name,
+            "WARN",
+            "OLLAMA_MAX_LOADED_MODELS < 2 or unset: every answer reloads the models (~25 s)",
+        )
+    return Check(name, "PASS", f"OLLAMA_MAX_LOADED_MODELS={value}")
+
+
+def check_ocr(settings: Settings) -> Check:
+    """ADR-030: without Tesseract a scanned PDF fails with `ocr_unavailable`. A WARN, not a FAIL:
+    every other upload and the whole query path work without it."""
+    from app.ingestion.ocr import OcrConfig, OcrEngine
+
+    cfg = OcrConfig.from_settings(settings)
+    engine = OcrEngine.find(cfg)
+    if engine is None:
+        return Check("OCR engine for scanned PDFs (ADR-030)", "WARN",
+                     "Tesseract not found: scanned uploads will fail")  # fmt: skip
+    try:
+        version, missing = engine.version(), engine.missing_languages()
+    except Exception as exc:
+        return Check(
+            "OCR engine for scanned PDFs (ADR-030)", "WARN", f"Tesseract does not run: {exc}"
+        )
+    if missing:
+        return Check("OCR engine for scanned PDFs (ADR-030)", "WARN",
+                     f"tesseract {version}: no language data for {', '.join(missing)}")  # fmt: skip
+    return Check("OCR engine for scanned PDFs (ADR-030)", "PASS",
+                 f"tesseract {version}, {engine.languages}")  # fmt: skip
 
 
 WATCH_STALE_DAYS = 3  # the watcher runs daily; three missed days is worth a warning

@@ -27,7 +27,8 @@ function writeParams(law: string | null, path: string | null) {
   if (law) q.set("ley", law);
   if (path) q.set("p", path);
   const s = q.toString();
-  window.history.replaceState(null, "", s ? `${window.location.pathname}?${s}` : window.location.pathname);
+  const next = s ? `${window.location.pathname}?${s}` : window.location.pathname;
+  if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, "", next);
 }
 
 /** Feature 1 (Brand.md 9.1): browse a loaded law by its structure, jump to an article by number,

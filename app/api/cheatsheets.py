@@ -45,7 +45,7 @@ class CheatsheetOut(BaseModel):
     status: Literal["answered", "refused"]
     content: str | None
     refusal_reason: str | None
-    citations: list[dict[str, str]]
+    citations: list[dict[str, str | None]]
     material: dict[str, int]
 
 

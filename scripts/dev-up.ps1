@@ -405,11 +405,22 @@ if (-not (Test-Http "$OllamaUrl/api/version")) {
     Write-Warn2 "Ollama no responde: iniciando 'ollama serve' en segundo plano..."
     New-Item -ItemType Directory -Force $RunDir | Out-Null
     $startedOllama = Start-Detached -Exe (Get-Command ollama).Source -ArgList @("serve") -Cwd $Root `
-        -EnvVars @{ OLLAMA_HOST = "127.0.0.1:11434" } `
+        -EnvVars @{ OLLAMA_HOST = "127.0.0.1:11434"; OLLAMA_MAX_LOADED_MODELS = "3" } `
         -Out (Join-Path $RunDir "ollama.log") -Err (Join-Path $RunDir "ollama.err.log")
     if (-not (Wait-Http "$OllamaUrl/api/version" 60 "Ollama")) { Fail "Ollama no arrancó; revisa $RunDir\ollama.err.log" }
 }
 Assert-LoopbackOnly 11434 "Ollama" | Out-Null
+# ADR-041: con un solo modelo cargado a la vez, Ollama desaloja el modelo de redacción en cada consulta para cargar el
+# de embeddings y lo vuelve a cargar al generar (~20 s por turno, medido). Si Ollama ya corría (bandeja de Windows),
+# no sabemos con qué variables arrancó: avisamos si la del usuario no está.
+if (-not $startedOllama) {
+    $loaded = [Environment]::GetEnvironmentVariable("OLLAMA_MAX_LOADED_MODELS", "User")
+    if (-not $loaded) { $loaded = [Environment]::GetEnvironmentVariable("OLLAMA_MAX_LOADED_MODELS", "Machine") }
+    if (-not $loaded -or [int]$loaded -lt 2) {
+        Write-Warn2 "Ollama puede tener un solo modelo cargado: cada respuesta recarga los modelos (~20 s). Ejecuta"
+        Write-Warn2 "  [Environment]::SetEnvironmentVariable('OLLAMA_MAX_LOADED_MODELS','3','User')  y reinicia Ollama."
+    } else { Write-Ok "Ollama conserva hasta $loaded modelos cargados (ADR-041)" }
+}
 $have = @((Invoke-RestMethod "$OllamaUrl/api/tags" -TimeoutSec 10).models | ForEach-Object { $_.name })
 foreach ($m in $Models) {
     $full = $m

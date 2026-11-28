@@ -33,6 +33,11 @@
   stacks on documents, doc_nodes, chunks and client_files. Public rows and firm-wide files have no matter;
   a matter's file needs the user anchor AND membership. `doc_nodes.matter_id`/`chunks.matter_id` are derived
   by trigger and `documents.matter_id` is immutable; deleting a matter cascades to its files (never SET NULL).
+- Index generation (ADR-006): `generation_scoped` (RESTRICTIVE, `generation = (SELECT app_generation())`) stacks on
+  doc_nodes and chunks. `index_generations` is global (no tenant data) and readable by every role; only the rebuild,
+  an explicit superuser step, writes another generation or switches the active one (the app role cannot even lock
+  the table). The migrator is under FORCE RLS too: a migration that must read every chunk cannot (0015 left
+  generation 1's versions to the first rebuild for that reason).
 - Known limit: `app.tenant_id` is a plain setting. RLS defends against application bugs and
   missing filters, not against arbitrary SQL executed AS `legalai_app` (e.g. SQL injection could
   call `set_config`). Mitigation today: parameterized queries only, no raw SQL from request data.

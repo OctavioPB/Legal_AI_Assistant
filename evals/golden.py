@@ -15,10 +15,13 @@ from __future__ import annotations
 import json
 import statistics
 from collections.abc import Iterable
+from datetime import date
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from evals.stats import ALPHA, interval, mcnemar_exact
 
 Category = Literal[
     "statutory_lookup", "exact_identifier", "jurisdiction_isolation", "refusal_required",
@@ -57,6 +60,7 @@ class Session(BaseModel):
         "dossier_builder"
     )
     include_historical: bool = False
+    as_of: date | None = None  # ADR-050: the law as of this date (the temporal track)
 
 
 class GoldenCase(BaseModel):
@@ -112,6 +116,45 @@ def first_rank(ids: list[str], patterns: Iterable[str]) -> int | None:
     return next((n + 1 for n, i in enumerate(ids) if any(matches(i, p) for p in pats)), None)
 
 
+Span = tuple[str, int, int]  # (document id, char_start, char_end) of a chunk in its source
+
+
+def _merged(spans: Iterable[Span]) -> dict[str, list[tuple[int, int]]]:
+    """Per document, the union of the spans as sorted disjoint intervals (a character counts once)."""
+    by_doc: dict[str, list[tuple[int, int]]] = {}
+    for doc, s, e in spans:
+        if e > s:
+            by_doc.setdefault(doc, []).append((s, e))
+    out: dict[str, list[tuple[int, int]]] = {}
+    for doc, ivs in by_doc.items():
+        merged: list[tuple[int, int]] = []
+        for s, e in sorted(ivs):
+            if merged and s <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+            else:
+                merged.append((s, e))
+        out[doc] = merged
+    return out
+
+
+def _length(ivs: dict[str, list[tuple[int, int]]]) -> int:
+    return sum(e - s for spans in ivs.values() for s, e in spans)
+
+
+def char_overlap(hits: Iterable[Span], gold: Iterable[Span]) -> tuple[float | None, float | None]:
+    """ADR-037 (D), after LegalBench-RAG: (precision, recall) in characters of source text.
+    precision = retrieved characters that are gold / retrieved characters; recall = gold characters
+    retrieved / gold characters. None when there is nothing to divide by."""
+    h, g = _merged(hits), _merged(gold)
+    inter = 0
+    for doc, hs in h.items():
+        for a, b in hs:
+            for c, d in g.get(doc, ()):
+                inter += max(0, min(b, d) - max(a, c))
+    hl, gl = _length(h), _length(g)
+    return (inter / hl if hl else None), (inter / gl if gl else None)
+
+
 def in_scope(sel: Jurisdiction, row: Jurisdiction) -> bool:
     """Stacking rule (jurisdictions.md), restated independently of the predicate builder so the
     suite can catch a bug in it: a selection sees its own level and the levels ABOVE it, in its own
@@ -156,6 +199,9 @@ class CaseResult(BaseModel):
     error: str | None = None
     query: str = ""
     answer: str | None = None  # the validated answer, for the lawyer's review sheet
+    # ADR-037 (D): characters of the top-k that are gold / characters of gold that are in the top-k
+    char_precision: float | None = None
+    char_recall: float | None = None
     cited_texts: dict[str, list[str]] = {}  # cite_id -> FULL text(s) it may quote (never truncated)
     forbidden_found: tuple[str, ...] = ()  # `must_not_contain` entries present in the answer
 
@@ -176,8 +222,10 @@ def score_case(
     request_id: str | None = None,
     answer: str | None = None,
     texts: dict[str, list[str]] | None = None,
+    spans: tuple[list[Span], list[Span]] | None = None,
 ) -> CaseResult:
     gold = (*case.gold_chunks, *case.gold_alternatives)
+    cp, cr = char_overlap(*spans) if spans is not None and gold else (None, None)
     cited_t = tuple(dict.fromkeys(cited))
     rset = set(retrieved_set)
     return CaseResult(
@@ -189,7 +237,7 @@ def score_case(
         invalid_cited=tuple(c for c in cited_t if c not in rset) if outcome == "answered" else (),
         cited_gold=any_match(cited_t, gold) if outcome == "answered" and gold else None,
         regenerations=regenerations, retrieval_s=retrieval_s, total_s=total_s, request_id=request_id,
-        query=case.query, answer=answer,
+        query=case.query, answer=answer, char_precision=cp, char_recall=cr,
         forbidden_found=tuple(w for w in case.must_not_contain if answer and _fold(w) in _fold(answer)),
         cited_texts={c: list((texts or {}).get(c, [])) for c in cited_t} if outcome == "answered" else {},
     )  # fmt: skip
@@ -206,8 +254,8 @@ def _ratio(num: int, den: int) -> float | None:
     return round(num / den, 4) if den else None
 
 
-def metrics(results: list[CaseResult]) -> dict[str, float | int | None]:
-    """Metrics over a set of results (a category, the gating subset, or everything)."""
+def _counts(results: list[CaseResult]) -> dict[str, tuple[int, int]]:
+    """(numerator, denominator) of every rate: the one definition both the rates and their intervals use."""
     answer = [r for r in results if r.expected == "answer"]
     refuse = [r for r in results if r.expected == "refuse"]
     with_gold = [r for r in answer if r.has_gold]
@@ -216,26 +264,41 @@ def metrics(results: list[CaseResult]) -> dict[str, float | int | None]:
     cited = [c for r in answered for c in r.cited]
     invalid = [c for r in answered for c in r.invalid_cited]
     return {
-        "n": len(results),
-        "recall_at_k": _ratio(sum(r.gold_rank is not None for r in with_gold), len(with_gold)),
-        "jurisdiction_leakage": _ratio(sum(bool(r.leaked) for r in results), len(results)),
-        "distractor_rate": _ratio(sum(bool(r.distractors_in_top) for r in results), len(results)),
-        "gate_refusal_on_refuse": _ratio(sum(r.gate_refused for r in refuse), len(refuse)),
-        "refusal_accuracy": _ratio(
+        "recall_at_k": (sum(r.gold_rank is not None for r in with_gold), len(with_gold)),
+        "jurisdiction_leakage": (sum(bool(r.leaked) for r in results), len(results)),
+        "distractor_rate": (sum(bool(r.distractors_in_top) for r in results), len(results)),
+        "gate_refusal_on_refuse": (sum(r.gate_refused for r in refuse), len(refuse)),
+        "refusal_accuracy": (
             sum(r.outcome == "refused" for r in refuse if r.outcome), sum(1 for r in refuse if r.outcome)
         ),
-        "false_refusal": _ratio(
+        "false_refusal": (
             sum(r.outcome == "refused" for r in answer if r.outcome), sum(1 for r in answer if r.outcome)
         ),
-        "citation_precision": _ratio(len(cited) - len(invalid), len(cited)),
-        "gold_citation": _ratio(
+        "citation_precision": (len(cited) - len(invalid), len(cited)),
+        "gold_citation": (
             sum(bool(r.cited_gold) for r in answered if r.expected == "answer"),
             sum(1 for r in answered if r.expected == "answer" and r.cited_gold is not None),
         ),
-        "regeneration_rate": _ratio(sum(r.regenerations > 0 for r in full), len(full)),
-        "forbidden_content": _ratio(sum(bool(r.forbidden_found) for r in answered), len(answered)),
-        "errors": sum(r.error is not None for r in results),
+        "regeneration_rate": (sum(r.regenerations > 0 for r in full), len(full)),
+        "forbidden_content": (sum(bool(r.forbidden_found) for r in answered), len(answered)),
     }  # fmt: skip
+
+
+def metrics(results: list[CaseResult]) -> dict[str, float | int | None]:
+    """Metrics over a set of results (a category, the gating subset, or everything)."""
+    out: dict[str, float | int | None] = {"n": len(results)}
+    out.update({name: _ratio(k, n) for name, (k, n) in _counts(results).items()})
+    # ADR-037 (D): means over the cases that have gold (no interval: they are not k-of-n rates)
+    for name in ("char_precision", "char_recall"):
+        vals = [getattr(r, name) for r in results if getattr(r, name) is not None]
+        out[f"{name}_at_k"] = round(sum(vals) / len(vals), 4) if vals else None
+    out["errors"] = sum(r.error is not None for r in results)
+    return out
+
+
+def intervals(results: list[CaseResult]) -> dict[str, dict[str, float | int] | None]:
+    """ADR-032: the exact 95 % (Clopper-Pearson) interval of every rate, with its k and n."""
+    return {name: interval(k, n) for name, (k, n) in _counts(results).items()}
 
 
 def percentile(xs: list[float], q: float) -> float | None:
@@ -251,6 +314,9 @@ def summarize(results: list[CaseResult]) -> dict[str, object]:
     return {
         "overall": metrics(results),
         "by_category": {c: metrics(rs) for c, rs in by_cat.items() if rs},
+        # ADR-032: exact 95 % intervals; with dozens of cases a rate without its interval overstates itself
+        "intervals": intervals(results),
+        "intervals_by_category": {c: intervals(rs) for c, rs in by_cat.items() if rs},
         "gating": metrics(gating) if gating else None,
         "n_gating": len(gating),
         "n_ai_draft": len(results) - len(gating),
@@ -327,11 +393,21 @@ def compare(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
     worse = [f for f in flips if f["before"] and not f["after"]]
     better = [f for f in flips if not f["before"] and f["after"]]
     one_case = {cat: round(1 / v["n"], 4) for cat, v in deltas.items()}  # type: ignore[operator]
+    # ADR-032: an exact McNemar test on the flipped cases decides "improvement", not a count of flips.
+    # Any worse flip is still a regression to explain (eval-runner skill), whatever the p-value.
+    p_value = mcnemar_exact(len(worse), len(better))
+    if worse:
+        verdict = "regression"
+    elif better and p_value < ALPHA:
+        verdict = "improvement"
+    else:
+        verdict = "within_noise"
     return {
         "flips_worse": worse, "flips_better": better, "by_category": deltas,
         "one_case_moves": one_case,
-        "verdict": "regression" if worse else ("within_noise" if len(better) <= 2 else "improvement"),
-        "note": "1-2 flipped cases is noise with this many cases; any worse flip must be explained.",
+        "mcnemar": {"worse": len(worse), "better": len(better), "p_value": p_value, "alpha": ALPHA},
+        "verdict": verdict,
+        "note": "improvement needs an exact McNemar p < 0.05 on the flipped cases; any worse flip must be explained.",
     }  # fmt: skip
 
 

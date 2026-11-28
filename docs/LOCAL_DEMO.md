@@ -11,6 +11,18 @@ texto extraído", ...) are the ones you will see on screen.
 - Ollama models: `bge-m3` (embeddings), `gemma4:26b-a4b-it-qat` (drafting), `qwen3:4b-instruct-2507-q4_K_M`
   (utility/fallback). If one is missing: `ollama pull <name>`.
 - Edge browser (only for the E2E tests).
+- Let Ollama keep more than one model loaded (ADR-041): set `OLLAMA_MAX_LOADED_MODELS=3` for your user
+  (`[Environment]::SetEnvironmentVariable('OLLAMA_MAX_LOADED_MODELS','3','User')`) and restart Ollama. Without it,
+  every answer unloads the drafting model to embed the question and reloads it to generate: measured on an 8 GB
+  GPU, the median answer went from 61 s to 28 s with the setting. `scripts/dev-up.ps1` sets it when it starts
+  Ollama itself and warns otherwise; `doctor` checks it.
+- Tesseract 5 with Spanish and English data, to read scanned PDFs (ADR-030). Without it everything else works and
+  a scanned upload fails with a clear message; `uv run python -m app.doctor` warns.
+  - Windows: `winget install UB-Mannheim.TesseractOCR`, then put `spa.traineddata`, `eng.traineddata` and
+    `osd.traineddata` from [tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast) in
+    `%LOCALAPPDATA%\legalai\tessdata` (Markdown-Conversor's `%LOCALAPPDATA%\tomd\tessdata` is used too).
+  - Debian/Ubuntu: `sudo apt install tesseract-ocr tesseract-ocr-spa`. macOS: `brew install tesseract tesseract-lang`.
+  - Other locations: `OCR_TESSERACT_CMD` and `OCR_TESSDATA` in `.env`.
 
 ## With a double click (for anyone)
 In the project folder: **`Iniciar Legal AI.cmd`** prepares everything and opens the browser; **`Detener Legal AI.cmd`**
@@ -95,8 +107,12 @@ is per user and is stored in the local Postgres; it can be renamed and deleted.
     read, part by part: review it, because what is missing there the assistant does not see either.
   - **Scope.** It is filed under a scope from the catalog: a document marked as Nuevo León does not appear in a
     federal conversation or one of another state.
-  - A short document is ready in seconds; a long PDF, in minutes. The list updates itself. A scanned
-    PDF (images only) cannot be read: run OCR first or upload the Word file.
+  - A short document is ready in seconds; a long PDF, in minutes. The list updates itself.
+  - **Scanned PDFs** (ADR-030): pages without a text layer are read by OCR on this machine (3-4 s per page). The
+    list shows which pages were read by OCR and their mean confidence; a page read with low confidence is left out
+    (the assistant never sees or cites it) and listed so it can be rescanned at 300 dpi or more. If the PDF has a
+    text layer that is garbage, tick "El texto del PDF está dañado: leerlo como escaneado". The source viewer
+    marks text that came from OCR: compare it with the paper before citing it.
   - It is deleted by whoever uploaded it or an administrator; the conversations that cited it keep the citation's name.
 - **Reformas** (`/reformas`): the watcher checks the official sources of the 8 loaded laws
   (diputados.gob.mx for LFT, CPEUM, CCF and CPF; hcnl.gob.mx for the Código Civil de NL; monterrey.gob.mx for the
@@ -168,17 +184,34 @@ on another machine: `uv run python -m evals.e2e.run_case laboral_01 --credential
 running (about 17 minutes with the local model).
 
 ## What to expect
-- A query with an answer takes **1.5–4 minutes**: the drafting model (26B) runs largely in
-  RAM because the GPU has 8 GB, and an answer is generated once and, if the validator rejects it, is
-  regenerated once. Meanwhile the interface shows the current stage.
+- A query with an answer takes **about half a minute to a minute** with `OLLAMA_MAX_LOADED_MODELS=3` (47 s median
+  over the answered cases of the golden run of 2026-11-27; 1.5–4 minutes without it, because Ollama then swaps the
+  embedder and the drafting model on every turn, ADR-041). The drafting model (26B) runs largely in RAM because the
+  GPU has 8 GB, and an answer is generated once and, if the validator rejects it, is regenerated once. Meanwhile the
+  interface shows the current stage.
 - A topic the corpus does not cover is **refused in ~3 s** without calling the model (the τ gate).
 - A refusal is not an error: the interface explains what is missing and what to do. The text is written by the system.
 - Local models are not deterministic from one run to the next even at temperature 0: the same
   query may be answered or refused. See the measurement in PLAN.md (2026-11-07).
 
+## After a parser or chunker change (index generations, ADR-006)
+The index is versioned as a whole. A change that alters chunks is built aside, measured, and only then switched in:
+```bash
+uv run python -m app.ingestion.rebuild status          # which generation is active, and its chunker version
+uv run python -m app.ingestion.rebuild build --note "what changed"   # ~15 min: re-reads every law, re-embeds
+uv run python -m app.ingestion.rebuild activate N      # switch in (one transaction), then run the golden suite
+uv run python -m app.ingestion.rebuild rollback        # back to the previous generation if any case is worse
+```
+- Until the new generation is active, the app refuses to ingest with the new chunker (doctor says so): uploads and
+  the reform watcher write only into a generation cut by the same code.
+- The build stops instead of writing a different corpus: a law whose source no longer matches its stored checksum,
+  or a firm document whose units would change, is never rebuilt silently.
+- On Windows the embedder can run out of local sockets during a build; the rebuild pauses and retries the batch.
+- `fill N` adds documents uploaded while N was being built; `prune N` deletes a retired generation's rows.
+
 ## Tests
 ```bash
-uv run pytest                          # 1,900+ tests; requires Postgres up
+uv run pytest                          # 2,100+ tests; requires Postgres up
 uv run pytest -m live                  # against the real Ollama (slow)
 cd web && npm test && npx tsc --noEmit
 # real browser, no models: the interface against a nonexistent API (catalogs simulated in the browser)
@@ -190,7 +223,8 @@ cd web && npm run e2e:full             # real browser + API + local models (minu
 - τ is calibrated with probe sets written by AI and **without a lawyer's review**; no τ
   meets both false refusals ≤ 5 % and correct refusal ≥ 95 % with the bge-m3 cosine.
 - A verified citation proves provenance, not fidelity (a correct citation with an inverted summary passes).
-- The firm's documents: no OCR (a scanned PDF fails), no `.docx` footnotes, and the reading of
+- The firm's documents: OCR text can contain misread words even above the confidence threshold, and the brief
+  verifier does not read scans; no `.docx` footnotes, and the reading of
   contracts and rulings is by form (clauses, headings, paragraphs) and **without a lawyer's review**. τ was
   calibrated with statute text, not with contracts. If the app is closed halfway through a load, the document is left
   "interrumpido" and has to be uploaded again.

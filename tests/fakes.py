@@ -61,13 +61,28 @@ class FakeReranker:
 class FakeLLM:
     """Scripted `LLMClient`: queued replies, records every call, never touches a network."""
 
-    def __init__(self, replies: list[str] | None = None, model_id: str = "fake-model-1") -> None:
+    def __init__(
+        self,
+        replies: list[str] | None = None,
+        model_id: str = "fake-model-1",
+        supports_schema: bool = False,
+    ) -> None:
         self.replies = list(replies or ["<insuficiente></insuficiente>"])
         self.model_id = model_id
         self.calls: list[dict[str, object]] = []
+        # ADR-033: False keeps the free-text path (scripted free-text replies); a typed-records test
+        # passes True, like the Ollama client
+        self.supports_schema = supports_schema
 
     def complete(
-        self, alias: AliasName, *, system: str, user: str, max_tokens: int, tenant_id: str
+        self,
+        alias: AliasName,
+        *,
+        system: str,
+        user: str,
+        max_tokens: int,
+        tenant_id: str,
+        schema: object = None,
     ) -> LLMResult:
         self.calls.append(
             {
@@ -76,6 +91,7 @@ class FakeLLM:
                 "user": user,
                 "max_tokens": max_tokens,
                 "tenant": tenant_id,
+                "schema": schema,
             }
         )
         text = self.replies.pop(0) if len(self.replies) > 1 else self.replies[0]

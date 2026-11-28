@@ -1,0 +1,485 @@
+{
+ "run_id": "golden-20261127T065030Z-rep-gen2-1",
+ "ts": "20261127T065030Z",
+ "tag": "rep-gen2-1",
+ "commit": "9419c0c",
+ "dirty": true,
+ "suite": "golden_v2.jsonl",
+ "mode": "full",
+ "model_profile": "gemma",
+ "languages": [
+  "es-MX"
+ ],
+ "config": {
+  "settings": {
+   "refusal_tau": 0.58,
+   "refusal_min_fragments": 1,
+   "retrieval_arm_top": 40,
+   "retrieval_rrf_k": 60,
+   "retrieval_rrf_top": 20,
+   "retrieval_rerank_top": 8,
+   "retrieval_context_budget_tokens": 12000,
+   "context_citable_units": true,
+   "validator_quote_min_words": 5,
+   "validator_coverage_min_words": 6
+  },
+  "resolved_models": {
+   "drafting-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "drafting-heavy": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "adversarial-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "cheap-utility": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593",
+   "fallback-general": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593"
+  },
+  "embedder": {
+   "model": "bge-m3",
+   "revision": "790764642607"
+  },
+  "reranker": "bge-m3-dense-cosine",
+  "prompt_manifest_sha256": "9efbe155d2d271470535067142449bb4c01dde0b62f596049aa0aa59f187e25b",
+  "generations": [
+   {
+    "embedding_model": "bge-m3",
+    "embedding_revision": "790764642607",
+    "chunker_version": 2,
+    "thresholds": "{\"counter\": \"bge-m3-xlmr\", \"max_tokens\": 800, \"min_tokens\": 80, \"embedder_window\": 8192}"
+   }
+  ],
+  "index_generation": 2
+ },
+ "n_cases": 4,
+ "n_by_category": {
+  "exact_identifier": 1,
+  "temporal_validity": 2,
+  "statutory_lookup": 1
+ },
+ "summary": {
+  "overall": {
+   "n": 4,
+   "recall_at_k": 1.0,
+   "jurisdiction_leakage": 0.0,
+   "distractor_rate": 0.0,
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": 0.75,
+   "citation_precision": 1.0,
+   "gold_citation": 0.0,
+   "regeneration_rate": 0.5,
+   "forbidden_content": 0.0,
+   "errors": 0
+  },
+  "by_category": {
+   "statutory_lookup": {
+    "n": 1,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 1.0,
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": 1.0,
+    "forbidden_content": null,
+    "errors": 0
+   },
+   "exact_identifier": {
+    "n": 1,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 1.0,
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": 1.0,
+    "forbidden_content": null,
+    "errors": 0
+   },
+   "temporal_validity": {
+    "n": 2,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 0.5,
+    "citation_precision": 1.0,
+    "gold_citation": 0.0,
+    "regeneration_rate": 0.0,
+    "forbidden_content": 0.0,
+    "errors": 0
+   }
+  },
+  "intervals": {
+   "recall_at_k": {
+    "k": 4,
+    "n": 4,
+    "rate": 1.0,
+    "lower": 0.3976,
+    "upper": 1.0
+   },
+   "jurisdiction_leakage": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   },
+   "distractor_rate": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   },
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": {
+    "k": 3,
+    "n": 4,
+    "rate": 0.75,
+    "lower": 0.1941,
+    "upper": 0.9937
+   },
+   "citation_precision": {
+    "k": 1,
+    "n": 1,
+    "rate": 1.0,
+    "lower": 0.025,
+    "upper": 1.0
+   },
+   "gold_citation": {
+    "k": 0,
+    "n": 1,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.975
+   },
+   "regeneration_rate": {
+    "k": 2,
+    "n": 4,
+    "rate": 0.5,
+    "lower": 0.0676,
+    "upper": 0.9324
+   },
+   "forbidden_content": {
+    "k": 0,
+    "n": 1,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.975
+   }
+  },
+  "intervals_by_category": {
+   "statutory_lookup": {
+    "recall_at_k": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "forbidden_content": null
+   },
+   "exact_identifier": {
+    "recall_at_k": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "forbidden_content": null
+   },
+   "temporal_validity": {
+    "recall_at_k": {
+     "k": 2,
+     "n": 2,
+     "rate": 1.0,
+     "lower": 0.1581,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 2,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.8419
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 2,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.8419
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 1,
+     "n": 2,
+     "rate": 0.5,
+     "lower": 0.0126,
+     "upper": 0.9874
+    },
+    "citation_precision": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "gold_citation": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "regeneration_rate": {
+     "k": 0,
+     "n": 2,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.8419
+    },
+    "forbidden_content": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    }
+   }
+  },
+  "gating": null,
+  "n_gating": 0,
+  "n_ai_draft": 4,
+  "latency": {
+   "retrieval_p50": 1.48,
+   "retrieval_p95": 4.16,
+   "total_p50": 72.69,
+   "total_p95": 155.25
+  },
+  "faithfulness": null
+ },
+ "gates": {
+  "status": "not_gating",
+  "reason": "0 lawyer-reviewed cases (all ai-draft)"
+ },
+ "cases": [
+  {
+   "id": "gd2-005",
+   "category": "statutory_lookup",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-CCF-ART1910-v2026.11",
+    "MX-FED-CPF-ART32-v2026.11.13",
+    "MX-FED-CPF-ART34-v2026.11.13",
+    "MX-FED-CCF-ART1916-CAPUT-v2026.11",
+    "MX-FED-CPF-ART31-v2026.11.13",
+    "MX-FED-CPF-ART31BIS-v2026.11.13",
+    "MX-FED-CCF-ART1915-v2026.11",
+    "MX-FED-CCF-ART1911-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "refused",
+   "refusal_reason": "validation.unsupported",
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 1,
+   "retrieval_s": 4.157000000006519,
+   "total_s": 155.25,
+   "request_id": "383a371f-ac28-4164-afeb-4a4bd666c9c7",
+   "error": null,
+   "query": "¿Quién está obligado a reparar el daño causado por obrar ilícitamente?",
+   "answer": null,
+   "cited_texts": {},
+   "forbidden_found": []
+  },
+  {
+   "id": "gd2-009",
+   "category": "exact_identifier",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-CPEUM-ART123-APARTADOB-FRACXIII-v2026.11",
+    "MX-FED-LFT-ART132-FRACXII-v2026.11",
+    "MX-FED-CPEUM-TRANS78-UNICO-v2026.11",
+    "MX-FED-CPEUM-TRANS89-UNICO-v2026.11",
+    "MX-FED-CPEUM-ART73-FRACXXIII-v2026.11",
+    "MX-FED-CPEUM-ART73-FRACX-v2026.11",
+    "MX-FED-CPEUM-ART2-APARTADOB-FRACXIII-v2026.11",
+    "MX-FED-CPEUM-ART123-CAPUT-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "refused",
+   "refusal_reason": "validation.unsupported",
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 1,
+   "retrieval_s": 1.4849999999860302,
+   "total_s": 72.68800000008196,
+   "request_id": "45072c32-10b2-4a06-9053-1a0a322c42d3",
+   "error": null,
+   "query": "¿Qué establece el artículo 123, apartado B, fracción XIII de la Constitución?",
+   "answer": null,
+   "cited_texts": {},
+   "forbidden_found": []
+  },
+  {
+   "id": "gd2-024",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-TRANS13-PRIMERO-DUP2-v2026.11",
+    "MX-FED-LFT-ART5-v2026.11",
+    "MX-FED-LFT-TRANS4-UNICO-P2-v2026.11",
+    "MX-FED-LFT-ART513-INCD-P4-v2026.11",
+    "MX-FED-LFT-ART175BIS-v2026.11",
+    "MX-FED-LFT-ART22BIS-v2026.11",
+    "MX-FED-LFT-ART515-v2026.11",
+    "MX-FED-LFT-ART25-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "answered",
+   "refusal_reason": null,
+   "cited": [
+    "MX-FED-LFT-TRANS4-UNICO-P2-v2026.11"
+   ],
+   "invalid_cited": [],
+   "cited_gold": false,
+   "regenerations": 0,
+   "retrieval_s": 1.4839999999385327,
+   "total_s": 10.155999999959022,
+   "request_id": "13690237-daad-4eac-a99a-9a240fdff58d",
+   "error": null,
+   "query": "¿Qué establece actualmente el artículo 15-C de la Ley Federal del Trabajo?",
+   "answer": "(I) Planteamiento\n[análisis propio] Se consulta el contenido vigente del artículo 15-C de la Ley Federal del Trabajo.\n\n(II) Marco normativo aplicable\n<insuficiente></insuficiente>\n\n(III) Criterios jurisprudenciales\n<insuficiente></insuficiente>\n\n(IV) Análisis\n[análisis propio] De acuerdo con la Ley Federal del Trabajo, el artículo 15-C fue objeto de una reforma en la que se determinó su derogación, según se desprende de la lista de artículos derogados en el artículo Primero transitorio de la Ley Federal del Trabajo [cite: MX-FED-LFT-TRANS4-UNICO-P2-v2026.11].\n\n(V) Fuentes citadas\n* MX-FED-LFT-TRANS4-UNICO-P2-v2026.11: Ley Federal del Trabajo, Artículo Único transitorio (parte 2)",
+   "cited_texts": {
+    "MX-FED-LFT-TRANS4-UNICO-P2-v2026.11": [
+     "Bis; 424 Bis; 427, con una fracción VII; 429, con una fracción IV; 432, con un tercer párrafo; 475 Bis; 504, con un último párrafo a la fracción V; 512-D Bis; 512-D Ter; 512-G; 525 Bis; 527, fracción I, con un numeral 22; 530 Bis; 533 Bis; 539, con las fracciones V y VI; 539-A, con un párrafo cuarto, pasando el anterior párrafo cuarto a ser quinto; 541, con una fracción VI Bis; 605, con un tercer y cuarto párrafos; 605 Bis; 610, con una fracción II, recorriéndose las subsecuentes; 617, con las fracciones VIII y IX, pasando la actual fracción VIII a ser X; 618, con una fracción VIII, pasando la actual fracción VIII a ser IX; 623, con un primer párrafo, pasando el anterior primer párrafo a ser segundo; 626, con una fracción II, recorriéndose las subsecuentes; 627, con una fracción III, recorriéndose las subsecuentes; 627-A; 627-B; 627-C; 641-A; 642, con las fracciones IV, V y VI, pasando las actuales fracciones IV y V a ser VII y VIII; 643, con una fracción V, pasando la actual fracción V a ser VI; 645, con una fracción II, recorriéndose las subsecuentes, y un inciso d) a la actual fracción IV; 690, con un segundo párrafo; 739, con un tercer y cuarto párrafos; 771, con un segundo párrafo; 774 Bis; 784, con un último párrafo; 815, con las fracciones X y XI; 826 Bis; una Sección Novena, denominada \"De los Elementos Aportados por los Avances de la Ciencia\", al Capítulo XII, del Título Catorce, que comprende los artículos 836-A, 836-B, 836-C y 836-D; 884, con una fracción IV; pasando la actual IV a ser V; 885, con un segundo párrafo; una Sección Primera, al Capítulo XVIII del Título Catorce, denominada \"Conflictos Individuales de Seguridad Social\", que comprende los artículos 899-A al 899-G; 985, con una fracción III; 995 Bis; 1004-A; 1004-B y 1004-C; y se DEROGAN los artículos 153-O; 153-P; 153-R; 153-V, cuarto párrafo; 395, segundo párrafo; 512-D, segundo y tercer párrafos; 523, fracción IX; 525; 539, fracción III, incisos a) y e); los Capítulos X y XI del Título Once, que comprenden los artículos 591 al 603; 614, fracción V; 616, fracción II; 700, fracción I; 765; el Capítulo XVI del Título Catorce, que comprende los artículos 865 al 869; 876, fracción IV; 875, primer párrafo, inciso c); 877; 882; 991, segundo párrafo; 1004, último párrafo de la Ley Federal del Trabajo, para quedar como sigue:",
+     "Artículo Único.- Se REFORMAN los artículos 2o; 3o; 4o, fracción I, inciso a); 5o, fracción VII; 25, fracciones I, II y IV; 28; 35; 43, primer párrafo, y fracción II; 47, fracciones II, VIII, y segundo, tercer y cuarto párrafos; 48; 50, fracción III; 51, fracción II; 56; 97, fracción IV; 103 Bis; 110, fracciones V y VII; 121, fracción II; 132, fracciones XVI, XVII, XVIII y XXVI; 133, primer párrafo y fracciones I y V; 134, fracción II; la denominación del Capítulo III Bis del Título Cuarto, para quedar como \"De la Productividad, Formación y Capacitación de los Trabajadores\"; 153-A; 153-B; 153-C; 153-D; 153-E; 153-F; 153-G; 153H; 153-I; 153-J; 153-K; 153-L; 153-N; 153-Q; 153-S; 153-U; 153-V, primer párrafo; 154, primer párrafo; 157; 159; 168; 170, fracciones II y IV; 173; 174; 175; 176; 279, primer párrafo; 280; 282; 283, fracciones II y actuales IV, V, VI y VII; 284, fracción III; 285; 311, actual segundo párrafo; 333; 336; 337, fracción II; 353-A, fracción II; 353-S; 366, fracción III y último párrafo; 371, fracciones IX y XIII; 373; 427, fracción VI; 429, fracciones I y III; 430; 435, fracciones I y II; 439; 476; 490, fracción I; 502; 503, fracciones I, II, III y IV; 504, fracción V; 512-A; 512-B, párrafos primero y segundo; 512-C, primer párrafo; 512-D, primer párrafo; 512-F, primer párrafo; 513, primer párrafo; 514; 515; 521, fracción I; 523, fracción V; 527, fracciones I y II, numeral 2; 529, fracciones II, III y V; 532, fracción IV; 533; la denominación del Capítulo IV del Título Once, para quedar como \"Del Servicio Nacional del Empleo\"; 537; 538; 539, fracciones I, incisos b), c), d), e), f) y h), II, incisos a), d) y f), III, incisos b), c), d) y h); 539-A, primer y tercer párrafos; 539-B; 541, fracción VI; 546, fracciones II y V; 552, fracción IV; 555, fracción III; 556, fracción II; 560, fracción III; 604; 605, segundo párrafo; 606, primer párrafo; 607; 610, primer párrafo y actuales fracciones IV y V; 612; 614, primer párrafo y fracción I; 615, primer párrafo y fracciones II, III, IV, VI y VII; 617, primer párrafo y fracción VII; 618, fracción II; 619, fracciones I y II; 620, fracciones I, II, inciso a), párrafo tercero, y III; 624; 625, primer párrafo; 626, actuales fracciones II, III y IV; 627, actuales fracciones II, III y IV; 628, fracciones II, III, IV y V; 629; 630; 631; 632; 634; 637, fracciones I y II; 642, actual fracción IV; 643, fracciones I, III y IV; 644, primer párrafo y fracciones I y II; 645, actual fracción IV; 646; 648; 664, primer párrafo; 685, primer párrafo; 688; la denominación del Capítulo II del Título Catorce, para quedar como \"De la Capacidad, Personalidad y Legitimación\"; 689; 691; 692, fracciones II y IV; 693; 698, segundo párrafo; 700, fracción II, incisos a), b) y c); 701; 705, fracciones I, II y III; 711; 724; 727; 729, primer párrafo y fracción II; 731, fracción I; 734; 737; 739, segundo párrafo; 740; 742, fracción XI; 743, fracciones II y IV; 753; 763; 772; 773; 776, fracción VIII; 783; 784, fracciones V, VI, VIII, IX y XIV; 785; 786; 790, fracción III; 793; 802, segundo párrafo; 804, fracción IV y último párrafo; 808; 813, fracciones I, II, y IV; 814; 815, fracciones II, IV, VI y VII; 816; 817; 823; 824; 825, fracciones III y IV; 828; 839; 840, fracciones III, IV y VI; 841; 850; 853; 856, primer párrafo; 857, fracción II; 861, primer párrafo y fracciones II, III y IV; 863; 873; 875, primer y segundo párrafos; 876, fracciones I, II y V; 878, fracciones I, II, V, VII y VIII; 879, primer párrafo; 880, primer párrafo y fracciones II y IV; 883; 884, fracciones I, II, III y actual IV; 885, el primer párrafo; 886; 888, primer párrafo y fracción I; 891; 939; 940; 945, primer párrafo; 947, fracción IV; 949; 960; 962; 965, fracción II y último párrafo; 966, fracción II; 968; apartado A, fracciones I y III, y apartado B, fracciones I, II y III; 969, fracciones I y III; 970; 977, primer párrafo; 979, primer párrafo; 985, primer párrafo; 987; 991, primer párrafo; 992; 993; 994; 995; 996; 997; 998; 999; 1000; 1001; 1002; 1003, segundo párrafo; 1004, fracciones I, II y III; 1005, primer párrafo y 1006; se ADICIONAN los artículos 3o. Bis; 15-A; 15-B; 15-C; 15-D; 22 Bis; 28-A, 28-B; 39-A; 39-B; 39-C; 39-D; 39-E; 39-F; 42, con una fracción VIII; 42 Bis; 43, con una fracción V; 47, con una fracción XIV Bis y un penúltimo párrafo; 51, con una fracción IX, pasando la actual fracción IX a ser fracción X; 56 Bis; 83, con un segundo párrafo, pasando el anterior segundo párrafo a ser tercero; 101, con un segundo párrafo; 121, con un segundo párrafo a la fracción IV; 127, con una fracción IV Bis; 132, con las fracciones XVI Bis; XIX Bis, XXIII Bis; XXVI Bis y XXVII Bis; 133, con las fracciones XII, XIII, XIV y XV; 135, con una fracción XI; 153-F Bis; 170, con una fracción II Bis; 175 Bis; 279, con un último párrafo; 279 Bis; 279 Ter; 283, con las fracciones IV, IX, X, XI, XII y XIII; 311, con un segundo párrafo, pasando el anterior segundo párrafo a ser tercero; un Capítulo XIII Bis denominado \"De los Trabajos en Minas\", al Título Sexto, que comprende los artículos 343-A, 343B, 343-C, 343-D y 343-E; 357, con un segundo párrafo; 364 Bis, 365 Bis, 377, con un último párrafo; 391\n\nBis; 424 Bis; 427, con una fracción VII; 429, con una fracción IV; 432, con un tercer párrafo; 475 Bis; 504, con un último párrafo a la fracción V; 512-D Bis; 512-D Ter; 512-G; 525 Bis; 527, fracción I, con un numeral 22; 530 Bis; 533 Bis; 539, con las fracciones V y VI; 539-A, con un párrafo cuarto, pasando el anterior párrafo cuarto a ser quinto; 541, con una fracción VI Bis; 605, con un tercer y cuarto párrafos; 605 Bis; 610, con una fracción II, recorriéndose las subsecuentes; 617, con las fracciones VIII y IX, pasando la actual fracción VIII a ser X; 618, con una fracción VIII, pasando la actual fracción VIII a ser IX; 623, con un primer párrafo, pasando el anterior primer párrafo a ser segundo; 626, con una fracción II, recorriéndose las subsecuentes; 627, con una fracción III, recorriéndose las subsecuentes; 627-A; 627-B; 627-C; 641-A; 642, con las fracciones IV, V y VI, pasando las actuales fracciones IV y V a ser VII y VIII; 643, con una fracción V, pasando la actual fracción V a ser VI; 645, con una fracción II, recorriéndose las subsecuentes, y un inciso d) a la actual fracción IV; 690, con un segundo párrafo; 739, con un tercer y cuarto párrafos; 771, con un segundo párrafo; 774 Bis; 784, con un último párrafo; 815, con las fracciones X y XI; 826 Bis; una Sección Novena, denominada \"De los Elementos Aportados por los Avances de la Ciencia\", al Capítulo XII, del Título Catorce, que comprende los artículos 836-A, 836-B, 836-C y 836-D; 884, con una fracción IV; pasando la actual IV a ser V; 885, con un segundo párrafo; una Sección Primera, al Capítulo XVIII del Título Catorce, denominada \"Conflictos Individuales de Seguridad Social\", que comprende los artículos 899-A al 899-G; 985, con una fracción III; 995 Bis; 1004-A; 1004-B y 1004-C; y se DEROGAN los artículos 153-O; 153-P; 153-R; 153-V, cuarto párrafo; 395, segundo párrafo; 512-D, segundo y tercer párrafos; 523, fracción IX; 525; 539, fracción III, incisos a) y e); los Capítulos X y XI del Título Once, que comprenden los artículos 591 al 603; 614, fracción V; 616, fracción II; 700, fracción I; 765; el Capítulo XVI del Título Catorce, que comprende los artículos 865 al 869; 876, fracción IV; 875, primer párrafo, inciso c); 877; 882; 991, segundo párrafo; 1004, último párrafo de la Ley Federal del Trabajo, para quedar como sigue:"
+    ]
+   },
+   "forbidden_found": []
+  },
+  {
+   "id": "gd2-025",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-ART525-v2026.11",
+    "MX-FED-LFT-TRANS4-UNICO-P2-v2026.11",
+    "MX-FED-LFT-ART25-v2026.11",
+    "MX-FED-LFT-ART5-v2026.11",
+    "MX-FED-LFT-ART175BIS-v2026.11",
+    "MX-FED-LFT-ART515-v2026.11",
+    "MX-FED-LFT-ART590A-v2026.11",
+    "MX-FED-LFT-ART525BIS-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "refused",
+   "refusal_reason": "validation.model_declined",
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 0,
+   "retrieval_s": 1.015999999945052,
+   "total_s": 8.015999999945052,
+   "request_id": "87f48e6f-582b-488f-876c-4e6e4817178a",
+   "error": null,
+   "query": "¿Qué decía el artículo 525 de la Ley Federal del Trabajo?",
+   "answer": null,
+   "cited_texts": {},
+   "forbidden_found": []
+  }
+ ],
+ "seconds": 246.2
+}

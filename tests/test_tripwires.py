@@ -48,9 +48,13 @@ def test_alerts_fire_only_past_the_threshold() -> None:
     assert {a.tripwire for a in over} == {
         "chunks-total",
         "chunks-total-plan",
+        "chunks-total-halfvec",
         "chunks-exceed-window",
     }
-    assert evaluate({**ZERO, "chunks_total": 50_000_000}) == []  # strictly greater than
+    assert evaluate({**ZERO, "chunks_total": 500_000}) == []  # strictly greater than
+    assert {a.tripwire for a in evaluate({**ZERO, "chunks_total": 500_001})} == {
+        "chunks-total-halfvec"
+    }
 
 
 def test_a_metric_that_stops_being_collected_raises_instead_of_going_quiet() -> None:

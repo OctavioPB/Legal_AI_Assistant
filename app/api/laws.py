@@ -104,21 +104,40 @@ def _current_doc(conn: Connection, official_id: str) -> Any:
     return row
 
 
+STRUCTURE_HEADS = ("libro", "titulo", "capitulo", "seccion")
+_BODY_START = re.compile(r"^(Art[ií]culo|ART[IÍ]CULO|§|Sec(tion|\.)\s*\d)")
+
+
 def _heading(node_type: str, label: str, head: str) -> str:
     """A short human heading: the title's name, or the first words of an article."""
     lines = [ln.strip() for ln in head.splitlines() if ln.strip()]
-    if node_type in ("libro", "titulo", "capitulo", "seccion"):
+    if node_type in STRUCTURE_HEADS:
         rest = [
             ln
             for ln in lines[1:]
             if not re.match(r"^(LIBRO|T[IÍ]TULO|CAP[IÍ]TULO|SECCI)", ln, re.I)
         ]
-        return rest[0][:HEADING_CHARS] if rest else ""
+        # the next line is already an article (or a US section): the name, if any, is on the
+        # heading's own line, i.e. in its label; an article's opening words are not a heading
+        if not rest or _BODY_START.match(rest[0]):
+            return ""
+        return rest[0][:HEADING_CHARS]
     body = " ".join(lines)
     body = re.sub(r"^\s*" + re.escape(label) + r"\s*[.\-–—:]*\s*", "", body, flags=re.I)
     if len(body) > HEADING_CHARS:
         body = body[:HEADING_CHARS].rsplit(" ", 1)[0] + "…"
     return body
+
+
+def _toc_names(node_type: str, label: str, head: str) -> tuple[str, str]:
+    """Label and heading for the table of contents. Since ADR-049 a heading's name is part of its
+    label ("CAPITULO IV Rescisión de las relaciones de trabajo", which is also the breadcrumb), so
+    the contents show the number as the label and the whole name once, as the heading."""
+    heading = _heading(node_type, label, head)
+    at = label.find(heading) if heading and node_type in STRUCTURE_HEADS else -1
+    if at > 0:
+        return label[:at].strip(), label[at:][:HEADING_CHARS]
+    return label, heading
 
 
 @router.get("", response_model=list[Law])
@@ -169,15 +188,10 @@ def toc(official_id: str, p: PrincipalDep, st: StateDep) -> list[TocNode]:
             {"d": doc.id, "types": list(STRUCTURE)},
         ).all()
     by_id = {r.id: r for r in rows}
-    nodes = {
-        r.id: TocNode(
-            path=r.path,
-            node_type=r.node_type,
-            label=r.label,
-            heading=_heading(r.node_type, r.label, r.head),
-        )
-        for r in rows
-    }
+    nodes: dict[uuid.UUID, TocNode] = {}
+    for r in rows:
+        label, heading = _toc_names(r.node_type, r.label, r.head)
+        nodes[r.id] = TocNode(path=r.path, node_type=r.node_type, label=label, heading=heading)
     roots: list[tuple[int, TocNode]] = []
     kids: dict[uuid.UUID, list[tuple[int, TocNode]]] = {}
     for r in rows:

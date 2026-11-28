@@ -4,6 +4,9 @@ import type { Jurisdiction } from "./jurisdiction";
 export interface Citation {
   cite_id: string;
   citation_string: string;
+  regime?: string | null; // ADR-031: the cited unit's legal regime (LFT)
+  regime_label?: string | null;
+  applicability?: "special_regime" | "collective_regime" | null; // contradicts the matter's regime
 }
 
 export interface ChatResult {
@@ -28,6 +31,8 @@ export interface Source {
   version_label: string | null;
   valid_to: string | null;
   reform: Succession | null; // ADR-017: a reform changed this unit after it was cited
+  ocr_pages: number[] | null; // ADR-030: a firm document read (in part) by OCR
+  ocr_confidence: number | null;
 }
 
 export type ChangeKind = "unchanged" | "amended" | "derogated" | "removed" | "added";
@@ -122,6 +127,7 @@ export interface Conversation {
   jurisdiction_id: number;
   persona: string;
   include_historical: boolean;
+  as_of?: string | null; // ADR-050
   case: CaseBrief | null;
   created_at: string;
   updated_at: string;
@@ -187,6 +193,7 @@ export interface NewConversation {
   persona: string;
   language: "es" | "en";
   include_historical: boolean;
+  as_of?: string | null; // ADR-050: the date of the facts
   case?: CaseBrief;
   matter_id?: string | null;
   model_profile?: ModelKey;
@@ -316,6 +323,7 @@ export interface Matter {
   title: string;
   client_ref: string;
   description: string;
+  labor_regime: string | null; // ADR-031
   status: "open" | "closed";
   role: "owner" | "member";
   members: number;
@@ -353,11 +361,16 @@ const matterPath = (id: string) => `matters/${encodeURIComponent(id)}`;
 export const listMatters = () => json<Matter[]>("matters");
 export const getMatter = (id: string) => json<MatterDetail>(matterPath(id));
 export const listColleagues = () => json<Colleague[]>("matters/colleagues");
-export const createMatter = async (body: { title: string; client_ref: string; description: string }) =>
+export interface RegimeOption {
+  code: string;
+  label: string | null; // the law's chapter name; null for ordinary and collective
+}
+export const listRegimes = () => json<RegimeOption[]>("matters/regimes");
+export const createMatter = async (body: { title: string; client_ref: string; description: string; labor_regime: string | null }) =>
   (await (await send("matters", "POST", body)).json()) as Matter;
 export const updateMatter = async (
   id: string,
-  body: Partial<Pick<Matter, "title" | "client_ref" | "description" | "status">>,
+  body: Partial<Pick<Matter, "title" | "client_ref" | "description" | "status">> & { labor_regime?: string },
 ) => (await (await send(matterPath(id), "PATCH", body)).json()) as Matter;
 export const deleteMatter = async (id: string) => {
   await send(matterPath(id), "DELETE");
@@ -476,6 +489,10 @@ export interface ClientFile {
   mine: boolean;
   uploaded_by_name: string;
   can_delete: boolean;
+  ocr_pages: number[]; // ADR-030: pages read by OCR and kept
+  ocr_excluded_pages: number[]; // pages read by OCR under the confidence threshold: left out
+  amount_mismatch_units?: string[]; // ADR-038 D: units where an amount's figure and words disagree
+  ocr_confidence: number | null;
 }
 
 export interface FileUnit {
@@ -490,6 +507,7 @@ export interface NewFile {
   language: "es" | "en";
   jurisdiction_id: number;
   matter_id: string | null;
+  force_ocr: boolean; // ADR-030: read every page of a PDF as scanned
 }
 
 export const listFiles = () => json<ClientFile[]>("files");
@@ -501,6 +519,7 @@ export const deleteFile = async (id: string) => {
 export async function uploadFile(meta: NewFile, file: Blob): Promise<ClientFile> {
   const q = new URLSearchParams({ title: meta.title, kind: meta.kind, language: meta.language, jurisdiction_id: String(meta.jurisdiction_id) });
   if (meta.matter_id) q.set("matter_id", meta.matter_id);
+  if (meta.force_ocr) q.set("force_ocr", "true");
   const res = await fetch(`/api/v1/files?${q.toString()}`, { method: "POST", headers: { "content-type": "application/octet-stream" }, body: file });
   if (!res.ok) {
     const err: { code?: string } = await res.json().catch(() => ({}));

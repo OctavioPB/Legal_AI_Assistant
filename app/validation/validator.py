@@ -12,6 +12,7 @@ import unicodedata
 from functools import lru_cache
 
 from app.prompts.composer import EXAMPLE_CITE_IDS, OWN_ANALYSIS_TAG, STRATEGIC_TAG
+from app.validation.decrees import mismatches
 from app.validation.types import RetrievedSet, ValidationConfig, Verdict
 
 # Every quantifier below is bounded or cannot cross its own delimiter, so an UNCLOSED marker costs
@@ -145,7 +146,7 @@ _ABBREV_END = re.compile(
     r"(?:^|[\s(,;])(?:art|arts|fracc|fr|inc|párr|parr|núm|num|no|sec|secs|cap|tít|tit|cfr|vs|pág|pp|ej)\.$",
     re.IGNORECASE,
 )
-_NUMBER_START = re.compile(r"^(?:\d|[IVXLC]+|[A-Z]?\d)")
+_NUMBER_START = re.compile(r"^(?:\d|[IVXLC]+\b|[A-Z]?\d)")
 
 
 # An inline list ("... menor de un año; II. Si comprueba ...") and an ordinal ("artículo 1°. de la
@@ -192,7 +193,11 @@ _FIRST_STOP = re.compile(r"[.!?](?=\s|$)")
 
 
 def _coverage(
-    answer: str, retrieved: RetrievedSet, strategic_ok: bool, min_words: int
+    answer: str,
+    retrieved: RetrievedSet,
+    strategic_ok: bool,
+    min_words: int,
+    allowed_uncited: tuple[str, ...] = (),
 ) -> tuple[list[str], float]:
     """Every legal-looking sentence needs a cite or an allowed tag.
 
@@ -205,6 +210,8 @@ def _coverage(
     uncovered: list[str] = []
     tagged = total = 0
     label: str | None = None  # "own" | "strategic" while a label line is in force
+    # ADR-033: framing records that passed the strict check (records.framing_problem), folded
+    allowed = tuple(fold_words(a) for a in allowed_uncited)
     for line in answer.splitlines():
         if not line.strip():
             label = None
@@ -245,7 +252,8 @@ def _coverage(
             )
             if analysis or strategic:
                 tagged += 1
-            if not (has_cite or analysis or strategic):
+            framing = bool(allowed) and any(fold_words(body) in a for a in allowed)
+            if not (has_cite or analysis or strategic or framing):
                 uncovered.append(body[:140])
     return uncovered, (tagged / total if total else 0.0)
 
@@ -305,6 +313,16 @@ def _bad_quotes_with_fixes(
     return bad
 
 
+def _decree_mismatches(answer: str, retrieved: RetrievedSet) -> list[str]:
+    """ADR-051: sentences that credit a cited decree with a change its list does not make."""
+    out: list[str] = []
+    for unit in _units(answer):
+        cites = [c for c in parse_citations(unit) if c in retrieved.ids]
+        for art in mismatches(_mask_quotes(unit), cites, retrieved.texts):
+            out.append(f"{art}: {_plain(unit)[:140]}")
+    return out
+
+
 GAP = _OPEN + _CLOSE
 
 
@@ -333,6 +351,7 @@ def validate(
     *,
     workflow: str,
     config: ValidationConfig | None = None,
+    allowed_uncited: tuple[str, ...] = (),
 ) -> Verdict:
     cfg = config or ValidationConfig()
     if len(answer) > cfg.max_answer_chars:  # never run the heavier checks on a runaway output
@@ -363,14 +382,20 @@ def validate(
     uncovered: list[str] = []
     bad_quotes: list[str] = []
     quote_fixes: list[str] = []
+    decree_bad: list[str] = []
     share = 0.0
     if not refused and not prose:
         uncovered, share = _coverage(
-            text, retrieved, workflow in STRATEGIC_WORKFLOWS, cfg.coverage_min_words
+            text,
+            retrieved,
+            workflow in STRATEGIC_WORKFLOWS,
+            cfg.coverage_min_words,
+            allowed_uncited,
         )
         with_fixes = _bad_quotes_with_fixes(text, retrieved, cfg.quote_min_words)
         bad_quotes = [b for b, _ in with_fixes]
         quote_fixes = [f for _, f in with_fixes]
+        decree_bad = _decree_mismatches(text, retrieved)
 
     grounded = (
         not refused
@@ -380,6 +405,7 @@ def validate(
         and not placeholders
         and not uncovered
         and not bad_quotes
+        and not decree_bad
     )
     return Verdict(
         cited=tuple(cited),
@@ -391,6 +417,7 @@ def validate(
         uncovered=tuple(uncovered),
         bad_quotes=tuple(bad_quotes),
         quote_fixes=tuple(quote_fixes),
+        decree_mismatches=tuple(decree_bad),
         analysis_share=round(share, 4),
         grounded=grounded,
     )

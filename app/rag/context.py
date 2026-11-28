@@ -7,6 +7,7 @@ follow-up planning (ADR-009) cannot produce or change it: it is frozen.
 from __future__ import annotations
 
 import uuid
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -30,6 +31,9 @@ class SessionContext(BaseModel):
     municipality: str | None = None
     language: Literal["es", "en"] = "es"
     include_historical: bool = False  # temporal queries set this explicitly (jurisdictions.md)
+    # ADR-050: the law as of this date (the date of the facts), chosen explicitly and never inferred
+    # from text. Only versions whose known validity covers it are searched; unknown dates: none.
+    as_of: date | None = None
     # ADR-025: the matter the conversation belongs to. The firm's files of THAT matter (and the
     # files that belong to no matter) are searched; another matter's files never are.
     matter_id: uuid.UUID | None = None
@@ -43,6 +47,7 @@ def load_session_context(
     language: Literal["es", "en"] = "es",
     include_historical: bool = False,
     matter_id: uuid.UUID | None = None,
+    as_of: date | None = None,
 ) -> SessionContext:
     row = conn.execute(
         text("SELECT country, level, state_code, municipality FROM jurisdictions WHERE id = :i"),
@@ -60,4 +65,5 @@ def load_session_context(
         language=language,
         include_historical=include_historical,
         matter_id=matter_id,
+        as_of=as_of,
     )

@@ -1,0 +1,223 @@
+{
+ "run_id": "golden-20261127T185253Z-rep-gen3-gd2024-3",
+ "ts": "20261127T185253Z",
+ "tag": "rep-gen3-gd2024-3",
+ "commit": "67f48e8",
+ "dirty": true,
+ "suite": "golden_v2.jsonl",
+ "mode": "full",
+ "model_profile": "gemma",
+ "languages": [
+  "es-MX"
+ ],
+ "config": {
+  "settings": {
+   "refusal_tau": 0.58,
+   "refusal_min_fragments": 1,
+   "retrieval_arm_top": 40,
+   "retrieval_rrf_k": 60,
+   "retrieval_rrf_top": 20,
+   "retrieval_rerank_top": 8,
+   "retrieval_context_budget_tokens": 12000,
+   "context_citable_units": true,
+   "validator_quote_min_words": 5,
+   "validator_coverage_min_words": 6
+  },
+  "resolved_models": {
+   "drafting-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "drafting-heavy": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "adversarial-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "cheap-utility": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593",
+   "fallback-general": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593"
+  },
+  "embedder": {
+   "model": "bge-m3",
+   "revision": "790764642607"
+  },
+  "reranker": "bge-m3-dense-cosine",
+  "prompt_manifest_sha256": "9efbe155d2d271470535067142449bb4c01dde0b62f596049aa0aa59f187e25b",
+  "generations": [
+   {
+    "embedding_model": "bge-m3",
+    "embedding_revision": "790764642607",
+    "chunker_version": 3,
+    "thresholds": "{\"counter\": \"bge-m3-xlmr\", \"max_tokens\": 800, \"min_tokens\": 80, \"embedder_window\": 8192}"
+   }
+  ],
+  "index_generation": 3
+ },
+ "n_cases": 1,
+ "n_by_category": {
+  "temporal_validity": 1
+ },
+ "summary": {
+  "overall": {
+   "n": 1,
+   "recall_at_k": 1.0,
+   "jurisdiction_leakage": 0.0,
+   "distractor_rate": 0.0,
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": 1.0,
+   "citation_precision": null,
+   "gold_citation": null,
+   "regeneration_rate": 0.0,
+   "forbidden_content": null,
+   "errors": 0
+  },
+  "by_category": {
+   "temporal_validity": {
+    "n": 1,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 1.0,
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": 0.0,
+    "forbidden_content": null,
+    "errors": 0
+   }
+  },
+  "intervals": {
+   "recall_at_k": {
+    "k": 1,
+    "n": 1,
+    "rate": 1.0,
+    "lower": 0.025,
+    "upper": 1.0
+   },
+   "jurisdiction_leakage": {
+    "k": 0,
+    "n": 1,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.975
+   },
+   "distractor_rate": {
+    "k": 0,
+    "n": 1,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.975
+   },
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": {
+    "k": 1,
+    "n": 1,
+    "rate": 1.0,
+    "lower": 0.025,
+    "upper": 1.0
+   },
+   "citation_precision": null,
+   "gold_citation": null,
+   "regeneration_rate": {
+    "k": 0,
+    "n": 1,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.975
+   },
+   "forbidden_content": null
+  },
+  "intervals_by_category": {
+   "temporal_validity": {
+    "recall_at_k": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "forbidden_content": null
+   }
+  },
+  "gating": null,
+  "n_gating": 0,
+  "n_ai_draft": 1,
+  "latency": {
+   "retrieval_p50": 3.39,
+   "retrieval_p95": 3.39,
+   "total_p50": 6.38,
+   "total_p95": 6.38
+  },
+  "faithfulness": null
+ },
+ "gates": {
+  "status": "not_gating",
+  "reason": "0 lawyer-reviewed cases (all ai-draft)"
+ },
+ "cases": [
+  {
+   "id": "gd2-024",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-TRANS13-PRIMERO-DUP2-v2026.11",
+    "MX-FED-LFT-TRANS5-UNICO-v2026.11",
+    "MX-FED-LFT-ART5-v2026.11",
+    "MX-FED-LFT-TRANS6-UNICO-DUP2-v2026.11",
+    "MX-FED-LFT-ART513-INCD-P4-v2026.11",
+    "MX-FED-LFT-ART175BIS-v2026.11",
+    "MX-FED-LFT-ART22BIS-v2026.11",
+    "MX-FED-LFT-ART515-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "refused",
+   "refusal_reason": "validation.model_declined",
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 0,
+   "retrieval_s": 3.390999999945052,
+   "total_s": 6.375,
+   "request_id": "fea43ef1-ad10-4bec-99c7-78c732e110e9",
+   "error": null,
+   "query": "¿Qué establece actualmente el artículo 15-C de la Ley Federal del Trabajo?",
+   "answer": null,
+   "cited_texts": {},
+   "forbidden_found": []
+  }
+ ],
+ "seconds": 6.5
+}

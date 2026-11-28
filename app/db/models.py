@@ -119,6 +119,8 @@ class DocNode(Base):
     ordinal: Mapped[int] = mapped_column(Integer)
     path: Mapped[str] = mapped_column(LTree())
     full_text: Mapped[str] = mapped_column(Text)
+    # ADR-006: the index generation; defaults to the active one (set explicitly only by a rebuild)
+    generation: Mapped[int] = mapped_column(Integer, server_default=text("app_generation()"))
 
 
 class Chunk(Base):
@@ -130,6 +132,8 @@ class Chunk(Base):
     tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     node_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    # ADR-006: always its node's generation (chunks_take_node_generation_trg)
+    generation: Mapped[int] = mapped_column(Integer, server_default=text("app_generation()"))
     # Derived by chunks_derive_columns_trg from the document + catalog; read-only in practice.
     jurisdiction_id: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     country: Mapped[str] = mapped_column(Text, server_default="")

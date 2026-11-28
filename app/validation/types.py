@@ -66,12 +66,25 @@ class Verdict(BaseModel):
     # the closest EXACT passage of the cited fragment for each bad quote (found by code, from the
     # source, never from the model): what the regeneration feedback shows; "" when none is close
     quote_fixes: tuple[str, ...] = ()
+    # ADR-051: "article: sentence" for each article a sentence says a cited decree repealed,
+    # reformed or added while no cited decree's list does so
+    decree_mismatches: tuple[str, ...] = ()
+    # ADR-033: typed-record failures the text cannot show (bad JSON, a `law` record without a
+    # citation, a `framing` record that fails the strict rules, too much framing)
+    record_problems: tuple[str, ...] = ()
     analysis_share: float  # share of sentences carried only by [análisis propio] (monitoring)
     grounded: bool
 
     @property
     def problems(self) -> bool:
-        return bool(self.invalid or self.placeholders or self.uncovered or self.bad_quotes)
+        return bool(
+            self.invalid
+            or self.placeholders
+            or self.uncovered
+            or self.bad_quotes
+            or self.decree_mismatches
+            or self.record_problems
+        )
 
 
 RefusalReason = Literal[

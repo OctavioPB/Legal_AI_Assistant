@@ -1,0 +1,331 @@
+{
+ "run_id": "golden-20261128T030241Z-adr050-temporal-retrieval",
+ "ts": "20261128T030241Z",
+ "tag": "adr050-temporal-retrieval",
+ "commit": "6e8b422",
+ "dirty": true,
+ "suite": "golden_temporal_v1.jsonl",
+ "mode": "retrieval-only",
+ "model_profile": "gemma",
+ "languages": [
+  "es-MX"
+ ],
+ "config": {
+  "settings": {
+   "refusal_tau": 0.58,
+   "refusal_min_fragments": 1,
+   "retrieval_arm_top": 40,
+   "retrieval_rrf_k": 60,
+   "retrieval_rrf_top": 20,
+   "retrieval_rerank_top": 8,
+   "retrieval_context_budget_tokens": 12000,
+   "context_citable_units": true,
+   "validator_quote_min_words": 5,
+   "validator_coverage_min_words": 6,
+   "retrieval_fusion": "rrf",
+   "retrieval_convex_alpha": 0.5,
+   "retrieval_crossref": false,
+   "retrieval_crossref_max": 3,
+   "retrieval_crossref_max_units": 6,
+   "retrieval_explicit_reference": true,
+   "context_unit_apartado": true,
+   "typed_records_workflows": [
+    "dossier_builder"
+   ],
+   "lexical_match": "all",
+   "rerank_breadcrumb": false
+  },
+  "resolved_models": {
+   "drafting-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "drafting-heavy": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "adversarial-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "cheap-utility": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593",
+   "fallback-general": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593"
+  },
+  "embedder": {
+   "model": "bge-m3",
+   "revision": "790764642607"
+  },
+  "reranker": "bge-m3-dense-cosine",
+  "prompt_manifest_sha256": "1c0b55eb88c25d1b09d0eb591f40d25df3695717c6a5cc422818e95404f90ccb",
+  "generations": [
+   {
+    "embedding_model": "bge-m3",
+    "embedding_revision": "790764642607",
+    "chunker_version": 4,
+    "thresholds": "{\"counter\": \"bge-m3-xlmr\", \"max_tokens\": 800, \"min_tokens\": 80, \"embedder_window\": 8192}"
+   }
+  ],
+  "index_generation": 4
+ },
+ "n_cases": 4,
+ "n_by_category": {
+  "temporal_validity": 4
+ },
+ "summary": {
+  "overall": {
+   "n": 4,
+   "recall_at_k": 1.0,
+   "jurisdiction_leakage": 0.0,
+   "distractor_rate": 0.0,
+   "gate_refusal_on_refuse": 1.0,
+   "refusal_accuracy": null,
+   "false_refusal": null,
+   "citation_precision": null,
+   "gold_citation": null,
+   "regeneration_rate": null,
+   "forbidden_content": null,
+   "char_precision_at_k": 0.0151,
+   "char_recall_at_k": 1.0,
+   "errors": 0
+  },
+  "by_category": {
+   "temporal_validity": {
+    "n": 4,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": 1.0,
+    "refusal_accuracy": null,
+    "false_refusal": null,
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": null,
+    "forbidden_content": null,
+    "char_precision_at_k": 0.0151,
+    "char_recall_at_k": 1.0,
+    "errors": 0
+   }
+  },
+  "intervals": {
+   "recall_at_k": {
+    "k": 2,
+    "n": 2,
+    "rate": 1.0,
+    "lower": 0.1581,
+    "upper": 1.0
+   },
+   "jurisdiction_leakage": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   },
+   "distractor_rate": {
+    "k": 0,
+    "n": 4,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.6024
+   },
+   "gate_refusal_on_refuse": {
+    "k": 2,
+    "n": 2,
+    "rate": 1.0,
+    "lower": 0.1581,
+    "upper": 1.0
+   },
+   "refusal_accuracy": null,
+   "false_refusal": null,
+   "citation_precision": null,
+   "gold_citation": null,
+   "regeneration_rate": null,
+   "forbidden_content": null
+  },
+  "intervals_by_category": {
+   "temporal_validity": {
+    "recall_at_k": {
+     "k": 2,
+     "n": 2,
+     "rate": 1.0,
+     "lower": 0.1581,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.6024
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.6024
+    },
+    "gate_refusal_on_refuse": {
+     "k": 2,
+     "n": 2,
+     "rate": 1.0,
+     "lower": 0.1581,
+     "upper": 1.0
+    },
+    "refusal_accuracy": null,
+    "false_refusal": null,
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": null,
+    "forbidden_content": null
+   }
+  },
+  "gating": null,
+  "n_gating": 0,
+  "n_ai_draft": 4,
+  "latency": {
+   "retrieval_p50": 2.77,
+   "retrieval_p95": 3.78,
+   "total_p50": null,
+   "total_p95": null
+  },
+  "faithfulness": null
+ },
+ "gates": {
+  "status": "not_gating",
+  "reason": "0 lawyer-reviewed cases (all ai-draft)"
+ },
+ "cases": [
+  {
+   "id": "gt-001",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-CPF-ART15-CAPUT-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACI-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACII-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACIII-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACIV-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACV-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACVI-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACVII-v2026.11.13"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": null,
+   "refusal_reason": null,
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 0,
+   "retrieval_s": 3.780999999959022,
+   "total_s": 0.0,
+   "request_id": null,
+   "error": null,
+   "query": "¿En qué casos se excluye el delito según el artículo 15 del Código Penal Federal?",
+   "answer": null,
+   "char_precision": 0.015053763440860216,
+   "char_recall": 1.0,
+   "cited_texts": {},
+   "forbidden_found": []
+  },
+  {
+   "id": "gt-002",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "refuse",
+   "has_gold": false,
+   "hits": [],
+   "gold_rank": null,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": true,
+   "outcome": null,
+   "refusal_reason": null,
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 0,
+   "retrieval_s": 0.045999999972991645,
+   "total_s": 0.0,
+   "request_id": null,
+   "error": null,
+   "query": "¿En qué casos se excluye el delito según el artículo 15 del Código Penal Federal?",
+   "answer": null,
+   "char_precision": null,
+   "char_recall": null,
+   "cited_texts": {},
+   "forbidden_found": []
+  },
+  {
+   "id": "gt-003",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "refuse",
+   "has_gold": false,
+   "hits": [
+    "MX-FED-CPF-ART167-v2026.11.13",
+    "MX-FED-CPF-ART225-FRACXXXIV-v2026.11.13",
+    "MX-FED-CPF-ART32-v2026.11.13",
+    "MX-FED-CPF-ART341-v2026.11.13",
+    "MX-FED-CPF-ART336-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACI-v2026.11.13",
+    "MX-FED-CPF-ART70-FRACI-v2026.11.13",
+    "MX-FED-CPF-ART97-v2026.11.13"
+   ],
+   "gold_rank": null,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": true,
+   "outcome": null,
+   "refusal_reason": null,
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 0,
+   "retrieval_s": 0.9070000000065193,
+   "total_s": 0.0,
+   "request_id": null,
+   "error": null,
+   "query": "¿Qué causas de rescisión sin responsabilidad para el patrón establece el artículo 47 de la Ley Federal del Trabajo?",
+   "answer": null,
+   "char_precision": null,
+   "char_recall": null,
+   "cited_texts": {},
+   "forbidden_found": []
+  },
+  {
+   "id": "gt-004",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-CPF-ART15-CAPUT-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACI-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACII-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACIII-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACIV-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACV-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACVI-v2026.11.13",
+    "MX-FED-CPF-ART15-FRACVII-v2026.11.13"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": null,
+   "refusal_reason": null,
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 0,
+   "retrieval_s": 2.76500000001397,
+   "total_s": 0.0,
+   "request_id": null,
+   "error": null,
+   "query": "¿En qué casos se excluye el delito según el artículo 15 del Código Penal Federal?",
+   "answer": null,
+   "char_precision": 0.015053763440860216,
+   "char_recall": 1.0,
+   "cited_texts": {},
+   "forbidden_found": []
+  }
+ ],
+ "seconds": 7.7
+}

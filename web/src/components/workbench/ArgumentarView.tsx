@@ -223,7 +223,7 @@ export function ArgumentarView() {
               if (!j) return;
               await w.create({
                 kind: "case", title, jurisdiction_id: j.id, persona: scope.persona,
-                language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, matter_id: matter,
+                language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, as_of: scope.asOf, matter_id: matter,
                 case: { side, facts, claim },
                 ...(model ? { model_profile: model } : {}),
               });

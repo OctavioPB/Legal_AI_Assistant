@@ -33,6 +33,9 @@ _ORD_WORD = (
     r"(?:(?:D[eé]cimo|Vig[eé]simo|Trig[eé]simo)\s+)?(?:Primer[oa]?|Segund[oa]|Tercer[oa]?|Cuart[oa]"
     r"|Quint[oa]|Sext[oa]|S[eé]ptim[oa]|Octav[oa]|Noven[oa])|D[eé]cim[oa]|Vig[eé]sim[oa]"
     r"|[UÚ]nic[oa]|Preliminar"
+    # ADR-049: Títulos numbered with cardinal words (LFT: "TITULO ONCE" ... "TITULO DIECISEIS")
+    r"|Und[eé]cim[oa]|Duod[eé]cim[oa]|Once|Doce|Trece|Catorce|Quince|Diecis[eé]is|Diecisiete"
+    r"|Dieciocho|Diecinueve|Veinte"
 )
 _HEADING = re.compile(
     rf"^(?P<kind>LIBRO|T[IÍ]TULO|CAP[IÍ]TULO|SECCI[OÓ]N)\s+"
@@ -67,6 +70,45 @@ _NOTE_LINE = re.compile(
     r"|Libros?|Incisos?|Apartados?)\s+(?:reformad|adicionad|derogad|recorrid|modificad)[oa]s?\b.*\bDOF\b",
     re.IGNORECASE,
 )
+# ADR-049: a heading's name on its own line ("CAPITULO IV" / "Rescisión de las relaciones de
+# trabajo"): a short line that is not structure, an annotation, a sentence or an index line
+_HEADING_NAME_MAX = 150
+
+
+def _is_heading_name(line: str) -> bool:
+    if not line or len(line) > _HEADING_NAME_MAX or not line[0].isupper():
+        return False
+    if line[-1] in ".;:," or re.search(r"\bDOF\b", line):
+        return False
+    return not any(
+        rx.match(line)
+        for rx in (_HEADING, _TRANS_HEAD, _ARTICLE, _FRACCION, _INCISO, _APARTADO, _NOTE_LINE)
+    ) and not _NAV_LINE.search(line)
+
+
+# ADR-052: a reform decree's heading inside the transitorios ("DECRETO por el que se reforman ..."
+# / "Publicado en el Diario Oficial de la Federación el 23 de abril de 2021") opens THAT decree:
+# its lines become a hidden unit of their own (navigation: stored, never searched) right before the
+# decree's first unit, never part of the previous decree's last one, and every unit after it
+# carries the decree's publication date in its label (breadcrumb, citation).
+_DECREE_HEAD = re.compile(r"^DECRETO\s")
+_DECREE_TITLE_LINES = 4  # a decree title wrapped over a few lines, before its "Publicado" line
+_PUBLISHED = re.compile(
+    r"^Publicad[oa] en el Diario Oficial de la Federaci[oó]n,?\s+(?:el\s+)?(?:d[ií]a\s+)?"
+    r"(?P<d>\d{1,2})(?:o|º|°)?\s+de\s+(?P<m>[a-záéíóú]+)\s+del?\s+(?P<y>\d{4})",
+    re.IGNORECASE,
+)
+_MONTHS = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6, "julio": 7,
+    "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12,
+}  # fmt: skip
+
+
+def _decree_date(m: re.Match[str]) -> str | None:
+    month = _MONTHS.get(m["m"].lower())
+    return f"{int(m['d']):02d}-{month:02d}-{m['y']}" if month else None
+
+
 _REFORM = re.compile(r"\((?:Reformad[oa]|Adicionad[oa]|Derogad[oa]|F\. de E\.)[^)]*\)", re.I)
 
 
@@ -115,6 +157,10 @@ def parse(src: str) -> list[Node]:
     stack: list[_Open] = []
     in_trans = False
     n_trans = 0
+    decree: str | None = None  # ADR-052: publication date of the decree being read (DD-MM-YYYY)
+    pending: int | None = None  # start of a decree heading not yet given to its first unit
+    held = pending_at = replay_until = pending_end = n_decree = 0
+    held_pub = pending_blank = False
     nav: _Open | None = None
     pos = 0
     lines = src.split("\n")
@@ -161,7 +207,12 @@ def parse(src: str) -> list[Node]:
             return stack[-1]
         return None
 
-    while i < len(lines):
+    while i < len(lines) or pending is not None:
+        if pending is not None and i >= len(lines):  # text ended inside a decree heading
+            replay_until = len(lines)
+            i, pos, blank_before = pending_at, pending, pending_blank
+            pending, held_pub = None, False
+            continue
         line = lines[i]
         start = pos
         end = pos + len(line)
@@ -195,6 +246,38 @@ def parse(src: str) -> list[Node]:
             continue
         nav = None
 
+        pub = _PUBLISHED.match(stripped)
+        if pub and not in_trans and decree is None:
+            decree = _decree_date(pub)  # the law's own publication: its original transitorios
+        holding = i - 1 >= replay_until  # a released block is re-read normally, never held twice
+        if holding and in_trans and (_DECREE_HEAD.match(stripped) or pub):
+            # the heading block: "DECRETO ...", its title lines, "Publicado en el DOF el ..."
+            if pub:
+                decree = _decree_date(pub) or decree
+                held_pub = True
+            if pending is None:
+                pending, held = start, 0
+                pending_at, pending_blank = i - 1, was_blank
+            pending_end = end
+            continue
+        if pending is not None:
+            title_line = not held_pub and held < _DECREE_TITLE_LINES
+            marker = bool(
+                _TRANS_HEAD.match(core) or _TRANS_ITEM.match(core) or _HEADING.match(core)
+            )
+            if title_line and not marker:
+                held += 1
+                pending_end = end
+                continue
+            if not _TRANS_ITEM.match(core):
+                # not followed by a unit of its own (a TRANSITORIOS heading has no text of its
+                # own either): re-read the block as before, so it stays
+                # where it always was and the structure (every cite_id) is unchanged
+                replay_until = i - 1
+                i, pos, blank_before = pending_at, pending, pending_blank
+                pending, held_pub = None, False
+                continue
+
         if stack and _NOTE_LINE.match(core):
             stack[-1].touch(end, own=True)
             stack[-1].notes.append(core)
@@ -218,6 +301,39 @@ def parse(src: str) -> list[Node]:
                     pos += len(lines[i]) + 1
                     end = pos - 1
                     i += 1
+                    # ADR-049: the all-caps name may run onto up to two more lines (CC NL)
+                    for _ in range(2):
+                        cont = lines[i].strip() if i < len(lines) else ""
+                        if not (cont and cont == cont.upper() and _is_heading_name(cont)):
+                            break
+                        label = f"{label} {cont}"
+                        pos += len(lines[i]) + 1
+                        end = pos - 1
+                        i += 1
+                elif core.strip() == m.group(0).strip():
+                    # ADR-049: a bare heading ("CAPITULO IV") named by the next non-blank line, up
+                    # to two blank lines below ("Rescisión de las relaciones de trabajo")
+                    j = i
+                    while j < len(lines) and j - i < 2 and not lines[j].strip():
+                        j += 1
+                    if j < len(lines) and _is_heading_name(lines[j].strip()):
+                        name = [lines[j].strip()]
+                        # an all-caps name may continue ("DE LAS OBLIGACIONES DEL MANDATARIO CON"
+                        # / "RESPECTO AL MANDANTE"), one blank line allowed between the parts
+                        while name[0] == name[0].upper() and len(name) < 3:
+                            k = j + 1
+                            if k < len(lines) and not lines[k].strip():
+                                k += 1
+                            cont = lines[k].strip() if k < len(lines) else ""
+                            if not (cont and cont == cont.upper() and _is_heading_name(cont)):
+                                break
+                            name.append(cont)
+                            j = k
+                        label = f"{stripped} {' '.join(name)}"
+                        for k in range(i, j + 1):
+                            pos += len(lines[k]) + 1
+                        end = pos - 1
+                        i = j + 1
             node = _Open(
                 ntype, label, f"{ntype[0].upper()}{_ident(m['id']).upper()}", ntype[0], start
             )
@@ -240,6 +356,20 @@ def parse(src: str) -> list[Node]:
         if m:
             ordw = _ident(m["ord"]).upper()
             label = f"Artículo {m['ord'].title()} transitorio"
+            if decree:
+                label = f"{label}, decreto DOF {decree}"
+            if pending is not None:
+                # ADR-052 (amended): the heading is publication data, not law. It is kept as its
+                # own unit, flagged as navigation (stored, never searched), so no fragment opens
+                # with a decree's title and the date travels in the labels instead.
+                n_decree += 1
+                head = _Open("parrafo", f"Decreto DOF {decree}" if decree else "Decreto",
+                             f"DECRETO{n_decree}", "dc", pending)  # fmt: skip
+                head.nav = True
+                head.end = head.own_end = pending_end
+                add(head, _RANK["transitorio"])
+                head.touch(pending_end, own=True)
+                pending, held_pub = None, False
             node = _Open("transitorio", label, ordw, "tr", start)
             node.end = node.own_end = end
             add(node, _RANK["transitorio"])

@@ -241,31 +241,42 @@ The order is fixed: the predicate runs before vector search, the validator after
 | The demo is fully local | Privileged material does not leave the machine | ADR-014 |
 | Strict citation coverage | An uncited legal sentence does not reach the user, at the cost of some refusals | ADR-015 |
 | The model is chosen per conversation from a closed catalog | Gemma (default) and Qwen run locally; Claude is remote and a firm opt-in | ADR-024 |
+| A re-chunked corpus is built aside and switched in | Vectors and chunks of different versions are never mixed; a switch and a rollback are one transaction each | ADR-006 |
+| A citation to a decree must match what the decree's list says | A real decree can be cited for a change it did not make; code reads its list of reformed, added and repealed articles | ADR-051 |
 
-All 29 decisions, with the options considered and the measurements behind them, are in
+All 52 decisions, with the options considered and the measurements behind them, are in
 [.claude/rules/architecture.md](.claude/rules/architecture.md). The full design is in
 [docs/LegalAI-System-Architecture.md](docs/LegalAI-System-Architecture.md), which opens with
 a table of where the build departs from it.
 
 ## Measured results
 
-Golden suite, 25 cases, local models. The run records are in `evals/runs/`.
+Golden suite, 25 cases, local models. The run records are in `evals/runs/`. In brackets, the exact 95 %
+(Clopper-Pearson) interval: `uv run python -m evals.run --intervals <run>` (ADR-032).
 
-| Metric | Gemma 4 26B (default) | Qwen 3 4B |
+| Metric | Gemma 4 26B (default), 2026-11-28 | Qwen 3 4B, 2026-11-09 |
 |---|---|---|
-| Recall@8 | 1.00 | 1.00 |
-| Jurisdiction leakage | 0 | 0 |
-| Citation precision | 1.00 | 1.00 (3 answers) |
-| Correct refusals | 5 of 5 | 5 of 5 |
-| False refusals | 1 of 20 | 17 of 20 |
-| Median time per answer | 35 s | 19 s |
+| Recall (gold in the context) | 19 of 20 [75–100 %] | 20 of 20 [83–100 %] |
+| Jurisdiction leakage | 0 of 25 [0–14 %] | 0 of 25 [0–14 %] |
+| Citation precision | 50 of 50 [93–100 %] | 4 of 4 [40–100 %] |
+| Correct refusals | 5 of 5 [48–100 %] | 5 of 5 [48–100 %] |
+| False refusals | 1 of 20 [0–25 %] | 17 of 20 [62–97 %] |
+| Median time per answered case | 36 s | 19 s |
+
+The Gemma column is `golden-20261128T064911Z-production-2026-11-28`, the configuration in production: index
+generation 4 (ADR-006, 049, 052), typed records with `dossier_builder_typed@v2` (ADR-033) and five fragments of
+context (ADR-042), with no regeneration needed in any case. The temporal track (ADR-050, 4 cases kept apart) passes
+4 of 4 (`golden-20261128T065129Z-production-temporal-2026-11-28`). The Qwen column was measured on the earlier
+index and free text, and has not been re-run.
 
 Read these with their limits:
 
 - **The cases were drafted with AI and no lawyer has reviewed them.** Until that review, no
   release gate counts. A set written from the corpus inherits its vocabulary and overstates
   performance.
-- **One case moves a rate by 4 to 5 points.** Differences of one or two cases are noise.
+- **One case moves a rate by 4 to 5 points, and the intervals are wide.** "0 leaks in 25 cases" only bounds the
+  leakage rate below 14 %; bounding it below 1 % from tests alone takes about 300 cases with none. `--compare`
+  calls a change an improvement only when an exact McNemar test on the flipped cases gives p < 0.05.
 - **Citation precision is 1.00 by construction** (the validator rejects everything else). It
   proves provenance, not that a paraphrase is faithful. That check is still human.
 - The remote Claude profile has not been measured.
@@ -286,6 +297,10 @@ Two changes worth reading as examples of the method:
   and rejected.
 - **ADR-023.** Found by reading a review sheet, not by a metric: an answer cited the right id
   and paraphrased the neighbouring section. The context unit became the apartado.
+- **ADR-052.** A parsing fix made one question ("¿qué establece actualmente el artículo 15-C?") go from
+  answered to refused. Sending the model its real prompt with one thing changed at a time showed why: the
+  correct fragment opened with a long multi-law decree title. Decree headings became hidden units, the decree's
+  date moved into the citation, and the question was answered 4 of 4 times with no other case worse.
 
 ## Run it
 
@@ -358,6 +373,7 @@ browser checks on every pull request. A daily read-only canary
 | [evals/golden/README.md](evals/golden/README.md) | The golden set: schema, status and commands |
 | [docs/LOCAL_DEMO.md](docs/LOCAL_DEMO.md) | Running the demo on one machine, with troubleshooting |
 | [docs/Brand.md](docs/Brand.md) | The source of truth for the interface: colour, type, components, screens |
+| [docs/RESEARCH.md](docs/RESEARCH.md) | Techniques proposed to close the review's weaknesses (applicability, faithfulness, calibrated refusal, statistics, retrieval, value study) to improve speed and precision, and to retrieve the law as of a date, with sources and ADR-031 to ADR-050 |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Future work in three horizons, and the anti-roadmap of what will not be built |
 | [docs/lessons-from-library-rag.md](docs/lessons-from-library-rag.md) | Lessons imported from the sibling project, and what was deliberately not imported |
 | [.claude/skills/](.claude/skills/) | Working procedures: eval runner, prompt lab, decision records, legal chunking |
@@ -373,7 +389,7 @@ and the law use.
 |---|---|
 | `app/api/` | Thin FastAPI routers: auth, session validation, delegation |
 | `app/rag/` | Jurisdiction predicate, hybrid search, fusion, gate, context assembly |
-| `app/validation/` | Citation parser, verbatim and coverage checks, regeneration loop |
+| `app/validation/` | Citation parser, verbatim and coverage checks, decree-list check, typed records (Dossier Builder), regeneration loop |
 | `app/prompts/` | Versioned prompt layers, pinned by hash |
 | `app/ingestion/` | Legal-structure grammars, chunker, reform watcher, firm documents, source canary |
 | `app/news/` | The legal news feed: sources, fixed-rule scoring, pipeline |
@@ -387,13 +403,25 @@ and the law use.
 
 ## Known limits
 
-- Scanned PDFs are not read (no OCR).
+- Scanned PDF pages are read by OCR (Tesseract, on the machine). A page read with low confidence is left out and
+  reported, never cited; OCR text can still contain a misread word, and the source viewer says the text came from OCR.
+  The brief verifier does not read scans yet.
 - Case law is not loaded; the corpus is statutes.
-- An answer takes 1.5 to 4 minutes with the local 26B model on an 8 GB GPU.
+- An answer takes about half a minute with the local 26B model on an 8 GB GPU: 36 s median over the answered
+  cases of the production golden run of 2026-11-28, 28 s on four short cases with
+  `OLLAMA_MAX_LOADED_MODELS=3` (ADR-041; 61 s without it), longer when it regenerates.
 - The refusal threshold was calibrated on statute text with AI-drafted probe sets; a question about a
-  firm's own contract fell just under it in the end-to-end case.
+  firm's own contract fell just under it in the end-to-end case. The same threshold gives the same rates on
+  the current index (ADR-007), and requiring a second fragment above it separates worse.
 - A citation can be real and verified yet point to an article that does not govern the case. Only a
-  lawyer's review catches that today ([docs/EVALUACION-E2E.md](docs/EVALUACION-E2E.md)).
+  lawyer's review catches that today ([docs/EVALUACION-E2E.md](docs/EVALUACION-E2E.md)). Code catches two
+  narrow cases: an LFT article from a special or collective regime cited for an ordinary relationship
+  (ADR-031, a warning), and a decree credited with a change its own list does not make (ADR-051).
+- Rebuilding the index after a chunker change takes about 15 minutes on this machine (ADR-006); on Windows the
+  embedder can run out of local sockets, and the rebuild waits and retries.
+- A conversation can read the law as of the date of the facts (ADR-050), but only one loaded version (the CPF of
+  2026-11-13) has a known entry into force, so most dated questions are refused with that reason rather than answered
+  from today's text.
 - The key-points sheet is refused some of the time: it only delivers when every point verifies against
   the matter's sources.
 - Designed but not built: Celery workers, a deployed LiteLLM proxy, tracing, an NLI judge.

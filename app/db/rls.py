@@ -17,6 +17,7 @@ TemplateKind = Literal[
     "matter_child",
     "message",
     "matter_scoped",
+    "generation_scoped",
 ]
 
 _TEMPLATES_FILE = Path(__file__).with_name("rls_templates.sql")

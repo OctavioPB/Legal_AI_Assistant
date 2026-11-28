@@ -68,8 +68,10 @@ uv run python -m evals.run --suite golden --model-profile qwen|gemma|claude   # 
 # Claude profile (ADR-024, remote, opt-in): ANTHROPIC_API_KEY in .env + `uv add anthropic` + firm admin enables it in Ajustes
 uv run python -m app.ingestion.seed [--only LFT]   # embed + load the demo corpus (needs `ollama pull bge-m3`; ~9 min for all)
 uv run python -m app.orchestration.pins [--check]  # (re)pin the local models from the Ollama runtime / detect drift
+uv run python -m app.ingestion.rebuild status|build [--note T]|fill N|activate N|rollback|prune N   # ADR-006: next index generation built aside, switched atomically (superuser step)
 uv run python -m app.demo                          # demo firm + user (random password shown once -> .demo-credentials)
-uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate the refusal threshold from the probe sets
+uv run python -m evals.calibrate_tau [--reranker cross] [--write]   # calibrate the refusal threshold from the probe sets (also sweeps the m-fragment gate, ADR-007; records the index generation)
+TYPED_RECORDS_WORKFLOWS='[]' uv run python -m evals.run --suite golden --tag x   # ADR-033: typed records are the default for Dossier Builder on local clients; '[]' measures free text
 uv run pytest -m live                              # real local models (Ollama must be running)
 uv run python -m app.ingestion.watch [--only LFT] [--dry-run] [--check-urls] [--if-stale 20] [--no-indexes]   # reform watcher (ADR-017/026; the ONLY job with network: official URLs of corpus.py + indexes.py)
 uv run python -m evals.e2e.run_case laboral_01 --credentials .demo-credentials [--keep] && uv run python -m evals.e2e.review evals/e2e/runs/<run>.json   # end-to-end case + lawyer review packet (docs/EVALUACION-E2E.md)

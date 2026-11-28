@@ -29,7 +29,7 @@ from sqlalchemy import create_engine, text
 from app.db.session import tenant_transaction
 from app.ingestion.embedders import OllamaEmbedder
 from app.ingestion.tokens import HFTokenCounter
-from app.main import rerank_label
+from app.main import load_tau, rerank_label
 from app.rag.context import load_session_context
 from app.rag.pipeline import retrieve
 from app.rag.rerank import DenseReranker
@@ -75,6 +75,83 @@ def choose_tau(cov: list[float], absn: list[float], min_refused: float = 0.95) -
     return {"pick": pick, "grid": rows}
 
 
+def mth_score(scores: list[float], m: int) -> float:
+    """The score the gate compares with tau when it needs >= m fragments above it (ADR-007 c):
+    the m-th best; a wording with fewer than m hits cannot pass, so it counts as 0."""
+    ranked = sorted(scores, reverse=True)
+    return ranked[m - 1] if len(ranked) >= m else 0.0
+
+
+def min_fragments_report(
+    cov: list[list[float]], absn: list[list[float]], tau: float | None, ms: tuple[int, ...] = (1, 2, 3),
+    min_refused: float = 0.95,
+) -> list[dict[str, Any]]:  # fmt: skip
+    """For each m: how well the m-th best score separates covered from absent wordings, the tau it
+    would need, and what it does at the tau in force."""
+    out = []
+    for m in ms:
+        c = [mth_score(x, m) for x in cov]
+        a = [mth_score(x, m) for x in absn]
+        row: dict[str, Any] = {
+            "m": m,
+            "auc": round(auc(c, a), 4),
+            "pick": choose_tau(c, a, min_refused)["pick"],
+        }
+        if tau is not None:
+            row["at_current_tau"] = {
+                "tau": tau,
+                "covered_answered": round(sum(x >= tau for x in c) / len(c), 4),
+                "absent_refused": round(sum(x < tau for x in a) / len(a), 4),
+            }
+        out.append(row)
+    return out
+
+
+def topic_violations(rows: list[dict[str, Any]], tau: float, kind: str) -> tuple[int, int]:
+    """ADR-036: (violated topics, topics). The topic, not the wording, is the unit of independence
+    (three wordings of one topic are not three samples). An absent topic is violated when ANY of
+    its wordings would pass the gate (the conservative reading); a covered one when ANY is refused."""
+    by_topic: dict[str, list[float]] = {}
+    for r in rows:
+        if r["kind"] == kind:
+            by_topic.setdefault(r["topic"], []).append(r["best"] or 0.0)
+    if kind == "absent":
+        bad = sum(any(s >= tau for s in ss) for ss in by_topic.values())
+    else:
+        bad = sum(any(s < tau for s in ss) for ss in by_topic.values())
+    return bad, len(by_topic)
+
+
+def certified_bounds(rows: list[dict[str, Any]], tau: float, delta: float = 0.1) -> dict[str, Any]:
+    """ADR-036: with confidence 1 - delta, upper bounds on the share of absent topics this tau lets
+    through and of covered topics it refuses (exact one-sided Clopper-Pearson over topics). Valid
+    only if real questions are exchangeable with the probe topics, which AI-drafted sets do not
+    ensure: a statement about these probe sets, not a release guarantee."""
+    from evals.stats import clopper_pearson
+
+    out: dict[str, Any] = {"tau": tau, "confidence": 1 - delta}
+    for kind, name in (("absent", "absent_let_through"), ("covered", "covered_refused")):
+        k, n = topic_violations(rows, tau, kind)
+        upper = clopper_pearson(k, n, alpha=2 * delta)[1] if n else None
+        out[name] = {"topics": n, "violated": k, "upper_bound": upper}
+    return out
+
+
+def conformal_tau(
+    rows: list[dict[str, Any]], alpha: float, delta: float = 0.1
+) -> dict[str, Any] | None:
+    """The smallest tau on the grid whose certified share of absent topics let through is <= alpha
+    (None when even refusing everything cannot certify it with this many topics)."""
+    for t in [round(0.30 + 0.005 * i, 3) for i in range(0, 141)]:
+        b = certified_bounds(rows, t, delta)
+        if (
+            b["absent_let_through"]["upper_bound"] is not None
+            and b["absent_let_through"]["upper_bound"] <= alpha
+        ):
+            return b
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="evals.calibrate_tau")
     ap.add_argument("--write", action="store_true", help="store the chosen tau in config/")
@@ -85,6 +162,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--reranker", choices=["dense", "cross"], default="dense")
     a = ap.parse_args(argv)
 
+    current_tau = load_tau(get_settings()).refusal_tau  # the tau in force (config record)
     s = get_settings().model_copy(update={"refusal_tau": 0.0})  # report scores, refuse nothing
     probes = json.loads(PROBES.read_text(encoding="utf-8"))
     emb = OllamaEmbedder(s.embedder_model, base_url=s.ollama_url)
@@ -109,6 +187,11 @@ def main(argv: list[str] | None = None) -> int:
                 {"c": country, "l": level, "s": st, "m": mu},
             ).scalar_one()
 
+    with admin.connect() as c:  # the index generation these scores come from (ADR-006)
+        generation = c.execute(
+            text("SELECT id FROM index_generations WHERE status = 'active'")
+        ).scalar()
+
     results: list[dict[str, Any]] = []
     t0 = time.monotonic()
     for kind in ("covered", "absent"):
@@ -130,6 +213,7 @@ def main(argv: list[str] | None = None) -> int:
                         "gold_rank": rank,
                         "n_hits": n,
                         "top": [(h.cite_id, round(h.score, 3)) for h in r.hits[:3]],
+                        "scores": sorted((round(h.score, 4) for h in r.hits), reverse=True)[:5],
                     }  # fmt: skip
                 )
     cov = [x for x in results if x["kind"] == "covered"]
@@ -170,10 +254,34 @@ def main(argv: list[str] | None = None) -> int:
             f"  tau={t:.2f}  absent refused {r['absent_refused']:.0%}  covered answered {r['covered_answered']:.0%}\n"
         )
 
+    mf = min_fragments_report([x["scores"] for x in cov], [x["scores"] for x in absn], current_tau,
+                              min_refused=a.min_refused)  # fmt: skip
+    sys.stdout.write("\nADR-007 (c): gate on the m-th best score\n")
+    for row in mf:
+        cur = row.get("at_current_tau")
+        now = (f" | at tau {cur['tau']}: answers {cur['covered_answered']:.1%} of covered, "
+               f"refuses {cur['absent_refused']:.1%} of absent" if cur else "")  # fmt: skip
+        sys.stdout.write(
+            f"  m={row['m']}  AUC {row['auc']:.3f}  needs tau {row['pick']['tau']} to refuse "
+            f"{row['pick']['absent_refused']:.0%} of absent (answers {row['pick']['covered_answered']:.0%})"
+            f"{now}\n"
+        )
+
+    # ADR-036: what the tau in force certifies, per TOPIC, at 90 % confidence (a statement about these
+    # probe sets: AI-drafted topics are not guaranteed exchangeable with real questions)
+    cert = certified_bounds(results, current_tau, 0.1) if current_tau is not None else None
+    if cert:
+        a_, c_ = cert["absent_let_through"], cert["covered_refused"]
+        sys.stdout.write(
+            f"\nADR-036: at tau {current_tau}, {a_['violated']} of {a_['topics']} absent topics have a wording "
+            f"that passes (<= {a_['upper_bound']:.0%} at 90 %); {c_['violated']} of {c_['topics']} covered "
+            f"topics have a wording refused (<= {c_['upper_bound']:.0%})\n"
+        )
     run_id = datetime.now(UTC).strftime("tau-%Y%m%dT%H%M%SZ")
     record = {"run_id": run_id, "embedder": {"model": emb.model, "revision": emb.revision},
               "reranker": rerank_label(reranker.name, s), "auc": round(auc(cs, as_), 4), "probes": str(PROBES.name), "probes_authored_by": probes["authored_by"],
-              "n_covered": len(cov), "n_absent": len(absn), "pick": pick, "results": results}  # fmt: skip
+              "n_covered": len(cov), "n_absent": len(absn), "pick": pick, "min_fragments": mf, "certified": cert,
+              "corpus_generation": generation, "results": results}  # fmt: skip
     runs = ROOT / "evals" / "runs"
     runs.mkdir(exist_ok=True)
     (runs / f"{run_id}.json").write_text(

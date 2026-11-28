@@ -202,8 +202,12 @@ _SOURCE_SQL = text(
     "c.is_current, d.title AS document_title, d.version_label, d.valid_to, "
     "coalesce(a.full_text, n.full_text) AS article_text, "
     "coalesce(a.label, n.label) AS article_label, "
-    "c.tenant_id = public_corpus_id() AS is_public "
+    "c.tenant_id = public_corpus_id() AS is_public, "
+    # ADR-030: a firm document read (in part) by OCR says so in the viewer; NULL otherwise
+    "CASE WHEN cardinality(cf.ocr_pages) > 0 THEN cf.ocr_pages END AS ocr_pages, "
+    "cf.ocr_confidence "
     "FROM chunks c JOIN documents d ON d.id = c.document_id "
+    "LEFT JOIN client_files cf ON cf.document_id = d.id AND cf.tenant_id = d.tenant_id "
     "JOIN doc_nodes n ON n.id = c.node_id "
     "LEFT JOIN LATERAL (SELECT x.full_text, x.label FROM doc_nodes x "
     "WHERE x.document_id = n.document_id AND x.path @> n.path "

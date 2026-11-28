@@ -1,0 +1,357 @@
+{
+ "run_id": "golden-20261128T002043Z-adr033-B-smoke",
+ "ts": "20261128T002043Z",
+ "tag": "adr033-B-smoke",
+ "commit": "e175336",
+ "dirty": true,
+ "suite": "golden_v2.jsonl",
+ "mode": "full",
+ "model_profile": "gemma",
+ "languages": [
+  "es-MX"
+ ],
+ "config": {
+  "settings": {
+   "refusal_tau": 0.58,
+   "refusal_min_fragments": 1,
+   "retrieval_arm_top": 40,
+   "retrieval_rrf_k": 60,
+   "retrieval_rrf_top": 20,
+   "retrieval_rerank_top": 8,
+   "retrieval_context_budget_tokens": 12000,
+   "context_citable_units": true,
+   "validator_quote_min_words": 5,
+   "validator_coverage_min_words": 6
+  },
+  "resolved_models": {
+   "drafting-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "drafting-heavy": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "adversarial-primary": "gemma4:26b-a4b-it-qat@2dd70431afed",
+   "cheap-utility": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593",
+   "fallback-general": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593"
+  },
+  "embedder": {
+   "model": "bge-m3",
+   "revision": "790764642607"
+  },
+  "reranker": "bge-m3-dense-cosine",
+  "prompt_manifest_sha256": "1c0b55eb88c25d1b09d0eb591f40d25df3695717c6a5cc422818e95404f90ccb",
+  "generations": [
+   {
+    "embedding_model": "bge-m3",
+    "embedding_revision": "790764642607",
+    "chunker_version": 4,
+    "thresholds": "{\"counter\": \"bge-m3-xlmr\", \"max_tokens\": 800, \"min_tokens\": 80, \"embedder_window\": 8192}"
+   }
+  ],
+  "index_generation": 4
+ },
+ "n_cases": 2,
+ "n_by_category": {
+  "temporal_validity": 1,
+  "statutory_lookup": 1
+ },
+ "summary": {
+  "overall": {
+   "n": 2,
+   "recall_at_k": 1.0,
+   "jurisdiction_leakage": 0.0,
+   "distractor_rate": 0.0,
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": 0.5,
+   "citation_precision": 1.0,
+   "gold_citation": 1.0,
+   "regeneration_rate": 0.0,
+   "forbidden_content": 0.0,
+   "errors": 0
+  },
+  "by_category": {
+   "statutory_lookup": {
+    "n": 1,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 0.0,
+    "citation_precision": 1.0,
+    "gold_citation": 1.0,
+    "regeneration_rate": 0.0,
+    "forbidden_content": 0.0,
+    "errors": 0
+   },
+   "temporal_validity": {
+    "n": 1,
+    "recall_at_k": 1.0,
+    "jurisdiction_leakage": 0.0,
+    "distractor_rate": 0.0,
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": 1.0,
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": 0.0,
+    "forbidden_content": null,
+    "errors": 0
+   }
+  },
+  "intervals": {
+   "recall_at_k": {
+    "k": 2,
+    "n": 2,
+    "rate": 1.0,
+    "lower": 0.1581,
+    "upper": 1.0
+   },
+   "jurisdiction_leakage": {
+    "k": 0,
+    "n": 2,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.8419
+   },
+   "distractor_rate": {
+    "k": 0,
+    "n": 2,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.8419
+   },
+   "gate_refusal_on_refuse": null,
+   "refusal_accuracy": null,
+   "false_refusal": {
+    "k": 1,
+    "n": 2,
+    "rate": 0.5,
+    "lower": 0.0126,
+    "upper": 0.9874
+   },
+   "citation_precision": {
+    "k": 1,
+    "n": 1,
+    "rate": 1.0,
+    "lower": 0.025,
+    "upper": 1.0
+   },
+   "gold_citation": {
+    "k": 1,
+    "n": 1,
+    "rate": 1.0,
+    "lower": 0.025,
+    "upper": 1.0
+   },
+   "regeneration_rate": {
+    "k": 0,
+    "n": 2,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.8419
+   },
+   "forbidden_content": {
+    "k": 0,
+    "n": 1,
+    "rate": 0.0,
+    "lower": 0.0,
+    "upper": 0.975
+   }
+  },
+  "intervals_by_category": {
+   "statutory_lookup": {
+    "recall_at_k": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "citation_precision": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "gold_citation": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "regeneration_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "forbidden_content": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    }
+   },
+   "temporal_validity": {
+    "recall_at_k": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "jurisdiction_leakage": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "distractor_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "gate_refusal_on_refuse": null,
+    "refusal_accuracy": null,
+    "false_refusal": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "lower": 0.025,
+     "upper": 1.0
+    },
+    "citation_precision": null,
+    "gold_citation": null,
+    "regeneration_rate": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "lower": 0.0,
+     "upper": 0.975
+    },
+    "forbidden_content": null
+   }
+  },
+  "gating": null,
+  "n_gating": 0,
+  "n_ai_draft": 2,
+  "latency": {
+   "retrieval_p50": 7.23,
+   "retrieval_p95": 8.78,
+   "total_p50": 24.7,
+   "total_p95": 77.92
+  },
+  "faithfulness": null
+ },
+ "gates": {
+  "status": "not_gating",
+  "reason": "0 lawyer-reviewed cases (all ai-draft)"
+ },
+ "cases": [
+  {
+   "id": "gd2-002",
+   "category": "statutory_lookup",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-ART48-v2026.11",
+    "MX-FED-CPEUM-ART123-APARTADOA-FRACXXII-v2026.11",
+    "MX-FED-LFT-ART157-v2026.11",
+    "MX-FED-LFT-ART1003-v2026.11",
+    "MX-FED-LFT-ART431-v2026.11",
+    "MX-FED-LFT-ART929-v2026.11",
+    "MX-FED-LFT-ART33-v2026.11",
+    "MX-FED-LFT-ART57-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "answered",
+   "refusal_reason": null,
+   "cited": [
+    "MX-FED-LFT-ART48-v2026.11"
+   ],
+   "invalid_cited": [],
+   "cited_gold": true,
+   "regenerations": 0,
+   "retrieval_s": 8.780999999959022,
+   "total_s": 77.92199999990407,
+   "request_id": "b5ef72e2-8332-49fd-a92f-831b38bdd0be",
+   "error": null,
+   "query": "¿Qué puede reclamar un trabajador despedido injustificadamente?",
+   "answer": "Si el patrón no comprueba la causa de la rescisión, el trabajador tiene derecho a que se le paguen los salarios vencidos, computados desde la fecha del despido y por un período máximo de doce meses [cite: MX-FED-LFT-ART48-v2026.11].\n\nAsimismo, el trabajador podrá solicitar ante la Autoridad Conciliadora, o ante el Tribunal si no existe arreglo conciliatorio, que se le reinstale en el trabajo que desempeñaba, o que se le indemnice con el importe de tres meses de salario, a razón del que corresponda a la fecha en que se realice el pago [cite: MX-FED-LFT-ART48-v2026.11].\n\nEn caso de que al término del plazo de doce meses no haya concluido el procedimiento o no se haya dado cumplimiento a la sentencia, se pagarán también al trabajador los intereses que se generen sobre el importe de quince meses de salario, a razón del dos por ciento mensual, capitalizable al momento del pago [cite: MX-FED-LFT-ART48-v2026.11].",
+   "cited_texts": {
+    "MX-FED-LFT-ART48-v2026.11": [
+     "Artículo 48.- El trabajador podrá solicitar ante la Autoridad Conciliadora, o ante el Tribunal si no existe arreglo conciliatorio, que se le reinstale en el trabajo que desempeñaba, o que se le indemnice con el importe de tres meses de salario, a razón del que corresponda a la fecha en que se realice el pago, observando previamente las disposiciones relativas al procedimiento de conciliación previsto en el artículo 684-A y subsiguientes.\n\nPárrafo reformado DOF 01-05-2019\n\nSi en el juicio correspondiente no comprueba el patrón la causa de la rescisión, el trabajador tendrá derecho, además, cualquiera que hubiese sido la acción intentada, a que se le paguen los salarios vencidos computados desde la fecha del despido hasta por un período máximo de doce meses, en términos de lo preceptuado en la última parte del párrafo anterior.\n\nSi al término del plazo señalado en el párrafo anterior no ha concluido el procedimiento o no se ha dado cumplimiento a la sentencia, se pagarán también al trabajador los intereses que se generen sobre el importe de quince meses de salario, a razón del dos por ciento mensual, capitalizable al momento del pago. Lo dispuesto en este párrafo no será aplicable para el pago de otro tipo de indemnizaciones o prestaciones.\n\nPárrafo reformado DOF 01-05-2019\n\nEn caso de muerte del trabajador, dejarán de computarse los salarios vencidos como parte del conflicto, a partir de la fecha del fallecimiento.\n\nLos abogados, litigantes o representantes que promuevan acciones, excepciones, incidentes, diligencias, ofrecimiento de pruebas, recursos y, en general toda actuación en forma notoriamente improcedente, con la finalidad de prolongar, dilatar u obstaculizar la sustanciación o resolución de un juicio laboral, se le impondrá una multa de 100 a 1000 veces la Unidad de Medida y Actualización.\n\nPárrafo reformado DOF 01-05-2019\n\nSi la dilación es producto de omisiones o conductas irregulares de los servidores públicos, la sanción aplicable será la suspensión hasta por noventa días sin pago de salario y en caso de reincidencia la destitución del cargo, en los términos de las disposiciones aplicables. Además, en este último supuesto se dará vista al Ministerio Público para que investigue la posible comisión de delitos contra la administración de justicia.\n\nA los servidores públicos del Centro Federal de Conciliación y Registro Laboral cuando retrasen, obstruyan o influyan en el procedimiento de registros sindicales y de contratos colectivos y de reglamentos interiores de trabajo a favor o en contra de una de las partes, así como en el otorgamiento de la constancia de representatividad sin causa justificada se les impondrá una multa de 100 a 1000 veces la Unidad de Medida y Actualización. Por lo que se refiere a los servidores públicos de los Centros de Conciliación locales se le sancionará en los mismos términos, cuando en el desempeño de su función conciliatoria incurran en estas conductas.\n\nPárrafo adicionado DOF 01-05-2019\n\nArtículo reformado DOF 30-11-2012"
+    ]
+   },
+   "forbidden_found": []
+  },
+  {
+   "id": "gd2-024",
+   "category": "temporal_validity",
+   "gating": false,
+   "expected": "answer",
+   "has_gold": true,
+   "hits": [
+    "MX-FED-LFT-TRANS13-PRIMERO-DUP2-v2026.11",
+    "MX-FED-LFT-ART5-v2026.11",
+    "MX-FED-LFT-ART513-INCD-P4-v2026.11",
+    "MX-FED-LFT-ART175BIS-v2026.11",
+    "MX-FED-LFT-ART22BIS-v2026.11",
+    "MX-FED-LFT-ART515-v2026.11",
+    "MX-FED-LFT-ART25-v2026.11",
+    "MX-FED-LFT-ART331BIS-v2026.11"
+   ],
+   "gold_rank": 1,
+   "leaked": [],
+   "distractors_in_top": [],
+   "gate_refused": false,
+   "outcome": "refused",
+   "refusal_reason": "validation.model_declined",
+   "cited": [],
+   "invalid_cited": [],
+   "cited_gold": null,
+   "regenerations": 0,
+   "retrieval_s": 7.23499999998603,
+   "total_s": 24.70400000002701,
+   "request_id": "0cd2514f-b35d-4c3b-a482-3da09c89e17b",
+   "error": null,
+   "query": "¿Qué establece actualmente el artículo 15-C de la Ley Federal del Trabajo?",
+   "answer": null,
+   "cited_texts": {},
+   "forbidden_found": []
+  }
+ ],
+ "seconds": 102.8
+}

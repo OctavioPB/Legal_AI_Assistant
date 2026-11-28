@@ -43,6 +43,12 @@ Gates are only meaningful with enough cases per category. With ~25 cases (v1), o
 category 4+ points: treat a 1.00/0.00 hard gate as binding, but treat soft-gate movements of 1–2
 cases as NOISE and say so in the PR. Never claim an improvement from noise.
 
+ADR-032 makes this a calculation: every run report carries the exact 95 % (Clopper-Pearson) interval
+of each rate (`summary.intervals`, `--intervals <run>` re-scores an old run), and `--compare` calls a
+change an "improvement" only when an exact McNemar test on the flipped cases gives p < 0.05 (3 better
+and 0 worse is p = 0.25: noise). Any worse flip is still a regression to explain. Quote rates with
+their interval ("0 of 25 [0–14 %]"), never alone.
+
 ## Protocol for a change (prompts, chunker, embeddings, retrieval params, router)
 1. Clean tree (or note the diff). Run `--tag before-<change>`.
 2. Apply the change. Chunker/embedding/threshold changes → build a new generation aside (ADR-006)

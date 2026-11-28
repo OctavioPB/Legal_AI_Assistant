@@ -14,11 +14,12 @@ import uuid
 from collections import OrderedDict
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Literal, Protocol
+from typing import Literal, Protocol, get_args
 
 from pydantic import BaseModel, ConfigDict
 
-from app.prompts.composer import Composer, SessionPrompt
+from app.prompts.composer import Composer, SessionPrompt, WorkflowTemplate
+from app.validation.loop import typed_verdict
 from app.validation.types import RetrievedSet, ValidationConfig, Verdict
 from app.validation.validator import validate
 
@@ -40,6 +41,7 @@ class TracedAttempt(BaseModel):
     alias: str
     resolved_model_id: str
     verdict: Verdict
+    raw_output: str | None = None  # ADR-033: the records the model returned (output = rendered)
 
 
 class TraceRecord(BaseModel):
@@ -69,6 +71,8 @@ class TraceRecord(BaseModel):
     refusal_reason: str | None = None
     versions: dict[str, str | int | float | None]  # embedding/chunker/prompt/alias ids in force
     validator_config: dict[str, int] = {}  # thresholds the verdicts were computed with
+    # ADR-033: citation strings the typed records were rendered with (None: free text)
+    typed_citations: dict[str, str] | None = None
 
 
 class Tracer(Protocol):
@@ -137,19 +141,39 @@ def replay(trace: TraceRecord, composer: Composer | None = None) -> ReplayReport
             language=str(s["prompt_language"]),  # type: ignore[arg-type]
             jurisdiction_display=trace.jurisdiction_display or "",
         )
-        again = (composer or Composer()).compose(session, trace.context)
+        # ADR-033: the alternative layer-2 file the prompt was composed with, if any
+        template = next(
+            (
+                name
+                for v in trace.prompt_versions
+                if v.startswith("workflow/")
+                and (name := v.split("/", 1)[1].split("@", 1)[0]) in get_args(WorkflowTemplate)
+            ),
+            None,
+        )
+        again = (composer or Composer()).compose(
+            session,
+            trace.context,
+            workflow_template=template,  # type: ignore[arg-type]
+        )
         prompt_ok = again.sha256 == trace.prompt_sha256 and again.system == trace.prompt_system
     retrieved = RetrievedSet(texts=trace.retrieved_texts)
-    verdicts_ok = all(
-        validate(
-            a.output,
-            retrieved,
-            workflow=str(trace.session["workflow"]),
-            config=ValidationConfig(**trace.validator_config),
-        )
-        == a.verdict
-        for a in trace.attempts
-    )
+    cfg = ValidationConfig(**trace.validator_config)
+    workflow = str(trace.session["workflow"])
+
+    def same(a: TracedAttempt) -> bool:
+        if a.raw_output is not None and trace.typed_citations is not None:
+            text, v = typed_verdict(
+                a.raw_output,
+                retrieved,
+                workflow=workflow,
+                config=cfg,
+                citations=trace.typed_citations,
+            )
+            return text == a.output and v == a.verdict
+        return validate(a.output, retrieved, workflow=workflow, config=cfg) == a.verdict
+
+    verdicts_ok = all(same(a) for a in trace.attempts)
     if trace.attempts:
         final = trace.attempts[-1].verdict
         outcome = (

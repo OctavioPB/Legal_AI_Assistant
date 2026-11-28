@@ -66,6 +66,8 @@ def test_the_navigator_browses_a_law_by_its_own_structure(law) -> None:  # type:
     titulo = toc[0]
     assert titulo["node_type"] == "titulo"
     assert titulo["heading"] == "Relaciones Individuales de Trabajo"
+    assert titulo["label"] == "TITULO SEGUNDO"  # the name once, as the heading
+    assert titulo["children"][0]["label"] == "CAPITULO IV"
     capitulo = titulo["children"][0]
     labels = [a["label"] for a in capitulo["children"]]
     assert labels == ["Artículo 47", "Artículo 48", "Artículo 50", "Artículo 50 Bis"]
@@ -76,7 +78,11 @@ def test_the_navigator_browses_a_law_by_its_own_structure(law) -> None:  # type:
     path47 = client.get("/laws/LFT/find", params={"ref": "47"}, headers=h).json()["path"]
     node = client.get("/laws/LFT/node", params={"path": path47}, headers=h).json()
     assert node["text"].startswith("Artículo 47.-")
-    assert [t["label"] for t in node["trail"]] == ["TITULO SEGUNDO", "CAPITULO IV"]
+    # ADR-049: a heading's name on the next line is part of its label (and of the breadcrumb)
+    assert [t["label"] for t in node["trail"]] == [
+        "TITULO SEGUNDO Relaciones Individuales de Trabajo",
+        "CAPITULO IV Rescisión de las relaciones de trabajo",
+    ]
     ids = [c["cite_id"] for c in node["citables"]]
     assert NEW_FRAC_II in ids and "MX-FED-LFT-ART47-FRACIII-v2026.10.01" in ids
     assert node["prev_path"] is None and node["next_path"]

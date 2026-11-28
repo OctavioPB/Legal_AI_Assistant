@@ -22,7 +22,7 @@ import re
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal
+from typing import Literal, get_args
 
 import yaml
 from jinja2 import StrictUndefined
@@ -33,6 +33,9 @@ PROMPTS_DIR = Path(__file__).parent
 MANIFEST_PATH = PROMPTS_DIR / "manifest.yaml"
 
 Workflow = Literal["dossier_builder", "adversarial", "conversar", "argumentar", "hoja_clave"]
+# ADR-033: alternative layer-2 files for a workflow (a closed list: never a free-text name)
+WorkflowTemplate = Literal["dossier_builder_typed"]
+TYPED_TEMPLATES: dict[str, WorkflowTemplate] = {"dossier_builder": "dossier_builder_typed"}
 Persona = Literal["general", "labor", "criminal", "corporate", "corporate_finance"]
 Language = Literal["es-MX", "en-US"]
 LANGUAGE_DISPLAY: dict[str, str] = {"es-MX": "español (México)", "en-US": "inglés (Estados Unidos)"}
@@ -131,15 +134,28 @@ class Composer:
             f"{layer}/{name}@{version}"
         )
 
-    def compose(self, session: SessionPrompt, fragments: str | Sequence[str]) -> ComposedPrompt:
-        """`fragments`: the already-rendered `<fragmento>` blocks (app.rag.expansion)."""
+    def compose(
+        self,
+        session: SessionPrompt,
+        fragments: str | Sequence[str],
+        *,
+        workflow_template: WorkflowTemplate | None = None,
+    ) -> ComposedPrompt:
+        """`fragments`: the already-rendered `<fragmento>` blocks (app.rag.expansion).
+        `workflow_template` (ADR-033): another pinned layer-2 file for the same workflow, e.g.
+        `dossier_builder_typed` (typed records); the session's workflow is unchanged."""
+        if workflow_template is not None and (
+            workflow_template not in get_args(WorkflowTemplate)
+            or TYPED_TEMPLATES.get(session.workflow) != workflow_template
+        ):
+            raise ValueError(f"no template {workflow_template!r} for workflow {session.workflow!r}")
         raw = fragments if isinstance(fragments, str) else "\n\n".join(fragments)
         body = _WRAPPER.sub(lambda m: f"&lt;{m.group(1)}{m.group(2)}", raw)  # cannot close layer 5
         parts: list[str] = []
         used: list[str] = []
         for layer, name, vars_ in (
             ("core", "anti_hallucination", {}),
-            ("workflow", session.workflow, {}),
+            ("workflow", workflow_template or session.workflow, {}),
             ("persona", session.persona, {}),
             (
                 "session",

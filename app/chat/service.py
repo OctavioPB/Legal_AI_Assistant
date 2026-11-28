@@ -17,13 +17,14 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy import Connection, text
 
+from app.corpus.regimes import CASE_REGIMES, mismatch, regime_of
 from app.ingestion.chunker import CHUNKER_VERSION
 from app.ingestion.tokens import TokenCounter
 from app.observability.trace import TracedAttempt, TracedHit, Tracer, TraceRecord
 from app.orchestration.aliases import AliasName, AliasRegistry
 from app.orchestration.client import LLMClient
 from app.orchestration.profiles import ProfileCatalog, UnknownProfileError
-from app.prompts.composer import Composer, Persona, SessionPrompt, Workflow
+from app.prompts.composer import TYPED_TEMPLATES, Composer, Persona, SessionPrompt, Workflow
 from app.rag.context import SessionContext
 from app.rag.expansion import render_context
 from app.rag.jurisdiction import build_jurisdiction_predicate
@@ -89,6 +90,7 @@ class ChatRequest(BaseModel):
     history: tuple[Turn, ...] = ()  # earlier turns, oldest first (clipped by `user_turn`)
     carry: tuple[str, ...] = ()  # ids cited earlier in the conversation (ADR-016)
     case: CaseBrief | None = None
+    labor_regime: str | None = None  # ADR-031: the matter's declared regime (closed list)
 
     @field_validator("query")
     @classmethod
@@ -104,6 +106,11 @@ class Citation(BaseModel):
 
     cite_id: str
     citation_string: str
+    # ADR-031: the legal regime of the cited unit (LFT special regimes, collective law), and a
+    # warning key when it contradicts the regime the matter declares. Shown, never used to refuse.
+    regime: str | None = None
+    regime_label: str | None = None
+    applicability: Literal["special_regime", "collective_regime"] | None = None
 
 
 class ChatResult(BaseModel):
@@ -182,10 +189,45 @@ def _retrieved_set(r: Retrieval) -> RetrievedSet:
     return RetrievedSet.build(entries)
 
 
-def _citations(r: Retrieval, cited: tuple[str, ...]) -> tuple[Citation, ...]:
+def _citation_strings(r: Retrieval) -> dict[str, str]:
+    """ADR-033: the citation string of every id the answer may cite, for the code-written (V)."""
+    out: dict[str, str] = {}
+    for f in r.fragments:
+        out.setdefault(f.cite_id, f.citation_string)
+        for cid, name in f.unit_names:
+            out.setdefault(cid, name)
+        for cid in f.also_cite_ids:
+            out.setdefault(cid, f.citation_string)
+    return out
+
+
+def _citations(
+    r: Retrieval, cited: tuple[str, ...], labor_regime: str | None = None
+) -> tuple[Citation, ...]:
     names = {cid: name for f in r.fragments for cid, name in f.unit_names}  # ADR-020
     names.update({h.cite_id: h.citation_string for h in r.hits})
-    return tuple(Citation(cite_id=c, citation_string=names[c]) for c in cited if c in names)
+    # A unit rendered inside an expanded article shares that article's Título and Capítulo, so it
+    # takes the breadcrumb of the hit the fragment was built from.
+    crumbs = {h.cite_id: h.breadcrumb for h in r.hits}
+    for f in r.fragments:
+        for cid in f.also_cite_ids:
+            crumbs.setdefault(cid, crumbs.get(f.cite_id, ""))
+    case = labor_regime if labor_regime in CASE_REGIMES else None
+    out: list[Citation] = []
+    for c in cited:
+        if c not in names:
+            continue
+        reg = regime_of(c, crumbs.get(c, ""))
+        out.append(
+            Citation(
+                cite_id=c,
+                citation_string=names[c],
+                regime=reg.code if reg else None,
+                regime_label=reg.label if reg else None,
+                applicability=mismatch(reg, case),
+            )
+        )
+    return tuple(out)
 
 
 def user_turn(req: ChatRequest, language: str, settings: Settings) -> str:
@@ -310,7 +352,15 @@ def answer_query(
         jurisdiction_display=display,
     )  # fmt: skip
     context = render_context(retrieval.fragments)
-    prompt = deps.composer.compose(session, context)
+    # ADR-033: typed records only where enabled AND the model client can constrain its output
+    typed = (
+        req.workflow in s.typed_records_workflows
+        and req.workflow in TYPED_TEMPLATES
+        and bool(getattr(deps.llm, "supports_schema", False))
+    )
+    prompt = deps.composer.compose(
+        session, context, workflow_template=TYPED_TEMPLATES[req.workflow] if typed else None
+    )
     spec = (
         deps.aliases.require_pinned(alias)
         if deps.require_pinned_models
@@ -321,6 +371,7 @@ def answer_query(
         retrieved=_retrieved_set(retrieval),
         workflow=req.workflow, tenant_id=str(ctx.tenant_id), max_tokens=spec.max_answer_tokens,
         regen_max_tokens=s.validator_regen_max_tokens, config=ValidationConfig.from_settings(s),
+        typed_citations=_citation_strings(retrieval) if typed else None,
     )  # fmt: skip
     answered = result.answer is not None
     output = result.answer if answered else (result.refusal.block if result.refusal else None)
@@ -338,6 +389,7 @@ def answer_query(
             refusal_block=result.refusal.block if result.refusal else None,
             refusal_reason=result.refusal.reason_key if result.refusal else None,
             prompt_versions=prompt.versions,
+            typed_citations=_citation_strings(retrieval) if typed else None,
             prompt_sha256=prompt.sha256,
             prompt_system=prompt.system,
             context=context,
@@ -348,6 +400,7 @@ def answer_query(
                     alias=a.alias,
                     resolved_model_id=a.resolved_model_id,
                     verdict=v,
+                    raw_output=a.raw_output,
                 )
                 for a, v in zip(result.attempts, result.verdicts, strict=True)
             ),
@@ -358,5 +411,7 @@ def answer_query(
         request_id=rid, status="answered" if answered else "refused", answer=result.answer,
         refusal_block=result.refusal.block if result.refusal else None,
         refusal_reason=result.refusal.reason_key if result.refusal else None,
-        citations=_citations(retrieval, result.verdicts[-1].cited) if answered else (),
+        citations=(
+            _citations(retrieval, result.verdicts[-1].cited, req.labor_regime) if answered else ()
+        ),
     )  # fmt: skip

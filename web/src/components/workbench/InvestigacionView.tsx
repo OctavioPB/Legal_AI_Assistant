@@ -69,7 +69,7 @@ export function InvestigacionView() {
     if (!j) return;
     void w.send(d.text, "research", {
       kind: "research", title: titleFrom(d.text), jurisdiction_id: j.id, persona: s.persona,
-      language: locale === "en-US" ? "en" : "es", include_historical: s.historical, matter_id: d.matter,
+      language: locale === "en-US" ? "en" : "es", include_historical: s.historical, as_of: s.asOf, matter_id: d.matter,
       ...(d.model ? { model_profile: d.model } : {}),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the catalogs arrive
@@ -137,7 +137,7 @@ export function InvestigacionView() {
                     ? undefined
                     : {
                         kind: "research", title: titleFrom(text), jurisdiction_id: j.id, persona: scope.persona,
-                        language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, matter_id: matter,
+                        language: locale === "en-US" ? "en" : "es", include_historical: scope.historical, as_of: scope.asOf, matter_id: matter,
                         ...(model ? { model_profile: model } : {}),
                       },
                 );

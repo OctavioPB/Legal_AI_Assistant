@@ -88,6 +88,12 @@ function SourceBody({ source }: { source: Source }) {
           {source.reform.current && <span className="cite-id"> {source.reform.current}</span>}
         </p>
       )}
+      {source.ocr_pages && (
+        <p className="reform-notice" role="note">
+          <span aria-hidden="true">⌕ </span>
+          {t("ocr", { pages: source.ocr_pages.join(", "), pct: Math.round((source.ocr_confidence ?? 0) * 100) })}
+        </p>
+      )}
       <p className="viewer-actions">
         <SaveToMatter citeId={source.cite_id} />
       </p>

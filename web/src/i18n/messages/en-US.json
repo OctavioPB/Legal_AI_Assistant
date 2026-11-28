@@ -129,7 +129,8 @@
     "reason": {
       "retrieval": {
         "no_hits": "No source from this jurisdiction related to the question was retrieved.",
-        "below_threshold": "The retrieved sources are not relevant enough to the question."
+        "below_threshold": "The retrieved sources are not relevant enough to the question.",
+        "no_version_as_of": "The corpus holds no version of the law with known validity dates covering the date given."
       },
       "validation": {
         "model_declined": "The model could not support an answer with the retrieved sources.",
@@ -157,7 +158,8 @@
     "identifier": "Identifier",
     "reformed": "This provision changed after it was cited ({change}, {date}). Current version:",
     "firmDocument": "Firm document",
-    "section": "Full section"
+    "section": "Full section",
+    "ocr": "This document was read with text recognition (OCR) on pages {pages}, with a mean confidence of {pct}%. The text may contain reading errors: check it against the original before citing it."
   },
   "footer": {
     "disclaimer": "Research tool. It does not replace a lawyer's professional judgment."
@@ -190,7 +192,12 @@
       "title": "Cited sources",
       "empty": "Cited sources will appear here. Select one to read the original text.",
       "open": "Open full text",
-      "loading": "Loading excerpt…"
+      "loading": "Loading excerpt…",
+      "regime": "LFT special regime: {name}",
+      "applicability": {
+        "special_regime": "This article belongs to the special regime «{name}», not the one the matter declares. Check that it applies before relying on it.",
+        "collective_regime": "This article is collective labour law («{name}») and the matter is an individual relationship. Check that it applies before relying on it."
+      }
     },
     "chat": {
       "title": "Chat",
@@ -277,7 +284,10 @@
       "change": "Change",
       "done": "Done",
       "personaHelp": "The profile guides vocabulary and the order of sources; it neither widens nor narrows the jurisdiction.",
-      "historicalHelp": "Turn it on only if you need what a law said before an amendment."
+      "historicalHelp": "Turn it on only if you need what a law said before an amendment.",
+      "asOf": "Law as of a date (optional)",
+      "asOfHelp": "The date of the facts. Only versions of the law whose known validity covers that date are searched; if there are none, the system says so instead of answering from today's text.",
+      "asOfCurrent": "Law as of {date}"
     },
     "model": {
       "label": "Model",
@@ -301,7 +311,8 @@
       "remoteWarning": "With this model, your question, the conversation history and the retrieved law fragments are sent to Anthropic to generate every answer. Do not use it unless the firm has authorized it for the matter.",
       "fixed": "Model: {name}",
       "fixedRemote": "external"
-    }
+    },
+    "asOfChip": "Law as of {date}"
   },
   "home": {
     "eyebrow": "Verifiable legal research",
@@ -409,7 +420,15 @@
       "error": "It could not be saved.",
       "saved": "Saved to the matter."
     },
-    "filesIn": "Documents of the matter"
+    "filesIn": "Documents of the matter",
+    "regime": {
+      "label": "Labour regime of the matter",
+      "help": "Optional. If set, the assistant warns when it cites an article of another regime (for example, agricultural work in an ordinary dismissal). The warning does not replace your review.",
+      "none": "Not set",
+      "ordinary": "Ordinary individual employment",
+      "collective": "Collective relations or strike",
+      "special": "Special work: {name}"
+    }
   },
   "laws": {
     "title": "Laws",
@@ -596,7 +615,7 @@
     "intro": "Upload contracts, briefs, rulings or a law that is not loaded. The assistant can cite them in your conversations, the same way it cites the law.",
     "uploadTitle": "Upload a document",
     "file": "File",
-    "fileHelp": "PDF with text, Word (.docx) or plain text. 25 MB at most. A scanned PDF (images only) cannot be read.",
+    "fileHelp": "PDF, Word (.docx) or plain text. Up to 25 MB. Scanned pages of a PDF are read with text recognition (OCR) on this machine.",
     "docTitle": "Document name",
     "docTitlePlaceholder": "Services agreement 2026",
     "docTitleHelp": "This is how it will appear in citations. Left empty, the file name is used.",
@@ -643,7 +662,11 @@
       "embedder_unavailable": "The local search engine did not respond. Check that the application is running and upload it again.",
       "generation_mismatch": "The search index changed version and this document cannot be mixed with it. Tell whoever administers the system.",
       "interrupted": "Processing was interrupted (the application was closed). Delete it and upload it again.",
-      "internal": "An error occurred while processing it. Delete it and try again."
+      "internal": "An error occurred while processing it. Delete it and try again.",
+      "ocr_unavailable": "The PDF has scanned pages and text recognition (Tesseract) is not installed on this machine. Ask whoever runs the system to install it (docs/LOCAL_DEMO.md).",
+      "ocr_failed": "Text recognition failed on a page. Check that the file opens correctly and upload it again.",
+      "ocr_low_confidence": "Every scanned page was read with very low quality, so nothing was kept. Scan the document again at 300 dpi or more.",
+      "too_many_scanned_pages": "The document has too many scanned pages to read at once. Split it into parts and upload them separately."
     },
     "showText": "View the extracted text",
     "hideText": "Hide the text",
@@ -659,7 +682,12 @@
       "busy": "Too many requests. Wait a moment and try again.",
       "matter": "The matter is no longer available. Choose another or upload it without a matter.",
       "generic": "The document could not be uploaded. Try again."
-    }
+    },
+    "forceOcr": "The PDF's text is damaged: read it as scanned",
+    "forceOcrHelp": "Tick this if the extracted text shows meaningless characters. Every page will be read as an image (a few seconds per page).",
+    "ocrRead": "Pages read by OCR: {pages} (mean confidence {pct}%). Check the extracted text before relying on it.",
+    "ocrExcluded": "Pages left out because they were read with very low quality: {pages}. The assistant will not see or cite them. Rescan them at 300 dpi or more and upload the document again.",
+    "amountMismatch": "Amounts whose figure and words disagree in {count} passage(s) of the document. It may be a reading error or one in the original: check the document before citing them."
   },
   "news": {
     "title": "News",

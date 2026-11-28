@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from collections.abc import Mapping
+from typing import Any, Protocol
 
 from pydantic import BaseModel, ConfigDict
 
@@ -24,8 +25,16 @@ class LLMResult(BaseModel):
 
 class LLMClient(Protocol):
     def complete(
-        self, alias: AliasName, *, system: str, user: str, max_tokens: int, tenant_id: str
+        self,
+        alias: AliasName,
+        *,
+        system: str,
+        user: str,
+        max_tokens: int,
+        tenant_id: str,
+        schema: Mapping[str, Any] | None = None,
     ) -> LLMResult:
         """`tenant_id` keys budgets and rate limits (team = tenant). `user` is the only place
-        free user text may travel; `system` comes from the prompt composer."""
+        free user text may travel; `system` comes from the prompt composer. `schema` (ADR-033): a
+        JSON schema the output must follow; only clients with `supports_schema` accept one."""
         ...

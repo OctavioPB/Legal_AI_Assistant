@@ -17,6 +17,8 @@ import {
   listMatters,
   removeMember,
   updateMatter,
+  listRegimes,
+  type RegimeOption,
   type Colleague,
   type Conversation,
   type Matter,
@@ -34,7 +36,8 @@ function readMatter(): string | null {
 }
 
 function writeMatter(id: string | null) {
-  window.history.replaceState(null, "", id ? `${window.location.pathname}?m=${id}` : window.location.pathname);
+  const next = id ? `${window.location.pathname}?m=${id}` : window.location.pathname;
+  if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, "", next);
 }
 
 /** Feature 5 (ADR-018, Brand.md 9.3): one folder per client matter, shared with chosen colleagues. */
@@ -102,9 +105,41 @@ export function AsuntosView() {
   );
 }
 
+/** ADR-031: the matter's labour regime, from the closed list the API serves (never free text). */
+function useRegimes(): RegimeOption[] {
+  const [list, setList] = useState<RegimeOption[]>([]);
+  useEffect(() => {
+    listRegimes().then(setList).catch(() => setList([]));
+  }, []);
+  return list;
+}
+
+function RegimeSelect({ id, value, onChange, regimes }: { id: string; value: string; onChange: (v: string) => void; regimes: RegimeOption[] }) {
+  const t = useTranslations("matters.regime");
+  return (
+    <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
+      <option value="">{t("none")}</option>
+      {regimes.map((r) => (
+        <option key={r.code} value={r.code}>
+          {r.code === "lft:ordinaria" ? t("ordinary") : r.code === "lft:colectivo" ? t("collective") : t("special", { name: r.label ?? r.code })}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+export function regimeName(t: (k: string, v?: Record<string, string>) => string, code: string | null, regimes: RegimeOption[]): string | null {
+  if (!code) return null;
+  if (code === "lft:ordinaria") return t("ordinary");
+  if (code === "lft:colectivo") return t("collective");
+  return t("special", { name: regimes.find((r) => r.code === code)?.label ?? code });
+}
+
 function NewMatter({ onCreated }: { onCreated: (m: Matter) => void }) {
   const t = useTranslations("matters");
-  const ids = { title: useId(), ref: useId(), desc: useId() };
+  const ids = { title: useId(), ref: useId(), desc: useId(), regime: useId() };
+  const regimes = useRegimes();
+  const [regime, setRegime] = useState("");
   const [title, setTitle] = useState("");
   const [ref, setRef] = useState("");
   const [desc, setDesc] = useState("");
@@ -117,8 +152,9 @@ function NewMatter({ onCreated }: { onCreated: (m: Matter) => void }) {
         if (!title.trim() || busy) return;
         setBusy(true);
         try {
-          const m = await createMatter({ title: title.trim(), client_ref: ref.trim(), description: desc.trim() });
+          const m = await createMatter({ title: title.trim(), client_ref: ref.trim(), description: desc.trim(), labor_regime: regime || null });
           setTitle("");
+          setRegime("");
           setRef("");
           setDesc("");
           onCreated(m);
@@ -139,6 +175,11 @@ function NewMatter({ onCreated }: { onCreated: (m: Matter) => void }) {
       <div className="field">
         <label htmlFor={ids.desc}>{t("description")}</label>
         <textarea id={ids.desc} value={desc} maxLength={4000} rows={3} onChange={(e) => setDesc(e.target.value)} />
+      </div>
+      <div className="field">
+        <label htmlFor={ids.regime}>{t("regime.label")}</label>
+        <RegimeSelect id={ids.regime} value={regime} onChange={setRegime} regimes={regimes} />
+        <p className="small muted">{t("regime.help")}</p>
       </div>
       <p className="small muted">{t("privacy")}</p>
       <button type="submit" className="button" disabled={busy || !title.trim()}>
@@ -161,7 +202,9 @@ function MatterPanel({ id, onBack, onChanged }: { id: string; onBack: () => void
   const [note, setNote] = useState("");
   const [invite, setInvite] = useState("");
   const [viewing, setViewing] = useState<string | null>(null);
-  const ids = { note: useId(), invite: useId() };
+  const ids = { note: useId(), invite: useId(), regime: useId() };
+  const regimes = useRegimes();
+  const tg = useTranslations("matters.regime");
 
   const load = useCallback(async () => {
     try {
@@ -209,8 +252,15 @@ function MatterPanel({ id, onBack, onChanged }: { id: string; onBack: () => void
           {d.matter.title}
         </h2>
         <p className="small muted">
-          {[d.matter.client_ref, t(`role.${d.matter.role}`), d.matter.status === "closed" ? t("closed") : null].filter(Boolean).join(" · ")}
+          {[d.matter.client_ref, t(`role.${d.matter.role}`), regimeName(tg, d.matter.labor_regime, regimes), d.matter.status === "closed" ? t("closed") : null].filter(Boolean).join(" · ")}
         </p>
+        {owner && (
+          <div className="field">
+            <label htmlFor={ids.regime}>{t("regime.label")}</label>
+            <RegimeSelect id={ids.regime} value={d.matter.labor_regime ?? ""} onChange={(v) => act(() => updateMatter(id, { labor_regime: v }))} regimes={regimes} />
+            <p className="small muted">{t("regime.help")}</p>
+          </div>
+        )}
         {d.matter.description && <p className="msg-text">{d.matter.description}</p>}
         {owner && (
           <div className="bar-actions">

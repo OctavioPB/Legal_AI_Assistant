@@ -11,6 +11,9 @@ layers:
     dossier_builder:
       version: v2
       sha256: 9d802c90e451ad9e83718ceb94ce0b25709a70549f16a835ec3860ee74dc8f76
+    dossier_builder_typed:
+      version: v2
+      sha256: c19f76e8920458dbeebf0682667d46d70dd2c29ce12a427366f251dab979546e
     conversar:
       version: v1
       sha256: d93edf14e90563a7f9a2819c37fa9f3671b9ab3b94649f55facfd57b9d7c1dba

@@ -174,6 +174,13 @@ function SourceCard({ source, n, onOpen }: { source: Citation; n: number; onOpen
         </span>
         <span className="source-card-title">{source.citation_string}</span>
       </p>
+      {source.regime_label && !source.applicability && <p className="small muted">{t("regime", { name: source.regime_label })}</p>}
+      {source.applicability && (
+        <p className="reform-notice small" role="note">
+          <span aria-hidden="true">⚠ </span>
+          {t(`applicability.${source.applicability}`, { name: source.regime_label ?? "" })}
+        </p>
+      )}
       {text === null ? (
         <p className="small muted">{t("loading")}</p>
       ) : (

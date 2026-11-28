@@ -6,7 +6,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy import Engine, text
@@ -57,6 +57,10 @@ class AppState:
     # ADR-025 runs client-file jobs in THIS process: a job still `processing` from before this
     # moment was lost in a restart and can never finish.
     started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    # The PDF layout parser (Docling, created on first use) and the OCR page reader (ADR-030);
+    # None = the real ones. Tests inject fakes here.
+    pdf_parser: Any = None
+    page_reader: Any = None
 
 
 def state(request: Request) -> AppState:

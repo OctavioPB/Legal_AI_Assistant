@@ -27,7 +27,9 @@ class Refusal(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    reason_key: Literal["retrieval.no_hits", "retrieval.below_threshold"]
+    reason_key: Literal[
+        "retrieval.no_hits", "retrieval.below_threshold", "retrieval.no_version_as_of"
+    ]
     best_score: float | None
     tau: float
     fragments_above_tau: int

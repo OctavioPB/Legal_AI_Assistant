@@ -58,3 +58,21 @@ def test_a_real_sentence_after_a_numeral_still_splits() -> None:
         f"meses de salario al trabajador despedido [cite: {ART}]."
     )
     assert any("artículo 1°" in u for u in v2.uncovered)
+
+
+def test_an_abbreviation_before_a_roman_numeral_does_not_cut_the_sentence() -> None:
+    """`_NUMBER_START` held a backspace byte instead of a word boundary since 2026-11-07, so
+    "fracc. IV, el patrón ..." was cut at "fracc." and its first half reported as uncited."""
+    v = check(
+        "Conforme a lo dispuesto en el art. 47, fracc. IV, el patrón puede rescindir la relación "
+        f"de trabajo sin responsabilidad por actos graves de violencia [cite: {ART}]."
+    )
+    assert v.grounded and not v.uncovered
+
+
+def test_an_abbreviation_before_a_word_that_starts_like_a_numeral_still_splits() -> None:
+    """The boundary is a word boundary: "Inciso", "Las" or "Ciudad" are not numerals."""
+    from app.validation.validator import _units
+
+    assert len(_units("Ver núm. Las partes acordaron el plazo.")) == 2
+    assert _units("Ver fracc. VI del artículo citado.") == ["Ver fracc. VI del artículo citado."]

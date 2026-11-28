@@ -6,6 +6,7 @@ import { useId } from "react";
 const KNOWN = [
   "retrieval.no_hits",
   "retrieval.below_threshold",
+  "retrieval.no_version_as_of",
   "validation.model_declined",
   "validation.format_violation",
   "validation.unsupported",
