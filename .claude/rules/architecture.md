@@ -609,6 +609,7 @@ below are the original one-liners and are Accepted.
   and is the first thing to measure; CPU latency per claim; a judge model is pinned like any other (ADR-014 rules).
   Pending: owner's choice; agreement vs lawyer grades on E2E-LAB-01 and the golden set (ADR-035). Research:
   docs/RESEARCH.md §3.
+  Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by downloading the MiniCheck model (~3 GB) onto the owner's machine, and lawyer grades to measure its agreement (ADR-035). Neither is within the delegation.
 - ADR-035 (Proposed, 2026-11-26): Faithfulness and applicability are estimated with prediction-powered inference over a
   small set of lawyer labels, with inter-rater agreement reported. Context: lawyer time is the bottleneck and today no
   answer has been graded; a judge alone gives biased numbers. Prediction-powered inference (PPI), as used by ARES
@@ -620,6 +621,7 @@ below are the original one-liners and are Accepted.
   from ~50-100 lawyer labels; agreement numbers say how far to trust the graders; (−) needs the judge of ADR-034; the
   estimator and the sampling are code that must be tested like the rest of the harness. Pending: owner's choice; two
   lawyers; the review page of E2E-LAB-01 as the first labels. Research: docs/RESEARCH.md §4.
+  Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by two practising lawyers grading a stratified sample. Nothing to build until labels exist; the review packet of E2E-LAB-01 is ready to be the first labels.
 - ADR-036 (Accepted 2026-11-28 for reporting, decided by Claude under the owner's delegation of 2026-11-28; τ unchanged): The refusal threshold is chosen by conformal risk control, per document type, with a
   stated error bound. Context: tau = 0.58 was picked by inspection (tau-20261107T212422Z: answers 87.7 % of covered,
   refuses 80.3 % of absent; no tau met both targets); in E2E-LAB-01 a contract question scored 0.571 and was refused
@@ -678,6 +680,7 @@ below are the original one-liners and are Accepted.
   preparing matched tasks; ethics and confidentiality of the tasks (fictional matters only). Pending: owner's choice;
   participants; task set reviewed by a lawyer. Research: docs/RESEARCH.md §9.
 
+  Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by recruiting 10-12 lawyers and matched tasks. Not a software task.
 - ADR-040 (Proposed, 2026-11-26): The drafting model runs with its mixture-of-experts weights on CPU and everything else on
   GPU. Context: measured 2026-11-26 on the demo machine (RTX 5060 8 GB, Ollama 0.40.13): gemma4:26b-a4b-it-qat is split
   by whole layers, 68 % CPU / 32 % GPU; generation 27-30 tokens/s, prefill 375 tokens/s, cold load 46.5 s. The model is
@@ -689,6 +692,7 @@ below are the original one-liners and are Accepted.
   about 4 to about 33 tokens/s; (−) those reports are anecdotal and on other models, no Gemma figure was found; a second
   runtime to install and pin; a runtime change is a model change (golden run, invariant 2). Pending: owner's choice;
   tokens/s, prefill and p50/p95 per answer on this GPU before and after. Research: docs/RESEARCH.md §10.
+  Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by installing llama-server (a second runtime) on the owner's machine and pinning a GGUF; a system install is outside the delegation.
 - ADR-041 (Accepted 2026-11-26, option B chosen by the product owner; the cause was measured, not assumed): Retrieval latency is profiled, and the embedder is kept resident if model swapping is the
   cause. Context: retrieval p50 is 3.16 s and p95 5.55 s (golden-20261109T084417Z), which is far slower than an indexed
   search over ~18 900 rows should be; the embedder (bge-m3) and the drafting model share 8 GB of VRAM through Ollama,
@@ -729,6 +733,7 @@ below are the original one-liners and are Accepted.
   Consequences: (+) possibly faster generation of quoted text at no quality cost (speculative decoding does not change the
   output distribution); (−) depends on ADR-040's runtime (`llama-server`); gains at batch size 1 on consumer hardware are
   uncertain. Pending: owner's choice; tokens/s on real answers with and without. Research: docs/RESEARCH.md §14.
+  Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by the llama-server runtime of ADR-040 (Ollama exposes no n-gram speculative decoding); blocked on ADR-040.
 - ADR-045 (Rejected at this scale 2026-11-28, decided by Claude under the owner's delegation of 2026-11-28; tripwire registered): Vectors are stored as half precision (`halfvec`), and binary quantization stays unused at
   this scale. Context: pgvector 0.7+ offers `halfvec`, reported to halve vector and index storage with similar search
   quality, and binary quantization with full-precision rescoring for large collections; the corpus holds ~18 900 chunks.
@@ -753,6 +758,7 @@ below are the original one-liners and are Accepted.
   queries are model-written, so evaluation must use lawyer-reviewed cases, not more synthetic ones; training needs a GPU
   session. Pending: owner's choice; retrieval-only golden runs before and after, per category. Research:
   docs/RESEARCH.md §16.
+  Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by a GPU training session and model-written queries; it also needs lawyer-reviewed cases to evaluate. Run ADR-047's reranker comparison first.
 - ADR-047 (Proposed, 2026-11-26): Qwen3-Reranker-0.6B, and Qwen3-Embedding-0.6B as an embedder, are measured against the
   current dense cosine. Context: the cross-encoder bge-reranker-v2-m3 was discarded (AUC 0.892 vs 0.934, 16 s per query
   on CPU, near-zero scores for English over Spanish; tau-20261107T212422Z). Qwen3-Reranker-0.6B (Apache-2.0, June 2025)
@@ -763,6 +769,7 @@ below are the original one-liners and are Accepted.
   Consequences: (+) possibly better separation of covered and absent topics, which also tightens tau; (−) a reranker
   changes the score scale, so tau must be recalibrated (ADR-036); C is a new embedding generation. Pending: owner's choice;
   the calibration run with the new reranker. Research: docs/RESEARCH.md §17.
+  Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by downloading Qwen3-Reranker-0.6B (~1.2 GB) and adding a dependency; outside the delegation. The harness is ready: `evals.calibrate_tau --reranker` plus a retrieval-only golden run measure it as the last reranker was measured; note ADR-048 found that fusion stops mattering behind a dense reranker, so a better reranker is where retrieval gains would come from.
 - ADR-048 (Rejected 2026-11-28, decided by Claude under the owner's delegation of 2026-11-28; RRF stays): Lexical and semantic scores are fused by a tuned convex combination instead of fixed RRF.
   Context: fusion is RRF with k = 60, untuned (rag.md). Bruch, Gai and Ingber (ACM, 2023, arXiv 2210.11934) find that a
   convex combination of normalised scores beats RRF in and out of domain, needs only a small sample to tune its single
