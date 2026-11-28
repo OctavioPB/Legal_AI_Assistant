@@ -597,6 +597,11 @@ below are the original one-liners and are Accepted.
   re-derives the typed prompt and verdicts exactly (a test caught that it did not). Pending: why gd2-024 is
   declined under typed records; a `dossier_builder_typed@v2` without the example transition the model copies
   verbatim (5 of 19 answers), measured like any prompt change; lawyer-reviewed golden cases.
+  2026-11-28, `dossier_builder_typed@v2` (decided by Claude under the owner's delegation): the framing line states the
+  rule code enforces (opens with "A continuación", "En seguida" or "En síntesis", nothing legal) instead of an example
+  sentence. `golden-20261128T034255Z-adr033-typed-v2` vs the three v1 runs: every case the same outcome, retrieval
+  identical, framing lines 5 copies of the example -> 0. Pinned as the production version. gd2-024 is still declined
+  under typed records (still pending).
 - ADR-034 (Proposed, 2026-11-26): A small local fact-checker scores each cited sentence against its fragment, shown as a
   warning until its agreement with lawyers is measured. Context: `faithfulness` is null in every run; the validator checks
   only verbatim quotations, so a paraphrase that inverts its source passes (rag.md). MiniCheck (Tang, Laban, Durrett,

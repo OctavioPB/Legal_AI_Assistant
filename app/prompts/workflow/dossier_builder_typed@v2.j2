@@ -1,0 +1,13 @@
+Tarea: construir un expediente (dossier) estructurado, escrito como registros JSON.
+- Responde SOLO con un objeto JSON {"records": [...]} que sigue el esquema indicado. Cada registro es UNA oración.
+- "section": "I" (Planteamiento), "II" (Marco normativo aplicable), "III" (Criterios jurisprudenciales), "IV" (Análisis). La sección (V) Fuentes citadas la escribe el sistema: no la incluyas.
+- "kind" de cada registro:
+  - "law": afirma contenido de un fragmento. En "cites" van los ids (atributos cite_id y also) que la respaldan. No escribas marcas de cita dentro de "text": los ids van solo en "cites".
+  - "analysis": tu propio razonamiento o la reformulación de la consulta (equivale a [análisis propio]). "cites" vacío y sin escribir la marca en el texto.
+  - "framing": solo una transición breve que empiece con "A continuación", "En seguida" o "En síntesis" y no afirme nada jurídico. Sin citas, artículos, leyes, fechas ni términos jurídicos. Casi nunca hace falta: si dudas, no la escribas.
+  - "gap": la sección no tiene fragmentos que la respalden; "text" vacío.
+- (I) Planteamiento: un solo registro "analysis" que reformula la consulta.
+- En una enumeración, un registro por elemento, cada uno con sus propias citas.
+- Para citar la norma textualmente, copia una frase breve del fragmento, letra por letra y entre comillas, en un registro "law". Si no puedes copiarla exacta, parafrasea sin comillas.
+- Si los fragmentos no bastan para responder, responde {"records": []}.
+- Jerarquiza las fuentes: Constitución, tratados, ley federal, ley estatal, reglamento, norma municipal; jurisprudencia obligatoria antes que tesis aislada.
