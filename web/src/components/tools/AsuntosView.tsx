@@ -36,7 +36,8 @@ function readMatter(): string | null {
 }
 
 function writeMatter(id: string | null) {
-  window.history.replaceState(null, "", id ? `${window.location.pathname}?m=${id}` : window.location.pathname);
+  const next = id ? `${window.location.pathname}?m=${id}` : window.location.pathname;
+  if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, "", next);
 }
 
 /** Feature 5 (ADR-018, Brand.md 9.3): one folder per client matter, shared with chosen colleagues. */

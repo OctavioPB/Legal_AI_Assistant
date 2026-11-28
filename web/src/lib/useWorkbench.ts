@@ -67,7 +67,10 @@ function writeParam(id: string | null) {
   if (id) q.set("c", id);
   else q.delete("c");
   const s = q.toString();
-  window.history.replaceState(null, "", s ? `${window.location.pathname}?${s}` : window.location.pathname);
+  const next = s ? `${window.location.pathname}?${s}` : window.location.pathname;
+  // only when it changes: a no-op replaceState is still a navigation event to the browser (it made the
+  // "no reload" browser check flaky whenever the mount-time call landed after the check started)
+  if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, "", next);
 }
 
 const ERROR_KEYS = ["rate_limited", "llm_unavailable", "model_not_allowed", "model_unavailable", "model_declined", "cites_matter_files"] as const;
