@@ -119,7 +119,7 @@ def collect(
     convs = conn.execute(
         text(
             "SELECT id, kind, title, language, jurisdiction_id, persona, include_historical, "
-            "case_side, case_facts, case_claim FROM conversations WHERE matter_id = :m "
+            "as_of_date, case_side, case_facts, case_claim FROM conversations WHERE matter_id = :m "
             "ORDER BY updated_at DESC, id LIMIT :n"
         ),
         {"m": matter_id, "n": s.cheatsheet_conversations_max},
@@ -171,6 +171,7 @@ def collect(
             language=c.language,
             include_historical=c.include_historical,
             matter_id=matter_id,
+            as_of=c.as_of_date,  # ADR-050: each conversation's sources as of its own date
         )
         contexts.append((ctx, list(carry_forward(conn, tuple(ids)))))
         lines = [f"{lab['conv']} «{_clip(c.title, 200)}» ({lab['kind'][c.kind]})"]
