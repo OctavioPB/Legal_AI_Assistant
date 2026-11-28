@@ -844,7 +844,7 @@ below are the original one-liners and are Accepted.
   ADOPTED 2026-11-27 together with ADR-052 as amended (chunker v4, generation 4): no golden case worse than
   generation 1, see ADR-052 for the runs.
 
-- ADR-050 (Proposed, 2026-11-26): The law is retrieved as of a date: versions carry valid time separately from the time we
+- ADR-050 (Accepted 2026-11-28 for B and D, C pending; decided by Claude under the owner's delegation of 2026-11-28): The law is retrieved as of a date: versions carry valid time separately from the time we
   loaded them, and a session may fix the date of the facts. Context: legal questions are about the version in force on
   the date of the facts, not today's. Cymbler, Guez and Fabre (ICML 2026, arXiv 2608.09393) built a versioned corpus of
   32 436 article versions of the French tax code and found that RAG over a current-only corpus retrieved the
@@ -873,6 +873,18 @@ below are the original one-liners and are Accepted.
   be corrected by an explicit, reviewed data migration (invariant 3: nothing is deleted, dates are corrected). Pending:
   owner's choice; the entry-into-force dates of the loaded versions (a person reads each decree); the temporal golden
   cases, lawyer-reviewed. Research: docs/RESEARCH.md §20.
+  Built 2026-11-28 (B and D): (1) a reform now retires the old version at the new one's `valid_from` when known
+  (store.ingest_document, test); (2) `app.ingestion.validity` corrected the stored CPF overlap (2026.11 valid_to
+  2026-11-25 -> 2026-11-13; dates only, superuser, dry run first); (3) `SessionContext.as_of` applied inside
+  `build_jurisdiction_predicate()` (known validity covers the date; unknown never does; firm documents always
+  searched), refusal `retrieval.no_version_as_of` (catalogues, refusal card); (4) migration 0016
+  `conversations.as_of_date` (past dates only, excludes include_historical), API, key-points sheet, scope panel date
+  field (Brand.md §9.10); (5) the temporal track `evals/golden/golden_temporal_v1.jsonl` (4 ai-draft cases, apart from
+  the main suite): retrieval 4/4 (`golden-20261128T030241Z-adr050-temporal-retrieval`). Bitemporal `retired_at`
+  (transaction time apart from valid time) was not added: `ingested_at` plus the corrected `valid_to` cover today's
+  questions; it stays open with C. Consequence, stated in the UI and the docs: with one dated version in the corpus,
+  most dated questions are refused. Pending: C (load earlier, dated versions of each law, a person checking each
+  decree's entry into force); lawyer review of the temporal cases.
 
 - ADR-051 (Accepted 2026-11-27, option "number + verb" chosen by the product owner): A sentence that credits a cited
   decree with a change must match that decree's own list, checked by code. Context: with index generation 2 (ADR-049)

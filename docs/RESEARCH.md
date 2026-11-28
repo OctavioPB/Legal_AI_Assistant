@@ -23,7 +23,12 @@ the reverse (invariant 6). What has been built since is listed below; the sectio
 | 041 | §11 | Accepted | Retrieval is 0.56 s; the slow turns were Ollama swapping models; `OLLAMA_MAX_LOADED_MODELS=3` |
 | 043 | §13 | Accepted | The retry already reuses the cached prompt prefix (0.8 s vs 14.1 s); now guarded by a test |
 | 049 | §19 | Accepted, adopted as index generation 4 | Cardinal Títulos and heading names on their own line; adopted together with ADR-052 |
-| 034–037, 039, 040, 042, 044–048, 050 | | Proposed | Not built |
+| 036 | §6 | Accepted for reporting | Per-topic certified bounds in every calibration: at τ 0.58, 10 of 22 absent topics pass (≤ 61 % at 90 %); τ unchanged |
+| 037 | §7 | D accepted, C rejected | Character-level precision/recall in every run (0.133 / 0.890); cross-reference expansion cost a case and was switched off |
+| 045 | §15 | Rejected at this scale | Saves ~40 MB on 20k chunks; tripwire at 500k chunks |
+| 048 | §18 | Rejected | Convex fusion equal to RRF at every alpha: the dense reranker re-orders the pool |
+| 050 | §20 | Accepted for B and D | As-of date in the predicate, conversations and UI; a reform retires the old version at the new one's entry into force; temporal track 4/4 on retrieval |
+| 034, 035, 039, 040, 042, 044, 046, 047 | | Proposed | Not built; each ADR records what unblocks it (a download, an install or lawyer labels) |
 
 Found while building these and recorded as new decisions: ADR-051 (a decree credited with a change its own list does
 not make is caught by code) and ADR-052 (decree headings are hidden units and decree dates travel in citations). The

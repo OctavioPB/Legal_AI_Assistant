@@ -17,6 +17,13 @@
   version of the same article); a case without them measures nothing.
 - Temporal queries ("qué decía antes de la reforma") set `include_historical=true` explicitly;
   responses must carry vigencia warnings.
+- As of a date (ADR-050): `SessionContext.as_of` (from `conversations.as_of_date`, chosen at creation in a date field,
+  never inferred from text) replaces "current only" with "the version whose KNOWN validity covers that date"
+  (`documents.valid_from <= D < valid_to`), inside `build_jurisdiction_predicate()` like every other scope rule. A
+  version with unknown dates never covers a date; firm documents are always searched; `as_of` and
+  `include_historical` exclude each other. A dated session with no covering version is refused with
+  `retrieval.no_version_as_of` before any model call. Today only the CPF of 2026-11-13 has a known start date, so most
+  dated questions are refused: honest, and the reason to load dated versions (ADR-050 C).
 - Navigator and verifier (features 1/2): browsing a law is an explicit user choice of THAT law, never a widening
   of a conversation's scope; the verifier resolves explicit references in a brief against the whole loaded
   corpus (it answers "does this exist / is it current / is this quotation verbatim", it generates nothing).

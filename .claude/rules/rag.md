@@ -26,6 +26,8 @@
 - Navigation chunks (índice, tabla de contenidos, lists of articles) get `is_navigation=true` and
   are excluded at query time. They list every heading of the code and out-rank the articles they
   point to.
+- A reform retires the previous version at the new version's `valid_from` when it is known (ADR-050), never at the
+  day the reform was detected; `python -m app.ingestion.validity [--apply]` corrects stored overlaps (dates only).
 - Byte-identical text across versions is expected (a reform touches art. 47, not art. 48). The
   eval treats identical text as equally valid gold only within the session's vigencia scope.
 - Every parsing bug becomes a fixture first, then the fix. Required pathological fixtures: DOF

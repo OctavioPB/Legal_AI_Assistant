@@ -418,6 +418,9 @@ and the law use.
   (ADR-031, a warning), and a decree credited with a change its own list does not make (ADR-051).
 - Rebuilding the index after a chunker change takes about 15 minutes on this machine (ADR-006); on Windows the
   embedder can run out of local sockets, and the rebuild waits and retries.
+- A conversation can read the law as of the date of the facts (ADR-050), but only one loaded version (the CPF of
+  2026-11-13) has a known entry into force, so most dated questions are refused with that reason rather than answered
+  from today's text.
 - The key-points sheet is refused some of the time: it only delivers when every point verifies against
   the matter's sources.
 - Designed but not built: Celery workers, a deployed LiteLLM proxy, tracing, an NLI judge.
