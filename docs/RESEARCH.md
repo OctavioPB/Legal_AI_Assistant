@@ -29,7 +29,9 @@ the reverse (invariant 6). What has been built since is listed below; the sectio
 | 048 | §18 | Rejected | Convex fusion equal to RRF at every alpha: the dense reranker re-orders the pool |
 | 050 | §20 | Accepted for B and D | As-of date in the predicate, conversations and UI; a reform retires the old version at the new one's entry into force; temporal track 4/4 on retrieval |
 | 042 | §12 | D accepted | 5 fragments instead of 8: same outcome on every golden case, regenerations 0.16 -> 0.04, p90 answer 72 s -> 49 s |
-| 034, 035, 039, 040, 044, 046, 047 | | Proposed | Not built; each ADR records what unblocks it (a download, an install or lawyer labels) |
+| 040 | §10 | Rejected on measurement | llama.cpp with expert offload: generation +8 %, prefill -36 % against Ollama; ~28 % slower per answer |
+| 044 | §14 | Rejected with 040 | Needs the llama.cpp runtime; speculative decoding cannot win back its slower prefill |
+| 034, 035, 039, 046, 047 | | Proposed | Not built; each ADR records what unblocks it |
 
 Found while building these and recorded as new decisions: ADR-051 (a decree credited with a change its own list does
 not make is caught by code) and ADR-052 (decree headings are hidden units and decree dates travel in citations). The

@@ -717,7 +717,7 @@ below are the original one-liners and are Accepted.
   participants; task set reviewed by a lawyer. Research: docs/RESEARCH.md §9.
 
   Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by recruiting 10-12 lawyers and matched tasks. Not a software task.
-- ADR-040 (Proposed, 2026-11-26): The drafting model runs with its mixture-of-experts weights on CPU and everything else on
+- ADR-040 (Rejected 2026-11-28 on measurement, decided by Claude under the owner's delegation, which included the install): The drafting model runs with its mixture-of-experts weights on CPU and everything else on
   GPU. Context: measured 2026-11-26 on the demo machine (RTX 5060 8 GB, Ollama 0.40.13): gemma4:26b-a4b-it-qat is split
   by whole layers, 68 % CPU / 32 % GPU; generation 27-30 tokens/s, prefill 375 tokens/s, cold load 46.5 s. The model is
   a mixture of experts (about 4B active parameters per token); llama.cpp can keep attention and shared weights on the
@@ -729,6 +729,16 @@ below are the original one-liners and are Accepted.
   runtime to install and pin; a runtime change is a model change (golden run, invariant 2). Pending: owner's choice;
   tokens/s, prefill and p50/p95 per answer on this GPU before and after. Research: docs/RESEARCH.md §10.
   Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by installing llama-server (a second runtime) on the owner's machine and pinning a GGUF; a system install is outside the delegation.
+  Measured 2026-11-28 on the demo machine (RTX 5060 8 GB): llama.cpp b12375 (CUDA 13.5 build, sha256 checked, in
+  C:/Users/USER/Tools/llama.cpp) on the SAME GGUF Ollama serves (blob sha256:4c856523..., gemma4 26B-A4B Q4_0, no new
+  download), llama-bench, 6 000-token prompt, 256 generated, flash attention, batch 2048: experts of 20 layers on CPU
+  343 t/s prompt / 33.2 t/s generation; 16 or 12 layers overflow the 8 GB (68-91 / 7-12 t/s); whole-layer split
+  (10 or 14 GPU layers) 323 / 19.4 and 236 / 23.4. Ollama on the same workload, uncached prompt (a unique prefix per
+  run; an identical prompt is served from its prompt cache, which first showed 34 000+ t/s), OLLAMA_MAX_LOADED_MODELS=3:
+  ~538 t/s prompt / ~30.6 t/s generation over 3 runs. One answer of 5 600 prompt + 256 generated tokens: Ollama ~18.8 s,
+  the best llama.cpp setting ~24.0 s (+28 %). Generation is 8 % faster with expert offload but prefill, which dominates
+  with our 6-12k-token contexts, is 36 % slower. Decision: keep Ollama. The earlier 375 t/s prefill was measured before
+  ADR-041's setting.
 - ADR-041 (Accepted 2026-11-26, option B chosen by the product owner; the cause was measured, not assumed): Retrieval latency is profiled, and the embedder is kept resident if model swapping is the
   cause. Context: retrieval p50 is 3.16 s and p95 5.55 s (golden-20261109T084417Z), which is far slower than an indexed
   search over ~18 900 rows should be; the embedder (bge-m3) and the drafting model share 8 GB of VRAM through Ollama,
@@ -766,7 +776,7 @@ below are the original one-liners and are Accepted.
   (+) up to ~30 s saved on every regenerated answer; (−) appending the failed answer may anchor the model to it (measure
   the regeneration success rate before and after). Pending: owner's choice; the check of the current composer; retry
   latency before and after. Measured 2026-11-26: the retry keeps the system prompt (where the context lives) and starts its user turn with the original user text, so Ollama reused the cached prefill: 0.8 s instead of 14.1 s for a 6 400-token prompt. `tests/validation/test_loop.py` now asserts the byte-for-byte prefix, so a change that breaks it fails a test. No code change was needed. Research: docs/RESEARCH.md §13.
-- ADR-044 (Proposed, 2026-11-26): Speculative decoding is measured, starting with the n-gram mode that needs no draft model.
+- ADR-044 (Rejected 2026-11-28 with ADR-040, decided by Claude under the owner's delegation): Speculative decoding is measured, starting with the n-gram mode that needs no draft model.
   Context: answers copy long statute passages from the context (verbatim quotations are required to match it); llama.cpp
   offers a draft-model mode, EAGLE-3 and an n-gram mode that drafts tokens from text already in the prompt. EAGLE-3
   reports up to 6.5x in its paper, but Meta reports 10-30 % at batch size 1 on H100s, and matching EAGLE-3 draft
@@ -776,6 +786,10 @@ below are the original one-liners and are Accepted.
   output distribution); (−) depends on ADR-040's runtime (`llama-server`); gains at batch size 1 on consumer hardware are
   uncertain. Pending: owner's choice; tokens/s on real answers with and without. Research: docs/RESEARCH.md §14.
   Triage 2026-11-28 (Claude, under the owner's delegation): stays Proposed. Unblocked only by the llama-server runtime of ADR-040 (Ollama exposes no n-gram speculative decoding); blocked on ADR-040.
+  Rejected 2026-11-28 without a separate run: it needs ADR-040's llama-server runtime (Ollama exposes no speculative
+  decoding), which is ~28 % slower per answer on this machine because of prefill. Speculative decoding only speeds
+  generation, ~8 s of a ~19 s answer, so even a 30 % gain there (~2.4 s) cannot win back the ~5 s llama.cpp loses on
+  prefill. Reopen if Ollama adds speculative decoding, or if a llama.cpp build matches Ollama's prefill.
 - ADR-045 (Rejected at this scale 2026-11-28, decided by Claude under the owner's delegation of 2026-11-28; tripwire registered): Vectors are stored as half precision (`halfvec`), and binary quantization stays unused at
   this scale. Context: pgvector 0.7+ offers `halfvec`, reported to halve vector and index storage with similar search
   quality, and binary quantization with full-precision rescoring for large collections; the corpus holds ~18 900 chunks.
