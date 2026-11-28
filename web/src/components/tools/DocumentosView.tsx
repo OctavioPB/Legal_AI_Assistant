@@ -247,13 +247,13 @@ function FileRow({ f, place, when, onOpen, onChanged }: { f: ClientFile; place: 
         {t(`kinds.${f.kind}`)} · {place} · {when} · {t("by", { name: f.uploaded_by_name })}
       </p>
       {f.status === "failed" && <p className="small">{t(`failed.${reason}`)}</p>}
-      {f.status === "ready" && f.ocr_pages.length > 0 && (
-        <p className="small">{t("ocrRead", { pages: f.ocr_pages.join(", "), pct: Math.round((f.ocr_confidence ?? 0) * 100) })}</p>
+      {f.status === "ready" && (f.ocr_pages ?? []).length > 0 && (
+        <p className="small">{t("ocrRead", { pages: (f.ocr_pages ?? []).join(", "), pct: Math.round((f.ocr_confidence ?? 0) * 100) })}</p>
       )}
-      {f.status === "ready" && f.ocr_excluded_pages.length > 0 && (
+      {f.status === "ready" && (f.ocr_excluded_pages ?? []).length > 0 && (
         <p className="reform-notice small" role="note">
           <span aria-hidden="true">⌕ </span>
-          {t("ocrExcluded", { pages: f.ocr_excluded_pages.join(", ") })}
+          {t("ocrExcluded", { pages: (f.ocr_excluded_pages ?? []).join(", ") })}
         </p>
       )}
       {f.status === "ready" && (f.amount_mismatch_units ?? []).length > 0 && (

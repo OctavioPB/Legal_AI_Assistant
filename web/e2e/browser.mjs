@@ -62,8 +62,8 @@ const STUBS = {
   "verify/reports": [],
   // ADR-025 (Brand.md 9.7): one file of a matter ready, one being processed, one that failed
   files: [
-    { id: "f0000000-0000-4000-8000-000000000001", title: "Contrato de servicios", kind: "contrato", language: "es", jurisdiction_id: 1, matter_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", status: "ready", error_key: null, pages: null, chunk_count: 7, source_format: "docx", created_at: "2026-11-14T10:00:00Z", mine: true, uploaded_by_name: "E2E", can_delete: true },
-    { id: "f0000000-0000-4000-8000-000000000002", title: "Demanda inicial", kind: "escrito", language: "es", jurisdiction_id: 1, matter_id: null, status: "failed", error_key: "no_text", pages: null, chunk_count: null, source_format: "pdf", created_at: "2026-11-14T09:00:00Z", mine: false, uploaded_by_name: "Mario", can_delete: false },
+    { id: "f0000000-0000-4000-8000-000000000001", title: "Contrato de servicios", kind: "contrato", language: "es", jurisdiction_id: 1, matter_id: "0b9d6f1e-2c3a-4e5f-8a9b-1c2d3e4f5a6b", status: "ready", error_key: null, pages: null, chunk_count: 7, source_format: "docx", created_at: "2026-11-14T10:00:00Z", mine: true, uploaded_by_name: "E2E", can_delete: true, ocr_pages: [], ocr_excluded_pages: [], ocr_confidence: null, amount_mismatch_units: [] },
+    { id: "f0000000-0000-4000-8000-000000000002", title: "Demanda inicial", kind: "escrito", language: "es", jurisdiction_id: 1, matter_id: null, status: "failed", error_key: "no_text", pages: null, chunk_count: null, source_format: "pdf", created_at: "2026-11-14T09:00:00Z", mine: false, uploaded_by_name: "Mario", can_delete: false, ocr_pages: [], ocr_excluded_pages: [], ocr_confidence: null, amount_mismatch_units: [] },
   ],
   "files/f0000000-0000-4000-8000-000000000001/text": [
     { cite_id: "CF-D1A2B3C4D5E-S4", citation_string: "«Contrato de servicios», PRIMERA.- OBJETO", text: "PRIMERA.- OBJETO. La Prestadora se obliga a prestar servicios de asesoría jurídica. [texto de ejemplo]" },

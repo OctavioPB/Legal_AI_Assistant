@@ -245,6 +245,23 @@ def check_repo(settings: Settings, registry: AliasRegistry | None = None) -> lis
     return out
 
 
+def _windows_env(name: str) -> str | None:
+    """A variable from the Windows user, then machine, environment (where the tray Ollama reads it).
+    `sys.platform` (not `os.name`) so mypy skips this branch when it checks for Linux, as CI does."""
+    if sys.platform == "win32":
+        import winreg
+
+        for hive, key in ((winreg.HKEY_CURRENT_USER, "Environment"),
+                          (winreg.HKEY_LOCAL_MACHINE,
+                           r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment")):  # fmt: skip
+            try:
+                with winreg.OpenKey(hive, key) as k:
+                    return str(winreg.QueryValueEx(k, name)[0])
+            except OSError:
+                continue
+    return None
+
+
 def check_model_residency(env: dict[str, str] | None = None) -> Check:
     """ADR-041 (measured 2026-11-26): with Ollama keeping one model at a time, every turn unloads the drafting
     model to embed the query and reloads it to generate (~20 s), then reloads the embedder (~4.5 s): the median
@@ -254,18 +271,8 @@ def check_model_residency(env: dict[str, str] | None = None) -> Check:
     import os
 
     value = (env if env is not None else os.environ).get("OLLAMA_MAX_LOADED_MODELS")
-    if value is None and env is None and os.name == "nt":
-        import winreg
-
-        for hive, key in ((winreg.HKEY_CURRENT_USER, "Environment"),
-                          (winreg.HKEY_LOCAL_MACHINE,
-                           r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment")):  # fmt: skip
-            try:
-                with winreg.OpenKey(hive, key) as k:
-                    value = str(winreg.QueryValueEx(k, "OLLAMA_MAX_LOADED_MODELS")[0])
-                    break
-            except OSError:
-                continue
+    if value is None and env is None:
+        value = _windows_env("OLLAMA_MAX_LOADED_MODELS")
     name = "Ollama keeps the embedder and the drafting model loaded (ADR-041)"
     if value is None or not value.strip().isdigit() or int(value) < 2:
         return Check(
