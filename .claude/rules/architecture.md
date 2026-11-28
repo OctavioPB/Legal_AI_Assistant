@@ -646,7 +646,7 @@ below are the original one-liners and are Accepted.
   gate still needs answers the validator can ground, or it is refused. Consequence: no guarantee on the gate until
   the probe sets grow; with zero violations, a 5 % bound at 90 % needs about 45 topics, a 1 % one about 230.
   Pending: lawyer-reviewed probe sets with more topics; a firm-document probe set for option C.
-- ADR-037 (Proposed, 2026-11-26): Four retrieval experiments are run, each kept only if the golden suite says so. Context:
+- ADR-037 (Accepted 2026-11-28 for D, C measured and rejected, A/B pending the owner; decided by Claude under the owner's delegation of 2026-11-28): Four retrieval experiments are run, each kept only if the golden suite says so. Context:
   recall@8 is 1.00 on 25 easy cases, but distractors reach the top 8 in 16 % of cases and the dense signal could not
   separate same-numbered articles (ADR-022); the cross-encoder lost on AUC (0.892 vs 0.934) and was 16x slower.
   Options (independent): (A) use bge-m3's own sparse and multi-vector (ColBERT-style) scores as a reranker (same model,
@@ -658,6 +658,14 @@ below are the original one-liners and are Accepted.
   order of cost. Consequences: (+) each piece is measured before it stays (rag.md); (−) A and B add CPU latency; B is a
   new embedding generation (ADR-006); C can widen the context beyond the 12k budget. Pending: owner's choice; baseline
   per-arm runs (rag.md requires them and none is recorded). Research: docs/RESEARCH.md §7.
+  D (2026-11-28): every golden run reports `char_precision_at_k` / `char_recall_at_k` from the chunks' source offsets
+  (`evals/run.py::spans`, tests in tests/evals/test_char_spans.py). Baseline on generation 4: precision 0.133, recall
+  0.890 (the top 8 carry about 7 times more text than the gold units; recall@8 0.95 hid that). C (2026-11-28): units the
+  hits refer to are added to the context after everything else (`app/rag/crossref.py`, `retrieval_crossref`), never as
+  hits. Golden `golden-20261128T031323Z-adr037C-crossref` vs the three typed runs of ADR-033: 0 cases better, 1 worse
+  (gd2-024 aside, gd2-021 cross-lingual refused, answered 3/3 before), false refusal 1 -> 2, median answer 39.9 s ->
+  43.7 s (longer context). Rejected for now: switched off, code kept and tested. A and B need model downloads
+  (FlagEmbedding / Jina-ColBERT), outside the delegation.
 - ADR-038 (Accepted 2026-11-26 for A and B, chosen by the product owner; C and D stay Proposed): The claim "verification is code" is backed by mutation testing, a validator replay suite,
   measured latency work and a deterministic check of amounts in OCR text. Context: the validator's tests were written by
   the same team; latency is 35 s median against the blueprint's < 10 s p95; OCR can misread a figure on a page above the
