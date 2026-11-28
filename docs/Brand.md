@@ -393,6 +393,16 @@ The same frame as §8 (bar, tokens, typography, tone); no tool uses the model fo
   ⚠ icon, `role=note`): which regime, that it differs from the matter's, and to check that it applies. Never a refusal,
   never colour alone; the regime name is the law's own chapter title.
 
+### 9.10 Law as of a date (ADR-050, 2026-11-28)
+- The scope panel of a NEW conversation offers one optional date field, "Derecho vigente a la fecha (opcional)", a
+  native `input type=date` (`max` today, the `.field` pattern of §4) with one sentence under it saying what it does
+  and that the system says so when no dated version covers the date. Setting it disables "Incluir versiones
+  anteriores (no vigentes)" (they exclude each other); the one-line scope then reads "Derecho vigente al {fecha}".
+- An existing conversation shows the date as one more `scope-chip` ("Derecho al {fecha}"), fixed like the rest.
+- A dated turn that finds no version is the ordinary `Refusal` of §3.2 with its own reason text, never an error.
+- The date is per conversation and is not remembered between conversations (the date of the facts belongs to
+  each case).
+
 ## 10. OPB style (v2, 2026-11-08): how it is applied
 
 Structure reference: Library-RAG (the same product family). Everything lives in section 4 of `globals.css`.

@@ -284,7 +284,10 @@
       "change": "Change",
       "done": "Done",
       "personaHelp": "The profile guides vocabulary and the order of sources; it neither widens nor narrows the jurisdiction.",
-      "historicalHelp": "Turn it on only if you need what a law said before an amendment."
+      "historicalHelp": "Turn it on only if you need what a law said before an amendment.",
+      "asOf": "Law as of a date (optional)",
+      "asOfHelp": "The date of the facts. Only versions of the law whose known validity covers that date are searched; if there are none, the system says so instead of answering from today's text.",
+      "asOfCurrent": "Law as of {date}"
     },
     "model": {
       "label": "Model",
@@ -308,7 +311,8 @@
       "remoteWarning": "With this model, your question, the conversation history and the retrieved law fragments are sent to Anthropic to generate every answer. Do not use it unless the firm has authorized it for the matter.",
       "fixed": "Model: {name}",
       "fixedRemote": "external"
-    }
+    },
+    "asOfChip": "Law as of {date}"
   },
   "home": {
     "eyebrow": "Verifiable legal research",

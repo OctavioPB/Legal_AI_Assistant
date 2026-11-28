@@ -127,6 +127,7 @@ export interface Conversation {
   jurisdiction_id: number;
   persona: string;
   include_historical: boolean;
+  as_of?: string | null; // ADR-050
   case: CaseBrief | null;
   created_at: string;
   updated_at: string;
@@ -192,6 +193,7 @@ export interface NewConversation {
   persona: string;
   language: "es" | "en";
   include_historical: boolean;
+  as_of?: string | null; // ADR-050: the date of the facts
   case?: CaseBrief;
   matter_id?: string | null;
   model_profile?: ModelKey;

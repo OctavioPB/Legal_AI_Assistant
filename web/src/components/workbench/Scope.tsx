@@ -10,10 +10,13 @@ export interface Scope {
   selection: Selection;
   persona: string;
   historical: boolean;
+  /** ADR-050: the date of the facts (YYYY-MM-DD); the law is read as of it. Never remembered
+   *  between conversations: it belongs to each case. */
+  asOf: string | null;
 }
 
 const STORAGE_KEY = "legalai.scope.v1";
-export const DEFAULT_SCOPE: Scope = { selection: { country: "MX", state: null, municipality: null }, persona: "general", historical: false };
+export const DEFAULT_SCOPE: Scope = { selection: { country: "MX", state: null, municipality: null }, persona: "general", historical: false, asOf: null };
 
 // Per-viewer convenience only (the scope that matters is stored with each conversation).
 export function loadScope(rows: Jurisdiction[], personas: Persona[]): Scope {
@@ -21,7 +24,7 @@ export function loadScope(rows: Jurisdiction[], personas: Persona[]): Scope {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const saved = raw ? (JSON.parse(raw) as Scope) : null;
     if (saved && resolve(rows, saved.selection) && personas.some((p) => p.code === saved.persona)) {
-      return { selection: saved.selection, persona: saved.persona, historical: Boolean(saved.historical) };
+      return { selection: saved.selection, persona: saved.persona, historical: Boolean(saved.historical), asOf: null };
     }
   } catch {
     /* storage blocked or corrupted: start from the default */
@@ -31,7 +34,7 @@ export function loadScope(rows: Jurisdiction[], personas: Persona[]): Scope {
 
 function saveScope(scope: Scope) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(scope));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...scope, asOf: null }));
   } catch {
     /* storage blocked: the page works without it */
   }
@@ -63,6 +66,8 @@ export function ScopePicker({
   const locale = useLocale();
   const panelId = useId();
   const personaHelp = useId();
+  const asOfHelp = useId();
+  const today = new Date().toISOString().slice(0, 10);
   const [touched, setTouched] = useState(false);
   const [editing, setEditing] = useState(false);
   useEffect(() => {
@@ -81,7 +86,7 @@ export function ScopePicker({
           {" · "}
           {personaLabel(t, t.has, personas, value.persona, locale)}
           {" · "}
-          {value.historical ? tw("withHistorical") : tw("currentOnly")}
+          {value.asOf ? tw("asOfCurrent", { date: value.asOf }) : value.historical ? tw("withHistorical") : tw("currentOnly")}
         </p>
         <button type="button" className="button button-quiet" aria-expanded={editing} aria-controls={panelId} onClick={() => setEditing((v) => !v)}>
           {editing ? tw("done") : tw("change")}
@@ -105,10 +110,24 @@ export function ScopePicker({
             {tw("personaHelp")}
           </p>
           <label className="check">
-            <input type="checkbox" checked={value.historical} onChange={(e) => change({ ...value, historical: e.target.checked })} />
+            <input type="checkbox" checked={value.historical} disabled={Boolean(value.asOf)} onChange={(e) => change({ ...value, historical: e.target.checked })} />
             <span>{t("includeHistorical")}</span>
           </label>
           <p className="small muted">{tw("historicalHelp")}</p>
+          <label className="field">
+            <span>{tw("asOf")}</span>
+            <input
+              type="date"
+              max={today}
+              min="1900-01-01"
+              value={value.asOf ?? ""}
+              aria-describedby={asOfHelp}
+              onChange={(e) => change({ ...value, asOf: e.target.value || null, historical: e.target.value ? false : value.historical })}
+            />
+          </label>
+          <p id={asOfHelp} className="small muted">
+            {tw("asOfHelp")}
+          </p>
         </fieldset>
       </div>
     </div>
@@ -127,6 +146,7 @@ export function ScopeSummary({ conversation, rows, personas }: { conversation: C
       <span className="scope-chip">{chain}</span>
       <span className="scope-chip">{personaLabel(t, t.has, personas, conversation.persona, locale)}</span>
       {conversation.include_historical && <span className="scope-chip">{tw("historical")}</span>}
+      {conversation.as_of && <span className="scope-chip">{tw("asOfChip", { date: conversation.as_of })}</span>}
       <span className={conversation.model_profile === "claude" ? "scope-chip scope-chip-remote" : "scope-chip"}>
         {tw("model.fixed", { name: tw(`model.name.${conversation.model_profile ?? "gemma"}`) })}
         {conversation.model_profile === "claude" && ` · ${tw("model.fixedRemote")}`}

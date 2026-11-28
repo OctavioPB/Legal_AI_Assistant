@@ -284,7 +284,10 @@
       "change": "Cambiar",
       "done": "Listo",
       "personaHelp": "El perfil orienta el vocabulario y el orden de las fuentes; no amplía ni restringe la jurisdicción.",
-      "historicalHelp": "Actívelo solo si necesita saber qué decía una norma antes de una reforma."
+      "historicalHelp": "Actívelo solo si necesita saber qué decía una norma antes de una reforma.",
+      "asOf": "Derecho vigente a la fecha (opcional)",
+      "asOfHelp": "La fecha de los hechos. Solo se consultan versiones de la norma cuya vigencia conocida cubre esa fecha; si no hay ninguna, el sistema lo dice en lugar de responder con el texto actual.",
+      "asOfCurrent": "Derecho vigente al {date}"
     },
     "model": {
       "label": "Modelo",
@@ -308,7 +311,8 @@
       "remoteWarning": "Con este modelo, su pregunta, el historial de la conversación y los fragmentos de ley recuperados se envían a Anthropic para generar cada respuesta. No lo use si el despacho no lo ha autorizado para el asunto.",
       "fixed": "Modelo: {name}",
       "fixedRemote": "externo"
-    }
+    },
+    "asOfChip": "Derecho al {date}"
   },
   "home": {
     "eyebrow": "Investigación jurídica verificable",
