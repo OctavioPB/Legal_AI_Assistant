@@ -8,6 +8,7 @@ only error that makes `ResilientClient` fall back to another alias.
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from datetime import date
 from typing import Any
 
@@ -90,6 +91,7 @@ def pin_from_runtime(
 
 
 class OllamaClient:
+    supports_schema = True  # ADR-033: Ollama constrains the output to a JSON schema (`format`)
     """`LLMClient` over /api/chat. Deterministic by default (temperature 0, fixed seed) so an eval
     run is reproducible; the context window is set per call (Ollama defaults to 4096 otherwise)."""
 
@@ -107,7 +109,14 @@ class OllamaClient:
         self._http = _client(base_url, timeout_s, transport)
 
     def complete(
-        self, alias: AliasName, *, system: str, user: str, max_tokens: int, tenant_id: str
+        self,
+        alias: AliasName,
+        *,
+        system: str,
+        user: str,
+        max_tokens: int,
+        tenant_id: str,
+        schema: Mapping[str, Any] | None = None,
     ) -> LLMResult:
         spec = self._registry.require_pinned(alias)
         assert spec.model_id is not None
@@ -124,6 +133,7 @@ class OllamaClient:
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
                 ],
+                **({"format": dict(schema)} if schema is not None else {}),  # ADR-033
                 "options": {
                     "temperature": 0,
                     "seed": self._seed,

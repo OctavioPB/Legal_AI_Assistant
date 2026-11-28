@@ -45,6 +45,13 @@
 - Re-embed / re-chunk builds a new generation aside and flips it atomically; failure leaves the
   live generation untouched. Incremental ingestion is by content checksum, one transaction per
   document.
+- Implementation (ADR-006, migration 0015): `doc_nodes.generation` / `chunks.generation`, one `active` row in
+  `index_generations`, a RESTRICTIVE `generation_scoped` policy (every role under RLS sees and writes only the active
+  generation, so no query names it), `cite_id` unique per tenant AND generation. Procedure for a chunker or embedder
+  change: bump `CHUNKER_VERSION` (ingestion then refuses to write into the old live set), `rebuild build`, run the
+  golden suite with the new generation active (`rebuild activate N`), keep it only if no case is worse, otherwise
+  `rebuild rollback` and revert the code. A law is rebuilt only if its source still hashes to the stored checksum; a
+  firm document (original never stored) from its own tree, and only if every unit keeps its id and text.
 
 ## Retrieval defaults (tune only via eval evidence)
 - Semantic arm: top 40, cosine, prefiltered. Lexical arm: top 40, websearch_to_tsquery, prefiltered.
@@ -125,3 +132,14 @@
   cited IN THE SAME SENTENCE (a quote that exists in a different retrieved fragment still fails); sentence
   terminators inside quotation marks never split a unit. Only the exact `<insuficiente>` block is a model
   refusal, and even then its content is discarded: the system emits `<insuficiente>{reason_key}</insuficiente>`.
+- Decree lists (ADR-051, `app/validation/decrees.py`): a sentence that cites a transitorio (`-TRANS`) whose text is a
+  reform decree's list, and says article X was repealed / reformed / added, must find X under one of its verbs in a
+  cited decree's list; otherwise `decree_mismatches` -> regenerate once -> refusal. Numbers before a chunk's first
+  verb are `unknown` and defer to the expanded article's own list.
+- Typed records (ADR-033, experimental, `typed_records_workflows`, off by default; Dossier Builder only): the model
+  answers `{"records": [{section, kind, text, cites}]}` under a JSON schema (Ollama `format`); code renders them into
+  the workflow's text, writes section (V) from the cited ids, and validates the rendered text with the SAME checks.
+  `law` needs a citation; `analysis` is rendered with `[análisis propio]`; `framing` is the only uncited, untagged
+  kind and is accepted only if it opens with a closed list of transition phrases, uses no normative verb, names no
+  law, article, legal term or date, has no quotes, fits a word limit, and all framing stays under a share cap
+  (`records.framing_problem`). Failures go to `record_problems`. A label alone never makes a sentence framing.

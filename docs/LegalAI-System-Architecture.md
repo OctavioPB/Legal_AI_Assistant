@@ -14,7 +14,7 @@
 
 ---
 
-> **State of the implementation (2026-11-14).** This document is the reference design. What was built
+> **State of the implementation (2026-11-27).** This document is the reference design. What was built
 > follows it in the essentials (Postgres as the perimeter, RLS, jurisdictional pre-filtering, verified citations,
 > refusal as a first-class output) and departs from it in the following points. Each has its decision
 > in the ADR log (`.claude/rules/architecture.md`), which prevails over this text where they differ; the
@@ -30,6 +30,9 @@
 > | The model writes the refusal | The refusal is written by the system; strict citation coverage | ADR-007, ADR-015 |
 > | Context = parent article; the retrieved fragments are cited | Context = apartado when there is one; every unit shown is citable; explicit references are resolved, not ranked | ADR-020, 022, 023 |
 > | — | Tools without a model: a law navigator, a citation verifier for briefs | ADR-019 |
+> | Re-embedding "built aside" (§12) | Index generations: a `generation` column on doc_nodes and chunks, an RLS policy that shows only the active one, a rebuild tool that switches in and rolls back in one transaction | ADR-006 |
+> | The validator proves provenance | It also flags an LFT article of a special or collective regime cited for an ordinary relationship (warning) and rejects a decree credited with a change its own list does not make | ADR-031, ADR-051 |
+> | Transitorios as plain nodes | A reform decree's heading is a hidden (navigation) unit; each transitorio carries its decree's publication date in its citation | ADR-052 |
 >
 > Not built from this design: Celery workers, object storage in use, a deployed LiteLLM proxy
 > (the aliases exist; the demo calls Ollama), Langfuse, case law in the corpus, an NLI judge.

@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 V = "app/validation/validator.py"
 L = "app/validation/loop.py"
+R = "app/validation/records.py"
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,11 @@ MUTANTS = (
     Mutant("model-writes-refusal", L,
            "refusal=_refusal(\"validation.unsupported\", verdicts),",
            "refusal=None,", "a persistent failure ends without the system's refusal block"),
+    Mutant("framing-unchecked", R,
+           'r.kind == "framing" and framing_problem(r) is None', 'r.kind == "framing"',
+           "a legal claim labelled 'framing' is delivered without a citation (ADR-033)"),
+    Mutant("law-record-without-cite", R, 'if r.kind == "law" and not r.cites:',
+           "if False:", "a 'law' record without a citation is delivered (ADR-033)"),
 )  # fmt: skip
 
 

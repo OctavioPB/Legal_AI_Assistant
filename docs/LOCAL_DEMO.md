@@ -184,17 +184,34 @@ on another machine: `uv run python -m evals.e2e.run_case laboral_01 --credential
 running (about 17 minutes with the local model).
 
 ## What to expect
-- A query with an answer takes **1.5–4 minutes**: the drafting model (26B) runs largely in
-  RAM because the GPU has 8 GB, and an answer is generated once and, if the validator rejects it, is
-  regenerated once. Meanwhile the interface shows the current stage.
+- A query with an answer takes **about half a minute to a minute** with `OLLAMA_MAX_LOADED_MODELS=3` (47 s median
+  over the answered cases of the golden run of 2026-11-27; 1.5–4 minutes without it, because Ollama then swaps the
+  embedder and the drafting model on every turn, ADR-041). The drafting model (26B) runs largely in RAM because the
+  GPU has 8 GB, and an answer is generated once and, if the validator rejects it, is regenerated once. Meanwhile the
+  interface shows the current stage.
 - A topic the corpus does not cover is **refused in ~3 s** without calling the model (the τ gate).
 - A refusal is not an error: the interface explains what is missing and what to do. The text is written by the system.
 - Local models are not deterministic from one run to the next even at temperature 0: the same
   query may be answered or refused. See the measurement in PLAN.md (2026-11-07).
 
+## After a parser or chunker change (index generations, ADR-006)
+The index is versioned as a whole. A change that alters chunks is built aside, measured, and only then switched in:
+```bash
+uv run python -m app.ingestion.rebuild status          # which generation is active, and its chunker version
+uv run python -m app.ingestion.rebuild build --note "what changed"   # ~15 min: re-reads every law, re-embeds
+uv run python -m app.ingestion.rebuild activate N      # switch in (one transaction), then run the golden suite
+uv run python -m app.ingestion.rebuild rollback        # back to the previous generation if any case is worse
+```
+- Until the new generation is active, the app refuses to ingest with the new chunker (doctor says so): uploads and
+  the reform watcher write only into a generation cut by the same code.
+- The build stops instead of writing a different corpus: a law whose source no longer matches its stored checksum,
+  or a firm document whose units would change, is never rebuilt silently.
+- On Windows the embedder can run out of local sockets during a build; the rebuild pauses and retries the batch.
+- `fill N` adds documents uploaded while N was being built; `prune N` deletes a retired generation's rows.
+
 ## Tests
 ```bash
-uv run pytest                          # 1,900+ tests; requires Postgres up
+uv run pytest                          # 2,100+ tests; requires Postgres up
 uv run pytest -m live                  # against the real Ollama (slow)
 cd web && npm test && npx tsc --noEmit
 # real browser, no models: the interface against a nonexistent API (catalogs simulated in the browser)

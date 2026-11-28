@@ -159,8 +159,9 @@ because of the double validation pass — in this domain, that overhead *is* the
   (`docs/LOCAL_DEMO.md`): three workspaces (Conversar, Investigación, Argumentar) with verified
   citations and a structured refusal; a law navigator, a citation verifier for briefs, matters with
   members, a reform watcher and **the firm's own documents**, citable and isolated per matter.
-  Measured on 25 AI-drafted cases, not yet reviewed by lawyers: recall@8 1.00, jurisdictional
-  leakage 0, correct refusal 5/5, false refusal 1/20 with the local model. Design in
+  Measured on 25 AI-drafted cases, not yet reviewed by lawyers (2026-11-27, current index): recall@8
+  19/20 [75–100 %], jurisdictional leakage 0/25 [0–14 %], correct refusal 5/5 [48–100 %], false refusal
+  2/20 [1–32 %] with the local model; in brackets the exact 95 % interval. Design in
   `docs/LegalAI-System-Architecture.md`, decisions in the ADR log, progress in `PLAN.md`.
 - **A complete case ready for review (2026-11-17):** a fictional labor dismissal run through all the
   tools, with a packet for a lawyer to grade each answer against the full text of what is cited

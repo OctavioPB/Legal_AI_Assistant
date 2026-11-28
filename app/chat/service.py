@@ -24,7 +24,7 @@ from app.observability.trace import TracedAttempt, TracedHit, Tracer, TraceRecor
 from app.orchestration.aliases import AliasName, AliasRegistry
 from app.orchestration.client import LLMClient
 from app.orchestration.profiles import ProfileCatalog, UnknownProfileError
-from app.prompts.composer import Composer, Persona, SessionPrompt, Workflow
+from app.prompts.composer import TYPED_TEMPLATES, Composer, Persona, SessionPrompt, Workflow
 from app.rag.context import SessionContext
 from app.rag.expansion import render_context
 from app.rag.jurisdiction import build_jurisdiction_predicate
@@ -189,6 +189,18 @@ def _retrieved_set(r: Retrieval) -> RetrievedSet:
     return RetrievedSet.build(entries)
 
 
+def _citation_strings(r: Retrieval) -> dict[str, str]:
+    """ADR-033: the citation string of every id the answer may cite, for the code-written (V)."""
+    out: dict[str, str] = {}
+    for f in r.fragments:
+        out.setdefault(f.cite_id, f.citation_string)
+        for cid, name in f.unit_names:
+            out.setdefault(cid, name)
+        for cid in f.also_cite_ids:
+            out.setdefault(cid, f.citation_string)
+    return out
+
+
 def _citations(
     r: Retrieval, cited: tuple[str, ...], labor_regime: str | None = None
 ) -> tuple[Citation, ...]:
@@ -340,7 +352,15 @@ def answer_query(
         jurisdiction_display=display,
     )  # fmt: skip
     context = render_context(retrieval.fragments)
-    prompt = deps.composer.compose(session, context)
+    # ADR-033: typed records only where enabled AND the model client can constrain its output
+    typed = (
+        req.workflow in s.typed_records_workflows
+        and req.workflow in TYPED_TEMPLATES
+        and bool(getattr(deps.llm, "supports_schema", False))
+    )
+    prompt = deps.composer.compose(
+        session, context, workflow_template=TYPED_TEMPLATES[req.workflow] if typed else None
+    )
     spec = (
         deps.aliases.require_pinned(alias)
         if deps.require_pinned_models
@@ -351,6 +371,7 @@ def answer_query(
         retrieved=_retrieved_set(retrieval),
         workflow=req.workflow, tenant_id=str(ctx.tenant_id), max_tokens=spec.max_answer_tokens,
         regen_max_tokens=s.validator_regen_max_tokens, config=ValidationConfig.from_settings(s),
+        typed_citations=_citation_strings(retrieval) if typed else None,
     )  # fmt: skip
     answered = result.answer is not None
     output = result.answer if answered else (result.refusal.block if result.refusal else None)

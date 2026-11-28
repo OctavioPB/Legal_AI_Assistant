@@ -66,8 +66,17 @@ class FakeLLM:
         self.model_id = model_id
         self.calls: list[dict[str, object]] = []
 
+    supports_schema = True
+
     def complete(
-        self, alias: AliasName, *, system: str, user: str, max_tokens: int, tenant_id: str
+        self,
+        alias: AliasName,
+        *,
+        system: str,
+        user: str,
+        max_tokens: int,
+        tenant_id: str,
+        schema: object = None,
     ) -> LLMResult:
         self.calls.append(
             {
@@ -76,6 +85,7 @@ class FakeLLM:
                 "user": user,
                 "max_tokens": max_tokens,
                 "tenant": tenant_id,
+                "schema": schema,
             }
         )
         text = self.replies.pop(0) if len(self.replies) > 1 else self.replies[0]

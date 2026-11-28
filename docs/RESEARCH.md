@@ -6,11 +6,28 @@ gives the sources, why it was chosen over the alternatives, how it applies to th
 that it worked.
 
 The document has three rounds: §1–§9 (what the system cannot yet prove), §10–§19 (performance and precision, with a
-baseline measured on the demo machine) and §20 (the law as of a date). Every technique here is a **proposal**. Each has its own ADR (ADR-031 to ADR-050 in
-[.claude/rules/architecture.md](../.claude/rules/architecture.md)), and none is built. The project's rules apply to
-all of them: the owner chooses before implementation, a golden run is recorded before and after any change to
-prompts, the chunker, embeddings, retrieval or routing, and the system verifies the model, never the reverse
-(invariant 6).
+baseline measured on the demo machine) and §20 (the law as of a date). Each technique was written as a **proposal**
+with its own ADR (ADR-031 to ADR-050 in [.claude/rules/architecture.md](../.claude/rules/architecture.md)). The
+project's rules apply to all of them: the owner chooses before implementation, a golden run is recorded before and
+after any change to prompts, the chunker, embeddings, retrieval or routing, and the system verifies the model, never
+the reverse (invariant 6). What has been built since is listed below; the sections keep the text as proposed.
+
+## Status (2026-11-27)
+
+| ADR | Section | State | What was built and measured |
+|---|---|---|---|
+| 031 | §1 | Accepted, warning mode | LFT regime of each cited unit, warning when it contradicts the matter; flags exactly the 3 regime errors of E2E-LAB-01 |
+| 032 | §2 | Accepted (statistics) | Clopper-Pearson intervals in every run, exact McNemar in `--compare`; growing the set stays pending |
+| 033 | §5 | In measurement | Typed records (B) built behind a switch, off by default; golden runs of B and of a prompt-only variant (C) against the baseline |
+| 038 | §8 | Accepted for A and B | Mutation check (15 of 15 mutants killed) and a replay suite of real model outputs |
+| 041 | §11 | Accepted | Retrieval is 0.56 s; the slow turns were Ollama swapping models; `OLLAMA_MAX_LOADED_MODELS=3` |
+| 043 | §13 | Accepted | The retry already reuses the cached prompt prefix (0.8 s vs 14.1 s); now guarded by a test |
+| 049 | §19 | Accepted, adopted as index generation 4 | Cardinal Títulos and heading names on their own line; adopted together with ADR-052 |
+| 034–037, 039, 040, 042, 044–048, 050 | | Proposed | Not built |
+
+Found while building these and recorded as new decisions: ADR-051 (a decree credited with a change its own list does
+not make is caught by code) and ADR-052 (decree headings are hidden units and decree dates travel in citations). The
+golden suite on the current index is `golden-20261127T195859Z-after-hidden-headings-gen4`.
 
 ## The weaknesses being addressed
 
@@ -291,7 +308,7 @@ search results and abstracts, not from the full papers; check them before quotin
 
 The first round (§1–§9) targeted what the system cannot yet prove. This round targets two things the owner asked
 for: speed on the demo machine and precision of retrieval and citations. Each technique has its own ADR (ADR-040 to
-ADR-049), all Proposed and none built.
+ADR-049), all Proposed when this round was written; see the status table at the top for what was built since.
 
 ## The measured baseline
 

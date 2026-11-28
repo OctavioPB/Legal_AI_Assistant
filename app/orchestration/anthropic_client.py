@@ -12,6 +12,7 @@ never retried on another model (the pinned model is the one that answers, or nob
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from app.orchestration.aliases import AliasName, AliasRegistry
@@ -70,8 +71,17 @@ class AnthropicClient:
         self._sdk = sdk if sdk is not None else _sdk_client(api_key, timeout_s)
 
     def complete(
-        self, alias: AliasName, *, system: str, user: str, max_tokens: int, tenant_id: str
+        self,
+        alias: AliasName,
+        *,
+        system: str,
+        user: str,
+        max_tokens: int,
+        tenant_id: str,
+        schema: Mapping[str, Any] | None = None,
     ) -> LLMResult:
+        if schema is not None:  # ADR-033: typed records are measured on the local models only
+            raise ProviderError("structured output is not enabled for this profile")
         spec = self._registry.require_pinned(alias)
         assert spec.model_id is not None
         try:

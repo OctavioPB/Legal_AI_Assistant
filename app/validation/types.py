@@ -69,6 +69,9 @@ class Verdict(BaseModel):
     # ADR-051: "article: sentence" for each article a sentence says a cited decree repealed,
     # reformed or added while no cited decree's list does so
     decree_mismatches: tuple[str, ...] = ()
+    # ADR-033: typed-record failures the text cannot show (bad JSON, a `law` record without a
+    # citation, a `framing` record that fails the strict rules, too much framing)
+    record_problems: tuple[str, ...] = ()
     analysis_share: float  # share of sentences carried only by [análisis propio] (monitoring)
     grounded: bool
 
@@ -80,6 +83,7 @@ class Verdict(BaseModel):
             or self.uncovered
             or self.bad_quotes
             or self.decree_mismatches
+            or self.record_problems
         )
 
 

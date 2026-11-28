@@ -34,4 +34,8 @@
 - The core asks the model for the empty sentinel `<insuficiente></insuficiente>` only; the system writes the
   refusal (ADR-007). It diverges on purpose from blueprint 9.2, which has the model write the text.
 - A literal `[cite: X]` inside a template must be in `EXAMPLE_CITE_IDS` (test). Never write `[cite: ...]`.
+- Alternative layer-2 files for one workflow (ADR-033): `compose(..., workflow_template=...)` takes only a closed
+  `WorkflowTemplate` literal, checked again at runtime against `TYPED_TEMPLATES[session.workflow]`, so no free text
+  can name a template (a test guards the signature). Today: `dossier_builder_typed@v1`, used only when typed records
+  are switched on. Such a file restates how the core's rules map to fields; the core itself is unchanged.
 - `python -m evals.prompt_sandbox --case gd-0001 [--lang en-US] [--hostile]` renders the full prompt.

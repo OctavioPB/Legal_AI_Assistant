@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     # tau is CALIBRATED from probe sets (ADR-007), never guessed: None = the gate refuses to run.
     refusal_tau: float | None = None
     refusal_min_fragments: int = 1  # ADR-007(c): evaluate >= m fragments above tau
+    # ADR-033: workflows that answer as typed records (JSON schema) instead of free text. Off until
+    # the golden suite says otherwise; needs a model client with `supports_schema` (Ollama).
+    typed_records_workflows: tuple[str, ...] = ()
 
     # --- local model stack (ADR-014): every model runs on this machine through Ollama -------
     ollama_url: str = "http://localhost:11434"

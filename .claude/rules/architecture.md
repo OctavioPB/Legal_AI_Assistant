@@ -5,7 +5,9 @@
 - `app/rag/` — query analysis, jurisdiction predicate, hybrid search, rerank, parent expansion.
 - `app/prompts/` — versioned templates (jinja), loaded read-only. Layer composer in `composer.py`.
 - `app/orchestration/` — LiteLLM client, task-alias routing table, fallbacks.
-- `app/validation/` — citation parser, existence/coverage checks, regeneration loop.
+- `app/validation/` — citation parser, existence/coverage checks, regeneration loop; `decrees.py` reads a reform
+  decree's list of reformed/added/repealed articles (ADR-051); `records.py` parses, checks and renders typed records
+  (ADR-033, behind `typed_records_workflows`, off by default).
 - `app/ingestion/` — Docling wrapper, legal normalizer grammars, chunker, embedder (Celery tasks only).
 - `app/db/` — SQLAlchemy models, RLS session middleware, migrations (alembic).
 - `app/api/files.py` + `app/ingestion/extract.py` + `normalizer_generic.py` (+ `pdf_read.py`, `ocr.py` for scanned
@@ -14,6 +16,9 @@
 - `app/corpus/` — reading the corpus without a model: reform lineage (`lineage.py`, ADR-017) and the brief
   verifier's grammar (`verify.py`, ADR-019). `app/ingestion/watch.py` + `reform.py`: the reform watcher, the only
   network-using component (official URLs of `corpus.py`).
+- `app/ingestion/rebuild.py` — index generations (ADR-006): builds the next generation of doc_nodes/chunks aside as
+  the superuser, switches it in or back in one transaction, prunes a retired one. `doctor` checks that exactly one
+  generation is active and that it was cut by the code's chunker.
 
 ## Interfaces and config
 - The pieces most likely to change are `Protocol`s injected from settings, never imported
@@ -564,6 +569,20 @@ below are the original one-liners and are Accepted.
   splitting on the validator side; (−) new prompt versions for every workflow (golden before/after, invariant 2);
   schema adherence of small models must be measured; `framing` must be defined narrowly or it becomes a loophole for
   uncited law. Pending: owner's choice; golden runs before/after per profile. Research: docs/RESEARCH.md §5.
+  Built and measured 2026-11-27/28 (owner: "B measured against C", Dossier Builder only, framing strict by code). B:
+  `app/validation/records.py` (schema, parser, strict framing: a closed list of transition openers, no normative verb,
+  no law/article/term/date/quote, word and share caps), the optional `schema` argument of every LLM client (Ollama
+  `format`; the Claude profile refuses one), `workflow/dossier_builder_typed@v1`, code-written section (V), the same
+  validator on the rendered text, behind `typed_records_workflows` (off). Found while testing: excluding legal
+  vocabulary alone let "El patrón puede rescindir la relación sin responsabilidad alguna" pass as framing, hence the
+  positive opener list. C: the existing, never-adopted `dossier_builder@v3`. Golden, gemma4:26b, generation 4, against
+  `golden-20261127T195859Z-after-hidden-headings-gen4` (false refusal 2/20): C `golden-...-adr033-C-dossier-v3` 6/20
+  (5 worse, 1 better, McNemar p = 0.22; C also lost in November, 6/12 vs 7/12); B
+  `golden-20261128T005439Z-adr033-B-typed` 1/20 (better gd2-005 and gd2-025, both failing in every earlier run;
+  worse gd2-024; p = 1.0, noise level); recall, leakage, refusal accuracy 5/5 and citation precision equal; no
+  category worse. Read in the answers: B's 5 framing lines are all the prompt's own example sentence (the model copies
+  it); the gain comes from per-item citations in lists, not from framing. Pending: owner's decision; repeated runs
+  before calling the gain real (eval-runner: >= 3 runs for LLM-dependent changes).
 - ADR-034 (Proposed, 2026-11-26): A small local fact-checker scores each cited sentence against its fragment, shown as a
   warning until its agreement with lawyers is measured. Context: `faithfulness` is null in every run; the validator checks
   only verbatim quotations, so a paraphrase that inverts its source passes (rag.md). MiniCheck (Tang, Laban, Durrett,

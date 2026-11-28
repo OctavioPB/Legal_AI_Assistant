@@ -6,11 +6,14 @@ model's own refusal text is discarded, never shown (ADR-007, invariant 6).
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from pydantic import BaseModel, ConfigDict
 
 from app.orchestration.aliases import AliasName
 from app.orchestration.client import LLMClient
 from app.rag.gate import refusal_block
+from app.validation import records as typed_records
 from app.validation.types import (
     RefusalReason,
     RetrievedSet,
@@ -18,7 +21,7 @@ from app.validation.types import (
     ValidationRefusal,
     Verdict,
 )
-from app.validation.validator import normalize_gaps, validate
+from app.validation.validator import GAP, normalize_gaps, validate
 
 
 class Attempt(BaseModel):
@@ -27,7 +30,8 @@ class Attempt(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     user: str  # the user turn actually sent (original query, plus code-written feedback on a retry)
-    output: str  # raw model text, before any discarding
+    output: str  # model text, before any discarding (typed records: the text rendered from them)
+    raw_output: str | None = None  # ADR-033: the JSON the model returned, when it wrote records
     alias: AliasName  # the alias that answered (a fallback differs from the requested one)
     resolved_model_id: str
 
@@ -74,6 +78,9 @@ def build_feedback(v: Verdict) -> str:
             "(revisa qué artículos reforma, adiciona o deroga ese fragmento):"
         )
         lines.extend(f"    art. {s}" for s in v.decree_mismatches[:5])
+    if v.record_problems:
+        lines.append("- Estos registros no cumplen las reglas de su tipo (kind):")
+        lines.extend(f"    {s}" for s in v.record_problems[:5])
     if not v.cited and not v.invalid and not v.placeholders:
         lines.append("- No incluiste ninguna cita válida.")
     lines.append("Responde con la respuesta completa, conservando igual todo lo que no se señala.")
@@ -85,6 +92,40 @@ def _refusal(reason: RefusalReason, verdicts: list[Verdict]) -> ValidationRefusa
     return ValidationRefusal(
         reason_key=reason, block=refusal_block(reason), verdicts=tuple(verdicts)
     )
+
+
+def typed_verdict(
+    raw: str,
+    retrieved: RetrievedSet,
+    *,
+    workflow: str,
+    config: ValidationConfig,
+    citations: Mapping[str, str],
+) -> tuple[str, Verdict]:
+    """ADR-033: (the text rendered from the records, its verdict). The rendered text goes through
+    the SAME validator as free text; only framing records that pass the strict rules may stay
+    uncited, and record-level failures are added on top."""
+    try:
+        recs = typed_records.parse(raw)
+    except typed_records.RecordFormatError as exc:
+        bad = validate("", retrieved, workflow=workflow, config=config)
+        return raw, bad.model_copy(
+            update={"record_problems": (f"formato de registros: {exc}",), "grounded": False}
+        )
+    if typed_records.declined(recs):  # only gaps: the model declined; the system writes it
+        return GAP, validate(GAP, retrieved, workflow=workflow, config=config)
+    text = typed_records.render(recs, citations)
+    v = validate(
+        text,
+        retrieved,
+        workflow=workflow,
+        config=config,
+        allowed_uncited=typed_records.allowed_framing(recs),
+    )
+    extra = tuple(typed_records.problems(recs))
+    if extra:
+        v = v.model_copy(update={"record_problems": extra, "grounded": False})
+    return text, v
 
 
 def generate_validated(
@@ -99,7 +140,11 @@ def generate_validated(
     max_tokens: int,
     regen_max_tokens: int,
     config: ValidationConfig | None = None,
+    typed_citations: Mapping[str, str] | None = None,
 ) -> ValidatedAnswer:
+    """`typed_citations` (ADR-033): when given, the model answers as typed records under
+    `records.SCHEMA`, code renders them (section V from these citation strings) and validates the
+    rendered text; otherwise the model writes free text, as before."""
     cfg = config or ValidationConfig()
     verdicts: list[Verdict] = []
     attempts: list[Attempt] = []
@@ -112,14 +157,25 @@ def generate_validated(
             user=current_user,
             max_tokens=max_tokens if attempt == 0 else regen_max_tokens,
             tenant_id=tenant_id,
+            **({"schema": typed_records.SCHEMA} if typed_citations is not None else {}),
         )
         model_id = result.resolved_model_id
-        v = validate(result.text, retrieved, workflow=workflow, config=cfg)
+        if typed_citations is not None:
+            text, v = typed_verdict(
+                result.text,
+                retrieved,
+                workflow=workflow,
+                config=cfg,
+                citations=typed_citations,
+            )
+        else:
+            text, v = result.text, validate(result.text, retrieved, workflow=workflow, config=cfg)
         verdicts.append(v)
         attempts.append(
             Attempt(
                 user=current_user,
-                output=result.text,
+                output=text,
+                raw_output=result.text if typed_citations is not None else None,
                 alias=result.alias,
                 resolved_model_id=result.resolved_model_id,
             )
@@ -144,7 +200,7 @@ def generate_validated(
             )
         if v.grounded:
             return ValidatedAnswer(
-                answer=normalize_gaps(result.text)[0],
+                answer=normalize_gaps(text)[0],
                 refusal=None,
                 verdicts=tuple(verdicts),
                 attempts=tuple(attempts),
