@@ -30,6 +30,7 @@ from evals.golden import (
     CaseResult,
     GoldenCase,
     Jurisdiction,
+    Span,
     case_ok,
     compare,
     gate_report,
@@ -121,6 +122,47 @@ def _scope(conn: Connection, ids: list[str]) -> dict[str, Jurisdiction]:
 
 
 # ---- run record -------------------------------------------------------------------------------------
+def _like_prefix(prefix: str) -> str:
+    """A LIKE pattern matching `prefix` literally (cite ids hold `_`, a LIKE wildcard)."""
+    return prefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+
+
+def spans(
+    conn: Connection, hits: list[str], gold: tuple[str, ...]
+) -> tuple[list[Span], list[Span]]:
+    """ADR-037 (D): the source character ranges of the top-k hits and of every gold unit (exact ids
+    and 'PREFIX*' stems), read under the run's own RLS context (active generation only)."""
+    exact = [g for g in gold if not g.endswith("*")]
+    likes = [_like_prefix(g[:-1]) for g in gold if g.endswith("*")]
+    rows = conn.execute(
+        text(
+            "SELECT cite_id, document_id::text AS doc, char_start, char_end FROM chunks "
+            "WHERE cite_id = ANY(:ids) OR cite_id LIKE ANY(:likes)"
+        ),
+        {"ids": list(hits) + exact, "likes": likes or ["\\%none"]},
+    ).all()
+    want = set(hits)
+    hit_spans = [(r.doc, r.char_start, r.char_end) for r in rows if r.cite_id in want]
+    gold_spans = [
+        (r.doc, r.char_start, r.char_end) for r in rows if any(matches(r.cite_id, g) for g in gold)
+    ]
+    return hit_spans, gold_spans
+
+
+def _safe_spans(
+    conn: Connection, hits: list[str], case: GoldenCase
+) -> tuple[list[Span], list[Span]] | None:
+    """A metric must never fail a case: a lookup error leaves the char metrics empty."""
+    gold = (*case.gold_chunks, *case.gold_alternatives)
+    if not gold:
+        return None
+    try:
+        with conn.begin_nested():
+            return spans(conn, hits, gold)
+    except Exception:
+        return None
+
+
 def _git() -> tuple[str | None, bool]:
     try:
         commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT,
@@ -215,7 +257,8 @@ def run_case(
                          counter=deps.counter, settings=deps.settings)  # fmt: skip
             hits = [h.cite_id for h in r.hits]
             return score_case(case, hits, _scope(conn, hits), gate_refused=r.refusal is not None,
-                              retrieval_s=time.monotonic() - t0)  # fmt: skip
+                              retrieval_s=time.monotonic() - t0,
+                              spans=_safe_spans(conn, hits, case))  # fmt: skip
         req = ChatRequest(query=case.query, persona=s.persona, workflow=s.workflow)  # type: ignore[arg-type]
         stamps: dict[str, float] = {}
 
@@ -234,6 +277,7 @@ def run_case(
             )
         hits = [h.cite_id for h in tr.hits]
         scope = _scope(conn, hits)
+        char_spans = _safe_spans(conn, hits, case)
     gen_at = stamps.get("generating") or stamps.get("validating")
     return score_case(
         case, hits, scope, gate_refused=res.status == "refused" and not tr.attempts,
@@ -242,7 +286,7 @@ def run_case(
         regenerations=max(0, len(tr.attempts) - 1),
         retrieval_s=(gen_at - t0) if gen_at else time.monotonic() - t0,
         total_s=time.monotonic() - t0, request_id=str(res.request_id), answer=res.answer,
-        texts={k: list(v) for k, v in tr.retrieved_texts.items()},
+        texts={k: list(v) for k, v in tr.retrieved_texts.items()}, spans=char_spans,
     )  # fmt: skip
 
 

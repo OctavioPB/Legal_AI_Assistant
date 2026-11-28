@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     retrieval_arm_top: int = 40
     retrieval_rrf_k: int = 60
     retrieval_rrf_top: int = 20
+    # ADR-048: "rrf" (ranks only) or "convex" (alpha * semantic + (1 - alpha) * lexical, each arm's
+    # scores min-max normalised per query). Stays "rrf" unless the measurements say otherwise.
+    retrieval_fusion: Literal["rrf", "convex"] = "rrf"
+    retrieval_convex_alpha: float = 0.5
     retrieval_rerank_top: int = 8
     retrieval_context_budget_tokens: int = 12_000
     # tau is CALIBRATED from probe sets (ADR-007), never guessed: None = the gate refuses to run.
@@ -134,6 +138,8 @@ class Settings(BaseSettings):
             raise ValueError("need 0 < rerank_top <= rrf_top <= arm_top")
         if self.retrieval_rrf_k < 1 or self.refusal_min_fragments < 1:
             raise ValueError("rrf_k and refusal_min_fragments must be >= 1")
+        if not 0.0 <= self.retrieval_convex_alpha <= 1.0:
+            raise ValueError("retrieval_convex_alpha must be within [0, 1]")
         return self
 
     def url(self, user: str, password: str, database: str | None = None) -> URL:

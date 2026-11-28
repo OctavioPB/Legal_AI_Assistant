@@ -114,6 +114,45 @@ def first_rank(ids: list[str], patterns: Iterable[str]) -> int | None:
     return next((n + 1 for n, i in enumerate(ids) if any(matches(i, p) for p in pats)), None)
 
 
+Span = tuple[str, int, int]  # (document id, char_start, char_end) of a chunk in its source
+
+
+def _merged(spans: Iterable[Span]) -> dict[str, list[tuple[int, int]]]:
+    """Per document, the union of the spans as sorted disjoint intervals (a character counts once)."""
+    by_doc: dict[str, list[tuple[int, int]]] = {}
+    for doc, s, e in spans:
+        if e > s:
+            by_doc.setdefault(doc, []).append((s, e))
+    out: dict[str, list[tuple[int, int]]] = {}
+    for doc, ivs in by_doc.items():
+        merged: list[tuple[int, int]] = []
+        for s, e in sorted(ivs):
+            if merged and s <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+            else:
+                merged.append((s, e))
+        out[doc] = merged
+    return out
+
+
+def _length(ivs: dict[str, list[tuple[int, int]]]) -> int:
+    return sum(e - s for spans in ivs.values() for s, e in spans)
+
+
+def char_overlap(hits: Iterable[Span], gold: Iterable[Span]) -> tuple[float | None, float | None]:
+    """ADR-037 (D), after LegalBench-RAG: (precision, recall) in characters of source text.
+    precision = retrieved characters that are gold / retrieved characters; recall = gold characters
+    retrieved / gold characters. None when there is nothing to divide by."""
+    h, g = _merged(hits), _merged(gold)
+    inter = 0
+    for doc, hs in h.items():
+        for a, b in hs:
+            for c, d in g.get(doc, ()):
+                inter += max(0, min(b, d) - max(a, c))
+    hl, gl = _length(h), _length(g)
+    return (inter / hl if hl else None), (inter / gl if gl else None)
+
+
 def in_scope(sel: Jurisdiction, row: Jurisdiction) -> bool:
     """Stacking rule (jurisdictions.md), restated independently of the predicate builder so the
     suite can catch a bug in it: a selection sees its own level and the levels ABOVE it, in its own
@@ -158,6 +197,9 @@ class CaseResult(BaseModel):
     error: str | None = None
     query: str = ""
     answer: str | None = None  # the validated answer, for the lawyer's review sheet
+    # ADR-037 (D): characters of the top-k that are gold / characters of gold that are in the top-k
+    char_precision: float | None = None
+    char_recall: float | None = None
     cited_texts: dict[str, list[str]] = {}  # cite_id -> FULL text(s) it may quote (never truncated)
     forbidden_found: tuple[str, ...] = ()  # `must_not_contain` entries present in the answer
 
@@ -178,8 +220,10 @@ def score_case(
     request_id: str | None = None,
     answer: str | None = None,
     texts: dict[str, list[str]] | None = None,
+    spans: tuple[list[Span], list[Span]] | None = None,
 ) -> CaseResult:
     gold = (*case.gold_chunks, *case.gold_alternatives)
+    cp, cr = char_overlap(*spans) if spans is not None and gold else (None, None)
     cited_t = tuple(dict.fromkeys(cited))
     rset = set(retrieved_set)
     return CaseResult(
@@ -191,7 +235,7 @@ def score_case(
         invalid_cited=tuple(c for c in cited_t if c not in rset) if outcome == "answered" else (),
         cited_gold=any_match(cited_t, gold) if outcome == "answered" and gold else None,
         regenerations=regenerations, retrieval_s=retrieval_s, total_s=total_s, request_id=request_id,
-        query=case.query, answer=answer,
+        query=case.query, answer=answer, char_precision=cp, char_recall=cr,
         forbidden_found=tuple(w for w in case.must_not_contain if answer and _fold(w) in _fold(answer)),
         cited_texts={c: list((texts or {}).get(c, [])) for c in cited_t} if outcome == "answered" else {},
     )  # fmt: skip
@@ -242,6 +286,10 @@ def metrics(results: list[CaseResult]) -> dict[str, float | int | None]:
     """Metrics over a set of results (a category, the gating subset, or everything)."""
     out: dict[str, float | int | None] = {"n": len(results)}
     out.update({name: _ratio(k, n) for name, (k, n) in _counts(results).items()})
+    # ADR-037 (D): means over the cases that have gold (no interval: they are not k-of-n rates)
+    for name in ("char_precision", "char_recall"):
+        vals = [getattr(r, name) for r in results if getattr(r, name) is not None]
+        out[f"{name}_at_k"] = round(sum(vals) / len(vals), 4) if vals else None
     out["errors"] = sum(r.error is not None for r in results)
     return out
 

@@ -11,7 +11,7 @@ from sqlalchemy import Connection
 from app.ingestion.tokens import TokenCounter
 from app.rag.context import SessionContext
 from app.rag.expansion import build_context
-from app.rag.fusion import rrf
+from app.rag.fusion import convex, rrf
 from app.rag.gate import apply_gate
 from app.rag.search import QueryEmbedder, hits_by_cite, hits_by_stem, lexical_arm, semantic_arm
 from app.rag.types import Fragment, Hit, Refusal
@@ -66,11 +66,19 @@ def retrieve(
         conn, ctx, query, top=settings.retrieval_arm_top, match=settings.lexical_match
     )
     by_cite = {h.cite_id: h for h in (*lex, *sem)}
-    fused = rrf(
-        [[h.cite_id for h in sem], [h.cite_id for h in lex]],
-        k=settings.retrieval_rrf_k,
-        top=settings.retrieval_rrf_top,
-    )
+    if settings.retrieval_fusion == "convex":  # ADR-048, measured against RRF
+        a = settings.retrieval_convex_alpha
+        fused = convex(
+            [[(h.cite_id, h.score) for h in sem], [(h.cite_id, h.score) for h in lex]],
+            weights=(a, 1.0 - a),
+            top=settings.retrieval_rrf_top,
+        )
+    else:
+        fused = rrf(
+            [[h.cite_id for h in sem], [h.cite_id for h in lex]],
+            k=settings.retrieval_rrf_k,
+            top=settings.retrieval_rrf_top,
+        )
     cands = [by_cite[c] for c, _ in fused]
     # ADR-022: units the query names explicitly (resolved by the citation grammar, under the same
     # predicate) are candidates too, and go first whatever their similarity score

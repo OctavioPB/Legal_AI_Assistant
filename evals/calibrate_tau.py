@@ -107,6 +107,51 @@ def min_fragments_report(
     return out
 
 
+def topic_violations(rows: list[dict[str, Any]], tau: float, kind: str) -> tuple[int, int]:
+    """ADR-036: (violated topics, topics). The topic, not the wording, is the unit of independence
+    (three wordings of one topic are not three samples). An absent topic is violated when ANY of
+    its wordings would pass the gate (the conservative reading); a covered one when ANY is refused."""
+    by_topic: dict[str, list[float]] = {}
+    for r in rows:
+        if r["kind"] == kind:
+            by_topic.setdefault(r["topic"], []).append(r["best"] or 0.0)
+    if kind == "absent":
+        bad = sum(any(s >= tau for s in ss) for ss in by_topic.values())
+    else:
+        bad = sum(any(s < tau for s in ss) for ss in by_topic.values())
+    return bad, len(by_topic)
+
+
+def certified_bounds(rows: list[dict[str, Any]], tau: float, delta: float = 0.1) -> dict[str, Any]:
+    """ADR-036: with confidence 1 - delta, upper bounds on the share of absent topics this tau lets
+    through and of covered topics it refuses (exact one-sided Clopper-Pearson over topics). Valid
+    only if real questions are exchangeable with the probe topics, which AI-drafted sets do not
+    ensure: a statement about these probe sets, not a release guarantee."""
+    from evals.stats import clopper_pearson
+
+    out: dict[str, Any] = {"tau": tau, "confidence": 1 - delta}
+    for kind, name in (("absent", "absent_let_through"), ("covered", "covered_refused")):
+        k, n = topic_violations(rows, tau, kind)
+        upper = clopper_pearson(k, n, alpha=2 * delta)[1] if n else None
+        out[name] = {"topics": n, "violated": k, "upper_bound": upper}
+    return out
+
+
+def conformal_tau(
+    rows: list[dict[str, Any]], alpha: float, delta: float = 0.1
+) -> dict[str, Any] | None:
+    """The smallest tau on the grid whose certified share of absent topics let through is <= alpha
+    (None when even refusing everything cannot certify it with this many topics)."""
+    for t in [round(0.30 + 0.005 * i, 3) for i in range(0, 141)]:
+        b = certified_bounds(rows, t, delta)
+        if (
+            b["absent_let_through"]["upper_bound"] is not None
+            and b["absent_let_through"]["upper_bound"] <= alpha
+        ):
+            return b
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="evals.calibrate_tau")
     ap.add_argument("--write", action="store_true", help="store the chosen tau in config/")
@@ -222,10 +267,20 @@ def main(argv: list[str] | None = None) -> int:
             f"{now}\n"
         )
 
+    # ADR-036: what the tau in force certifies, per TOPIC, at 90 % confidence (a statement about these
+    # probe sets: AI-drafted topics are not guaranteed exchangeable with real questions)
+    cert = certified_bounds(results, current_tau, 0.1) if current_tau is not None else None
+    if cert:
+        a_, c_ = cert["absent_let_through"], cert["covered_refused"]
+        sys.stdout.write(
+            f"\nADR-036: at tau {current_tau}, {a_['violated']} of {a_['topics']} absent topics have a wording "
+            f"that passes (<= {a_['upper_bound']:.0%} at 90 %); {c_['violated']} of {c_['topics']} covered "
+            f"topics have a wording refused (<= {c_['upper_bound']:.0%})\n"
+        )
     run_id = datetime.now(UTC).strftime("tau-%Y%m%dT%H%M%SZ")
     record = {"run_id": run_id, "embedder": {"model": emb.model, "revision": emb.revision},
               "reranker": rerank_label(reranker.name, s), "auc": round(auc(cs, as_), 4), "probes": str(PROBES.name), "probes_authored_by": probes["authored_by"],
-              "n_covered": len(cov), "n_absent": len(absn), "pick": pick, "min_fragments": mf,
+              "n_covered": len(cov), "n_absent": len(absn), "pick": pick, "min_fragments": mf, "certified": cert,
               "corpus_generation": generation, "results": results}  # fmt: skip
     runs = ROOT / "evals" / "runs"
     runs.mkdir(exist_ok=True)

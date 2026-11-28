@@ -606,7 +606,7 @@ below are the original one-liners and are Accepted.
   from ~50-100 lawyer labels; agreement numbers say how far to trust the graders; (−) needs the judge of ADR-034; the
   estimator and the sampling are code that must be tested like the rest of the harness. Pending: owner's choice; two
   lawyers; the review page of E2E-LAB-01 as the first labels. Research: docs/RESEARCH.md §4.
-- ADR-036 (Proposed, 2026-11-26): The refusal threshold is chosen by conformal risk control, per document type, with a
+- ADR-036 (Accepted 2026-11-28 for reporting, decided by Claude under the owner's delegation of 2026-11-28; τ unchanged): The refusal threshold is chosen by conformal risk control, per document type, with a
   stated error bound. Context: tau = 0.58 was picked by inspection (tau-20261107T212422Z: answers 87.7 % of covered,
   refuses 80.3 % of absent; no tau met both targets); in E2E-LAB-01 a contract question scored 0.571 and was refused
   because tau was calibrated on statute text. Conformal abstention (Abbasi-Yadkori et al., 2024; COIN; the Angelopoulos et al.
@@ -618,6 +618,18 @@ below are the original one-liners and are Accepted.
   their own threshold; (−) the guarantee assumes calibration and real questions are exchangeable, which the AI-drafted
   probe sets do not ensure (66 absent wordings come from only 22 topics); needs probe sets of firm documents. Pending:
   owner's choice; lawyer-reviewed probe sets per group. Research: docs/RESEARCH.md §6.
+  Measured 2026-11-28 on `tau-20261127T210329Z` (generation 4), with the TOPIC as the unit (a topic fails if any of
+  its wordings crosses the gate; exact one-sided Clopper-Pearson, 90 % confidence; `evals.calibrate_tau`
+  `certified_bounds`/`conformal_tau`, 5 tests). At the live τ = 0.58: 10 of 22 absent topics have a wording that
+  passes (bound <= 61 %) and 7 of 27 covered topics have a wording refused (<= 40 %). The wording-level figures
+  (80.3 % / 87.7 %) hid that. The best these 22 topics can certify is ~10 %, and only at τ = 0.65, which refuses 23
+  of 27 covered topics. Options weighed: (1) adopt the certified τ 0.65 (rejected: the assistant would refuse almost
+  everything); (2) a group-conditional τ (C) (not possible yet: there is no probe set of firm documents);
+  (3) keep τ and report the bounds. Decision: (3). τ stays 0.58; every calibration run now records the certified
+  bounds; the docs say plainly that the gate is a first filter, not the guarantee: an absent topic that passes the
+  gate still needs answers the validator can ground, or it is refused. Consequence: no guarantee on the gate until
+  the probe sets grow; with zero violations, a 5 % bound at 90 % needs about 45 topics, a 1 % one about 230.
+  Pending: lawyer-reviewed probe sets with more topics; a firm-document probe set for option C.
 - ADR-037 (Proposed, 2026-11-26): Four retrieval experiments are run, each kept only if the golden suite says so. Context:
   recall@8 is 1.00 on 25 easy cases, but distractors reach the top 8 in 16 % of cases and the dense signal could not
   separate same-numbered articles (ADR-022); the cross-encoder lost on AUC (0.892 vs 0.934) and was 16x slower.
@@ -703,7 +715,7 @@ below are the original one-liners and are Accepted.
   Consequences: (+) possibly faster generation of quoted text at no quality cost (speculative decoding does not change the
   output distribution); (−) depends on ADR-040's runtime (`llama-server`); gains at batch size 1 on consumer hardware are
   uncertain. Pending: owner's choice; tokens/s on real answers with and without. Research: docs/RESEARCH.md §14.
-- ADR-045 (Proposed, 2026-11-26): Vectors are stored as half precision (`halfvec`), and binary quantization stays unused at
+- ADR-045 (Rejected at this scale 2026-11-28, decided by Claude under the owner's delegation of 2026-11-28; tripwire registered): Vectors are stored as half precision (`halfvec`), and binary quantization stays unused at
   this scale. Context: pgvector 0.7+ offers `halfvec`, reported to halve vector and index storage with similar search
   quality, and binary quantization with full-precision rescoring for large collections; the corpus holds ~18 900 chunks.
   Options: (A) keep `vector(1024)`; (B) `halfvec(1024)` for the column and the HNSW index; (C) binary quantization plus
@@ -711,6 +723,11 @@ below are the original one-liners and are Accepted.
   and the index, which matters as firms upload documents; (−) a change of stored representation, built aside as a new
   generation (ADR-006) with a retrieval-only golden run; no latency gain expected at this size. Pending: owner's choice;
   recall@8 and scores before and after (the tau calibration uses these scores). Research: docs/RESEARCH.md §15.
+  Decided 2026-11-28 without building it: the live index holds about 20 000 chunks, so 1024 float4 dimensions take
+  about 80 MB and halfvec would save about 40 MB, on a machine where the drafting model needs several GB; the cost is a
+  new index generation (ADR-006), a retrieval-only golden run and a τ recalibration (the scores move). No latency gain
+  is expected at this size (ADR-041 measured retrieval at 0.56 s, mostly reranking). Kept as the first option once
+  memory matters: Revisit at >500k chunks (ops tripwire `chunks-total-halfvec`).
 - ADR-046 (Proposed, 2026-11-26): The embedder is adapted to this corpus with hard negatives taken from its own confusions.
   Context: the dense signal could not tell "art. 123 fracc. XIII CPF" from "art. 123-B-XIII CPEUM" (ADR-022), and
   distractors reach the top 8 in 16 % of golden cases. GPL (Wang et al., NAACL 2022) adapts a dense retriever with

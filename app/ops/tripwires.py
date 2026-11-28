@@ -65,6 +65,14 @@ TRIPWIRES: tuple[Tripwire, ...] = (
         description="Re-measure the retrieval plan shapes under RLS at corpus scale.",
     ),
     Tripwire(
+        id="chunks-total-halfvec",
+        adr="ADR-045",
+        metric="chunks_total",
+        op=">",
+        threshold=500_000,
+        description="Half-precision vectors: memory starts to matter; build and measure halfvec.",
+    ),
+    Tripwire(
         id="chunks-exceed-window",
         adr="ADR-012",
         metric="chunks_exceeding_window",
