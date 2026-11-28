@@ -57,7 +57,8 @@
 
 ## Retrieval defaults (tune only via eval evidence)
 - Semantic arm: top 40, cosine, prefiltered. Lexical arm: top 40, websearch_to_tsquery, prefiltered.
-- Fusion: RRF k=60 → top 20. Rerank: multilingual cross-encoder → top 8.
+- Fusion: RRF k=60 → top 20. Rerank: dense cosine → top 5 (ADR-042 D, 2026-11-28; was 8: same golden outcomes,
+  4x fewer regenerations, p90 answer 72 s -> 49 s).
 - Determinism: RRF and every sort break ties by a stable secondary key (`cite_id`), never by
   insertion or DB order, so a run is reproducible and `--compare` diffs are real. Property test:
   same inputs → same ranking, and fusion depends only on ranks (never on raw scores).

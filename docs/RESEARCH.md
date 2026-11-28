@@ -28,7 +28,8 @@ the reverse (invariant 6). What has been built since is listed below; the sectio
 | 045 | §15 | Rejected at this scale | Saves ~40 MB on 20k chunks; tripwire at 500k chunks |
 | 048 | §18 | Rejected | Convex fusion equal to RRF at every alpha: the dense reranker re-orders the pool |
 | 050 | §20 | Accepted for B and D | As-of date in the predicate, conversations and UI; a reform retires the old version at the new one's entry into force; temporal track 4/4 on retrieval |
-| 034, 035, 039, 040, 042, 044, 046, 047 | | Proposed | Not built; each ADR records what unblocks it (a download, an install or lawyer labels) |
+| 042 | §12 | D accepted | 5 fragments instead of 8: same outcome on every golden case, regenerations 0.16 -> 0.04, p90 answer 72 s -> 49 s |
+| 034, 035, 039, 040, 044, 046, 047 | | Proposed | Not built; each ADR records what unblocks it (a download, an install or lawyer labels) |
 
 Found while building these and recorded as new decisions: ADR-051 (a decree credited with a change its own list does
 not make is caught by code) and ADR-052 (decree headings are hidden units and decree dates travel in citations). The

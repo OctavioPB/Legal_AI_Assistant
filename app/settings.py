@@ -37,7 +37,9 @@ class Settings(BaseSettings):
     retrieval_crossref: bool = False
     retrieval_crossref_max: int = 3  # referenced stems (articles or fracciones) per query
     retrieval_crossref_max_units: int = 6  # units loaded for them
-    retrieval_rerank_top: int = 8
+    # ADR-042 (D), 2026-11-28: 5 instead of 8. Same golden outcome on every case, regenerations
+    # 0.16 -> 0.04, p90 answer 71.9 s -> 49.2 s, char precision 0.133 -> 0.201 (recall 0.89 -> 0.85)
+    retrieval_rerank_top: int = 5
     retrieval_context_budget_tokens: int = 12_000
     # tau is CALIBRATED from probe sets (ADR-007), never guessed: None = the gate refuses to run.
     refusal_tau: float | None = None

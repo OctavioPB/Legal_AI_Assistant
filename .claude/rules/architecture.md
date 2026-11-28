@@ -711,7 +711,7 @@ below are the original one-liners and are Accepted.
   per-stage numbers every later change is measured against; (−) keeping two models resident on 8 GB may push more of
   the drafting model to CPU (interacts with ADR-040). Pending: owner's choice; the per-stage profile. Research:
   docs/RESEARCH.md §11.
-- ADR-042 (Proposed, 2026-11-26): Irrelevant citable units are pruned from the context before generation, never words
+- ADR-042 (Accepted 2026-11-28 for D: 5 fragments instead of 8, decided by Claude under the owner's delegation of 2026-11-28; B pending a pruner model): Irrelevant citable units are pruned from the context before generation, never words
   inside a unit. Context: prefill runs at 375 tokens/s, so the 12 000-token context budget costs about 32 s per attempt,
   and a regeneration pays it again; rag.md already notes that fewer good fragments beat many mediocre ones. Provence
   (Chirkova et al., ICLR 2025) prunes sentences inside the reranker's own forward pass at almost no extra cost; XProvence
@@ -722,6 +722,12 @@ below are the original one-liners and are Accepted.
   Consequences: (+) fewer prefill tokens and less distraction for the model; (−) a pruned unit is not citable, so a
   correct citation can become impossible (the ADR-020 failure in reverse); the pruner is a model to pin. Pending:
   owner's choice; faithfulness and false-refusal runs with and without pruning. Measured 2026-11-26 (`evals/profile_retrieval.py`): retrieval itself is 0.56 s at the median (query embedding 0.02 s, both arms < 0.1 s, the dense rerank of 21 texts 0.36 s), with or without the drafting model resident. The 3-9 s seen in full runs was Ollama keeping ONE model at a time: each turn unloaded gemma to embed the query (bge-m3 reload ~4.5-6.5 s) and reloaded gemma to generate (17-21 s); fewer GPU layers for gemma did not help, running bge-m3 on CPU made Ollama unload gemma anyway. With `OLLAMA_MAX_LOADED_MODELS=3` (tested on a second, temporary Ollama on port 11435) both stay loaded: gemma reload 0 s, embedding 0.4 s, generation unchanged (27-29 tokens/s); the same four golden cases went from a median of 61 s to 28 s end to end and retrieval from ~7 s to ~1.2 s (`golden-20261127T044716Z-adr041-latency-check` vs `...-adr041-after-coresident`; 4 cases, one regenerated in the first run). `scripts/dev-up.ps1` sets the variable when it starts Ollama and warns otherwise; `doctor` checks it; docs/LOCAL_DEMO.md documents it. Pending: setting it on each machine whose Ollama starts outside the script (the Windows tray app reads the user variable at start). Research: docs/RESEARCH.md §12.
+  D measured 2026-11-28 (`golden-20261128T032627Z-adr042D-top5`, retrieval_rerank_top 5) against the three typed runs of
+  ADR-033 (8): every case the same outcome (0 better, 0 worse; false refusal 1/20, gold cited 0.947, recall 0.95),
+  regenerations 0.16 -> 0.04, median answer 39.9 s -> 35.7 s, p90 71.9 s -> 49.2 s, char precision 0.133 -> 0.201,
+  char recall 0.890 -> 0.850. Decision: default 5. Not measured: faithfulness (no lawyer grades yet); the lower char
+  recall means some gold text is no longer shown, though no answer changed. The τ gate reads the best score, so the
+  calibration is unaffected. B (pruning units inside the context) stays Proposed: it needs a pruner model (download).
 - ADR-043 (Accepted 2026-11-26: verified already true, now guarded by a test): The regeneration prompt keeps the first attempt's prompt as an exact prefix, so its
   prefill is reused. Context: one regeneration is allowed per answer (rag.md); llama.cpp, under Ollama too, reuses the
   KV cache for an identical prompt prefix; at 375 tokens/s a 12k-token context is about 32 s of prefill. Whether today's
