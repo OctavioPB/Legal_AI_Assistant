@@ -347,7 +347,7 @@ below are the original one-liners and are Accepted.
   review of the golden set before any profile becomes the default; per-firm data-processing terms with Anthropic
   (legal, not code).
 
-- ADR-025 (Proposed, implemented 2026-11-14 under the product owner's instruction "desarrolla los módulos
+- ADR-025 (Accepted 2026-11-28 for (1), (3) and (7), confirmed by Claude under the owner's delegation of 2026-11-28; implemented 2026-11-14 under the product owner's instruction "desarrolla los módulos
   faltantes"; the choices below await confirmation): The firm's own documents (client files), scoped to a matter.
   Context: the demo's exit criterion includes "upload de expediente" (WS6.T07, WS2.T01) and nothing let a lawyer
   work on their own contract, brief or ruling; the schema already reserved `doc_type='client_file'` and the `CF-`
@@ -389,7 +389,13 @@ below are the original one-liners and are Accepted.
   Pending: owner confirmation of (1), (3) and (7); lawyer review of the generic grammar on real contracts and
   rulings; probe sets with firm documents; OCR; moving a file between matters; footnotes of .docx files.
 
-- ADR-026 (Proposed, 2026-11-17; options A + C chosen by the product owner, the approval channel awaits
+  Confirmed 2026-11-28: (1) one in-process background thread stays the demo's path (a restart is reported as
+  `interrupted`, nothing half-written; Celery remains the multi-process path); (3) per-matter visibility with the
+  RESTRICTIVE `matter_scoped` template and the cascade on matter deletion, covered by the isolation tests;
+  (7) the uploader or a firm admin may delete a file with its text and vectors. OCR, the other pending item, was
+  built by ADR-030. Still pending: lawyer review of the generic grammar on real contracts and rulings; probe sets of
+  firm documents (ADR-036 C); moving a file between matters; .docx footnotes.
+- ADR-026 (Accepted 2026-11-28, options A + C chosen by the product owner, the operator-only approval channel confirmed by Claude under the owner's delegation of 2026-11-28; the approval channel awaited
   confirmation): Discover laws from official indexes; give every loaded source an official route. Amends ADR-017
   (a) for the network list. Context: the watcher only followed reforms of the 8 laws loaded, 4 of them through the
   hand-fed inbox; nothing told a lawyer that a law exists that is not loaded. Options: (A) read official indexes
@@ -422,6 +428,11 @@ below are the original one-liners and are Accepted.
   monterrey.gob.mx and leginfo; state and municipal indexes (Periódico Oficial de NL, Gaceta Municipal de
   Monterrey) one at a time, each after that review.
 
+  Confirmed 2026-11-28: approval stays an operator command (`app.ingestion.discover approve ... --by NAME`), not a web
+  button. The public corpus is shared by every firm and the API role can never write it (ADR-010 c, tested); a
+  platform-admin role in the web would need a separate privileged service, a larger and riskier change for a step
+  that happens a few times a year. Still pending (not delegable): a person reviews the terms of use of hcnl.gob.mx,
+  monterrey.gob.mx and leginfo; state and municipal indexes one at a time after that review.
 - ADR-027 (Accepted 2026-11-17, every option chosen by the product owner): A legal news feed of 30 items, from official
   sources and press, chosen by fixed rules, shown in the sources' own words. Amends ADR-017 (a) again: the job
   that may reach the network now also reads a closed list of news sources, and for the first time some are NOT
