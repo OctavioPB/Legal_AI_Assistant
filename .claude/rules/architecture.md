@@ -611,8 +611,13 @@ below are the original one-liners and are Accepted.
   2026-11-28, `dossier_builder_typed@v2` (decided by Claude under the owner's delegation): the framing line states the
   rule code enforces (opens with "A continuación", "En seguida" or "En síntesis", nothing legal) instead of an example
   sentence. `golden-20261128T034255Z-adr033-typed-v2` vs the three v1 runs: every case the same outcome, retrieval
-  identical, framing lines 5 copies of the example -> 0. Pinned as the production version. gd2-024 is still declined
-  under typed records (still pending).
+  identical, framing lines 5 copies of the example -> 0. Pinned as the production version.
+  gd2-024 under typed records, investigated 2026-11-28 (real typed prompt, 3 calls per variant): the model returns
+  only the restated question and a gap for section II; telling it that what a cited decree repeals is fragment
+  content changes nothing (3/3 declined). Reading: with records it looks for the article's own text, which a repealed
+  article no longer has, and does not turn "a decree repealed it" into a law record; free text reasoned its way there.
+  Left as is on purpose: an instruction written to rescue one golden case would overfit the 25 ai-draft cases, and the
+  behaviour fails closed (a refusal, never a wrong answer). Revisit with lawyer-written cases about repealed articles.
 - ADR-034 (Proposed, 2026-11-26): A small local fact-checker scores each cited sentence against its fragment, shown as a
   warning until its agreement with lawyers is measured. Context: `faithfulness` is null in every run; the validator checks
   only verbatim quotations, so a paraphrase that inverts its source passes (rag.md). MiniCheck (Tang, Laban, Durrett,
