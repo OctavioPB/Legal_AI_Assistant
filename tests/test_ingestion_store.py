@@ -211,3 +211,26 @@ def test_the_us_grammar_goes_through_the_same_store(ingestor_engine: Engine, fed
     with tenant_transaction(ingestor_engine, PUBLIC_CORPUS_TENANT_ID, allow_public=True) as c:
         ids = c.execute(text("SELECT cite_id FROM chunks ORDER BY cite_id")).scalars().all()
     assert all(i.startswith("US-CA-LAB-SEC1102P5") for i in ids), ids
+
+
+def test_a_reform_retires_the_old_version_when_the_new_one_enters_into_force(
+    ingestor_engine: Engine, fed_id: int
+) -> None:
+    """ADR-050: seen on the CPF, the old version kept `valid_to` = the day the watcher detected the
+    reform, after the new version's `valid_from`: two versions "in force" for twelve days."""
+    from datetime import date
+
+    emb = CountingEmbedder()
+    _ingest(ingestor_engine, fed_id, emb, FIXTURES["derogated"], "2025.06")
+    reformed = FIXTURES["derogated"].replace("Artículo 9.-", "Artículo 9.- (Reformado) ")
+    ingest_document(
+        ingestor_engine, PUBLIC_CORPUS_TENANT_ID, meta=_meta("2026.01"), doc_type="ley",
+        jurisdiction_id=fed_id, source_uri="file://lft.txt", raw_text=reformed, embedder=emb,
+        counter=ApproxCounter(), official_id="LFT", valid_from=date(2026, 1, 15),
+    )  # fmt: skip
+    with tenant_transaction(ingestor_engine, PUBLIC_CORPUS_TENANT_ID, allow_public=True) as c:
+        rows = c.execute(
+            text("SELECT version_label, valid_from, valid_to FROM documents ORDER BY version_label")
+        ).all()
+    assert rows[0].version_label == "2025.06" and rows[0].valid_to == date(2026, 1, 15)
+    assert rows[1].valid_from == date(2026, 1, 15) and rows[1].valid_to is None

@@ -237,12 +237,17 @@ def ingest_document(
         if official_id is not None:
             old = list(
                 s.execute(
+                    # ADR-050: the old version is in force until the new one is, not until the day
+                    # the reform was detected (that left two versions both "in force" for days);
+                    # unknown entry into force keeps the detection day, never before its own start
                     text(
-                        "UPDATE documents SET valid_to = COALESCE(valid_to, current_date) "
+                        "UPDATE documents SET valid_to = GREATEST("
+                        "COALESCE(CAST(:vf AS date), current_date), "
+                        "COALESCE(valid_from, CAST('-infinity' AS date))) "
                         "WHERE tenant_id = :t AND official_id = :o AND valid_to IS NULL "
                         "RETURNING id"
                     ),
-                    {"t": tenant_id, "o": official_id},
+                    {"t": tenant_id, "o": official_id, "vf": valid_from},
                 )
                 .scalars()
                 .all()
