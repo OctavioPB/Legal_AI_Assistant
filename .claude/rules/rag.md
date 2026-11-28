@@ -136,7 +136,7 @@
   reform decree's list, and says article X was repealed / reformed / added, must find X under one of its verbs in a
   cited decree's list; otherwise `decree_mismatches` -> regenerate once -> refusal. Numbers before a chunk's first
   verb are `unknown` and defer to the expanded article's own list.
-- Typed records (ADR-033, experimental, `typed_records_workflows`, off by default; Dossier Builder only): the model
+- Typed records (ADR-033, adopted 2026-11-28 for Dossier Builder on schema-capable local clients; `typed_records_workflows`, `()` turns it off): the model
   answers `{"records": [{section, kind, text, cites}]}` under a JSON schema (Ollama `format`); code renders them into
   the workflow's text, writes section (V) from the cited ids, and validates the rendered text with the SAME checks.
   `law` needs a citation; `analysis` is rendered with `[análisis propio]`; `framing` is the only uncited, untagged

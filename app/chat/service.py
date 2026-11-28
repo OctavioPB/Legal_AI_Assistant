@@ -389,6 +389,7 @@ def answer_query(
             refusal_block=result.refusal.block if result.refusal else None,
             refusal_reason=result.refusal.reason_key if result.refusal else None,
             prompt_versions=prompt.versions,
+            typed_citations=_citation_strings(retrieval) if typed else None,
             prompt_sha256=prompt.sha256,
             prompt_system=prompt.system,
             context=context,
@@ -399,6 +400,7 @@ def answer_query(
                     alias=a.alias,
                     resolved_model_id=a.resolved_model_id,
                     verdict=v,
+                    raw_output=a.raw_output,
                 )
                 for a, v in zip(result.attempts, result.verdicts, strict=True)
             ),

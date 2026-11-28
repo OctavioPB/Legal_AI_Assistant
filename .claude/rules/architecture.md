@@ -7,7 +7,7 @@
 - `app/orchestration/` — LiteLLM client, task-alias routing table, fallbacks.
 - `app/validation/` — citation parser, existence/coverage checks, regeneration loop; `decrees.py` reads a reform
   decree's list of reformed/added/repealed articles (ADR-051); `records.py` parses, checks and renders typed records
-  (ADR-033, behind `typed_records_workflows`, off by default).
+  (ADR-033, Dossier Builder on local clients, `typed_records_workflows`).
 - `app/ingestion/` — Docling wrapper, legal normalizer grammars, chunker, embedder (Celery tasks only).
 - `app/db/` — SQLAlchemy models, RLS session middleware, migrations (alembic).
 - `app/api/files.py` + `app/ingestion/extract.py` + `normalizer_generic.py` (+ `pdf_read.py`, `ocr.py` for scanned
@@ -557,7 +557,7 @@ below are the original one-liners and are Accepted.
   B. Consequences: (+) claims become statements with bounds; the noise rule becomes a test; (−) the honest intervals are
   wide today and will look worse than the point numbers; case authoring is lawyer time. Pending: owner's choice; lawyer
   authors/reviewers for the new cases. Implemented 2026-11-26: `evals/stats.py` (Clopper-Pearson and exact McNemar, standard library, checked against scipy and a textbook value), `summary.intervals` and `intervals_by_category` in every run report, `evals.run --intervals <run>` to re-score stored runs, and `--compare` now calls a change an improvement only when McNemar gives p < 0.05 (3 better / 0 worse is p = 0.25: within noise); the README quotes every rate with its interval. Still Pending: lawyer-authored or reviewed cases toward 60 isolation and 60 refusal cases. Research: docs/RESEARCH.md §2.
-- ADR-033 (Proposed, 2026-11-26): The model emits each sentence as a typed record (law / reasoning / framing, with its
+- ADR-033 (Accepted 2026-11-28 for Dossier Builder on local profiles, option B, decided by Claude under the owner's delegation of 2026-11-28): The model emits each sentence as a typed record (law / reasoning / framing, with its
   citations) under a JSON schema, and the validator checks fields. Context: every failing attempt inspected for ADR-015
   failed only on coverage (correct but uncited closing sentences); Qwen's false refusal is 17/20 with a 0.72 regeneration
   rate; the sentence splitter is heuristic (rag.md lists its special cases). Ollama accepts a JSON schema for structured
@@ -583,6 +583,20 @@ below are the original one-liners and are Accepted.
   category worse. Read in the answers: B's 5 framing lines are all the prompt's own example sentence (the model copies
   it); the gain comes from per-item citations in lists, not from framing. Pending: owner's decision; repeated runs
   before calling the gain real (eval-runner: >= 3 runs for LLM-dependent changes).
+  Repeated 2026-11-28, alternating the arms (`...-adr033-base-rep{2,3}`, `...-adr033-B-rep{2,3}`): every run gave the
+  same outcome per case, so the model is deterministic here (T = 0, fixed seed) and repeats add no information
+  beyond that. Pooled over 3 runs per arm: false refusals 2, 2, 2 (baseline) vs 1, 1, 1 (typed); gd2-005 0/3 -> 3/3,
+  gd2-025 0/3 -> 3/3, gd2-024 3/3 -> 0/3, gd2-006 0/3 on both (its gold is never retrieved); per category statutory
+  lookup 0.75 -> 0.88, temporal validity 0.50 -> 0.50, every other category 1.00 on both; retrieval identical
+  (char precision 0.133, recall 0.89, ADR-037 D). Options weighed: adopt; keep off; reject. Decision: adopt for
+  Dossier Builder on schema-capable (local) clients (`typed_records_workflows` default `("dossier_builder",)`; the
+  Claude profile keeps free text; `()` turns it off). Reasons: a consistent net gain of one case with no category
+  worse; the contract is unchanged (same validator on the rendered text) and the only uncited kind is stricter than
+  free text; one setting reverts it. Not claimed: significance (2 better / 1 worse cannot be significant on 25
+  cases). Built with it: traces keep each typed attempt's raw records and the citation strings, so `replay`
+  re-derives the typed prompt and verdicts exactly (a test caught that it did not). Pending: why gd2-024 is
+  declined under typed records; a `dossier_builder_typed@v2` without the example transition the model copies
+  verbatim (5 of 19 answers), measured like any prompt change; lawyer-reviewed golden cases.
 - ADR-034 (Proposed, 2026-11-26): A small local fact-checker scores each cited sentence against its fragment, shown as a
   warning until its agreement with lawyers is measured. Context: `faithfulness` is null in every run; the validator checks
   only verbatim quotations, so a paraphrase that inverts its source passes (rag.md). MiniCheck (Tang, Laban, Durrett,

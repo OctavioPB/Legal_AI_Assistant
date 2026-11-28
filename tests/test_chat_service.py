@@ -6,6 +6,7 @@ inside fragments, malicious user text, forged catalog values, copied example mar
 
 from __future__ import annotations
 
+import json
 import re
 import uuid
 
@@ -371,3 +372,41 @@ def test_a_cited_unit_of_an_expanded_article_is_valid_and_named() -> None:
     )  # fmt: skip
     assert v.grounded and v.cited == (unit,) and not v.bad_quotes
     assert [c.citation_string for c in _citations(r, v.cited)] == ["LFT, art. 47, fracc. II"]
+
+
+class TypedLLM(ScriptedLLM):
+    """ADR-033: a client that accepts a JSON schema (like Ollama) and answers in records."""
+
+    supports_schema = True
+
+    def complete(  # type: ignore[override]
+        self, alias: AliasName, *, system: str, user: str, max_tokens: int, tenant_id: str,
+        schema: object = None,
+    ) -> LLMResult:  # fmt: skip
+        self.calls.append({"alias": alias, "system": system, "user": user, "schema": schema})
+        cid = re.search(r'cite_id="([^"]+)"', system).group(1)  # type: ignore[union-attr]
+        records = {"records": [
+            {"section": "I", "kind": "analysis", "text": "Se consulta la rescisión.", "cites": []},
+            {"section": "II", "kind": "law",
+             "text": "La rescisión procede por las causas graves que enumera la norma.", "cites": [cid]},
+        ]}  # fmt: skip
+        return LLMResult(text=json.dumps(records, ensure_ascii=False), alias=alias,
+                         resolved_model_id="typed-1")  # fmt: skip
+
+
+def test_dossier_builder_answers_in_typed_records_when_the_client_can_and_free_text_otherwise(
+    app_engine: Engine, corpus: dict, tenant_a: uuid.UUID
+) -> None:  # type: ignore[type-arg]
+    """ADR-033, adopted 2026-11-28: the default routes Dossier Builder to typed records only with a
+    schema-capable client; the rendered answer is what the user sees and what is validated."""
+    query = "artículo 47 rescisión certificados falsos probidad"
+    tracer, typed = InMemoryTracer(), TypedLLM()
+    res = ask(app_engine, tenant_a, corpus["fed"], deps(typed, tracer=tracer), query)  # type: ignore[arg-type]
+    assert res.status == "answered" and res.answer is not None
+    assert typed.calls[0]["schema"] is not None and "registros JSON" in typed.calls[0]["system"]
+    assert "(V) Fuentes citadas" in res.answer and "[cite: " in res.answer
+    trace = tracer.get(tenant_a, res.request_id)
+    assert replay(trace).prompt_matches is True  # the typed prompt is reconstructible too
+    plain = ScriptedLLM("FAITHFUL")  # no supports_schema: free text, as before
+    res2 = ask(app_engine, tenant_a, corpus["fed"], deps(plain), query)
+    assert res2.status == "answered" and "registros JSON" not in plain.calls[0]["system"]

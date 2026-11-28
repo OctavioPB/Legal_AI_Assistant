@@ -18,7 +18,7 @@ the reverse (invariant 6). What has been built since is listed below; the sectio
 |---|---|---|---|
 | 031 | §1 | Accepted, warning mode | LFT regime of each cited unit, warning when it contradicts the matter; flags exactly the 3 regime errors of E2E-LAB-01 |
 | 032 | §2 | Accepted (statistics) | Clopper-Pearson intervals in every run, exact McNemar in `--compare`; growing the set stays pending |
-| 033 | §5 | In measurement | Typed records (B) built behind a switch, off by default; golden runs of B and of a prompt-only variant (C) against the baseline |
+| 033 | §5 | Accepted for Dossier Builder (local) | Typed records under a JSON schema: false refusals 2 -> 1 of 20 in each of 3 runs per arm (2 cases better, 1 worse, no category worse); the prompt-only variant (C) lost twice |
 | 038 | §8 | Accepted for A and B | Mutation check (15 of 15 mutants killed) and a replay suite of real model outputs |
 | 041 | §11 | Accepted | Retrieval is 0.56 s; the slow turns were Ollama swapping models; `OLLAMA_MAX_LOADED_MODELS=3` |
 | 043 | §13 | Accepted | The retry already reuses the cached prompt prefix (0.8 s vs 14.1 s); now guarded by a test |

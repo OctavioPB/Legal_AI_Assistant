@@ -388,7 +388,7 @@ and the law use.
 |---|---|
 | `app/api/` | Thin FastAPI routers: auth, session validation, delegation |
 | `app/rag/` | Jurisdiction predicate, hybrid search, fusion, gate, context assembly |
-| `app/validation/` | Citation parser, verbatim and coverage checks, decree-list check, typed records (experimental), regeneration loop |
+| `app/validation/` | Citation parser, verbatim and coverage checks, decree-list check, typed records (Dossier Builder), regeneration loop |
 | `app/prompts/` | Versioned prompt layers, pinned by hash |
 | `app/ingestion/` | Legal-structure grammars, chunker, reform watcher, firm documents, source canary |
 | `app/news/` | The legal news feed: sources, fixed-rule scoring, pipeline |
